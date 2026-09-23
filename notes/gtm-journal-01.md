@@ -30,6 +30,7 @@ Produce a GTM proposal for an asynchronous singing-coaching platform (PT-style: 
 - Windows 11; PowerShell primary, Git Bash available. Global CLAUDE.md asks for small single-purpose shell calls and relative markdown links; delegates inherit this.
 - A throwaway Whisper venv lives in the session scratchpad, not the repo. Nothing in the repo depends on it.
 - Research briefs land in `notes/research/NN-<topic>.md`, one per work package.
+- **Stopping local servers on Windows:** kill only the `node.exe` whose command line contains `singology-app`, plus the repo's `workerd.exe`. Many unrelated `node.exe` processes run on this machine (F12).
 - **Git (from 2026-09-23):** a local repo on `main`, with no remote yet. `.gitattributes` forces LF (`* text=auto eol=lf`), overriding the machine's global CRLF conversion; keep it that way for the Workers/Linux toolchain. `.gitignore` excludes source audio (`*.ogg` and similar: the founder's voice is personal data, so only the transcript is tracked), `.playwright-mcp/` agent artefacts, secrets (`.env*`, `.dev.vars`), and future build output (`node_modules/`, `.wrangler/`, `.react-router/`).
 
 ## 4. Next work
@@ -253,5 +254,10 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Pitfall 6 (Range)** is ruled in D31.
 - **Pitfall 7:** Playwright WebKit on Windows has neither native HLS nor MSE, so it falls back to MP4. **Real iOS Safari HLS remains untested** until a device check.
 - **Pitfall 5:** pnpm and path case on Windows.
+
+**F12. D31's facade fix landed and was convicted by mutation.** Commits `ed79e6f` to `2f8ec9d`. The Worker entry serves `/media/*` ahead of React Router through `assets.run_worker_first`, with a unit-tested pure range parser.
+- **Lead's own check against `pnpm preview`:** `Range: bytes=0-99` on `student-take-a.m4a` returned `206`, `content-range: bytes 0-99/611219`, `content-length: 100`.
+- **Delegate's mutation run:** with the route disabled, the tightened Chromium seek test failed 6 of 6 (the seek landed at 0). With it enabled, the test passed 12 of 12 across both browsers. The test throttles `.m4a` to 64 KB/s so media is genuinely unbuffered at click time. Without throttling, Chromium sometimes buffered the whole file and masked the bug.
+- **Operational:** stop preview servers by matching the command line to this repo (`Win32_Process` where CommandLine contains `singology-app`) plus the repo's `workerd.exe`. Other `node.exe` processes on this machine are unrelated and must not be killed.
 
 **F5. WP4 and WP5 differ slightly on CoachNow.** WP4 says there's no multi-coach payout from one sale. WP5 found that CoachNow Academy has Stripe Connect and multi-coach roles, but per-coach pricing is unverified. The lead's re-fetch confirms Academy includes "Invoicing and Billing through Stripe Connect" and "Flexible Multi-Coach Pricing Available". **The difference doesn't affect the plan:** the pilot takes payment through Stripe Payment Links outside the tool, and the build owns its DB either way.
