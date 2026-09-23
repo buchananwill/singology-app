@@ -1,0 +1,26 @@
+# Source recordings: personal data, kept out of history (the transcript is tracked)
+*.ogg
+*.m4a
+*.mp3
+*.wav
+
+# Agent tool artefacts
+.playwright-mcp/
+
+# Secrets
+.env
+.env.*
+.dev.vars
+
+# Build and tooling output (for when the app is bootstrapped)
+node_modules/
+dist/
+build/
+.wrangler/
+.react-router/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
