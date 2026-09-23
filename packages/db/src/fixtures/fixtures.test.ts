@@ -233,6 +233,13 @@ describe("createFixtureRepositories", () => {
     expect(bass.length).toBeLessThan(8);
   });
 
+  it("lists a student's feedback newest first", async () => {
+    const repos = createFixtureRepositories();
+    const items = await repos.feedback.forStudent(DEMO_STUDENT_ID);
+    expect(items.map((f) => f.id)).toEqual(["fb-ada-siren-2", "fb-ada-siren-1"]);
+    expect(await repos.feedback.forStudent("student-ben")).toEqual([]);
+  });
+
   it("queues a coach's unreviewed submissions oldest first", async () => {
     const repos = createFixtureRepositories();
     const queue = await repos.submissions.queueForCoach("coach-founder");

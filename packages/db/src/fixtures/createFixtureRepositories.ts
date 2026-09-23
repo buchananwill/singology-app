@@ -79,6 +79,17 @@ export function createFixtureRepositories(data: FixtureData = fixtureData): Repo
     feedback: {
       forSubmission: async (submissionId) =>
         copy(data.feedback.find((f) => f.submissionId === submissionId)),
+      forStudent: async (studentId) => {
+        const enrolmentIds = enrolmentIdsForStudent(studentId);
+        const submissionIds = new Set(
+          data.submissions.filter((s) => enrolmentIds.has(s.enrolmentId)).map((s) => s.id),
+        );
+        return copy(
+          data.feedback
+            .filter((f) => submissionIds.has(f.submissionId))
+            .sort((a, b) => b.sentAt.localeCompare(a.sentAt)),
+        );
+      },
       comments: async (feedbackId) =>
         copy(
           data.feedbackComments

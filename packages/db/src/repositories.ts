@@ -49,6 +49,8 @@ export interface SubmissionRepository {
 
 export interface FeedbackRepository {
   forSubmission(submissionId: string): Promise<Feedback | undefined>;
+  /** Every feedback item on this student's submissions, newest first. */
+  forStudent(studentId: string): Promise<Feedback[]>;
   comments(feedbackId: string): Promise<FeedbackComment[]>;
 }
 
