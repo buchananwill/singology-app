@@ -41,6 +41,21 @@ const ROUTES: readonly RouteCase[] = [
   },
   { name: "library", path: "/library", role: "student", heading: "Exercise library", waveforms: 0 },
   { name: "coach", path: "/coach", role: "coach", heading: "Review queue", waveforms: 0 },
+  {
+    name: "coach-review-audio",
+    path: "/coach/reviews/sub-ben-hiss",
+    role: "coach",
+    heading: "Review: Ben Sample",
+    waveforms: 1,
+  },
+  {
+    name: "coach-review-video",
+    path: "/coach/reviews/sub-ada-onset",
+    role: "coach",
+    heading: "Review: Ada Example",
+    waveforms: 1,
+  },
+  { name: "coach-library", path: "/library", role: "coach", heading: "Exercise library", waveforms: 0 },
 ];
 
 async function expectWaveformsReady(page: Page, count: number): Promise<void> {
