@@ -1,0 +1,26 @@
+import { createTheme, type MantineColorsTuple } from "@mantine/core";
+
+/**
+ * Placeholder brand colour (a muted teal). Replace once the founder picks
+ * brand colours.
+ */
+const brand: MantineColorsTuple = [
+  "#e8f7f6",
+  "#d5ebe9",
+  "#a8d6d2",
+  "#78c0ba",
+  "#52aea6",
+  "#3aa299",
+  "#2b9c92",
+  "#1b887f",
+  "#0b7971",
+  "#006961",
+];
+
+export const theme = createTheme({
+  primaryColor: "brand",
+  colors: { brand },
+  defaultRadius: "md",
+  fontFamily:
+    "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+});

@@ -1,3 +1,16 @@
+import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
+
+import {
+  AppShell,
+  ColorSchemeScript,
+  Container,
+  MantineProvider,
+  mantineHtmlProps,
+  Text,
+  Title,
+} from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import type { ReactNode } from "react";
 import {
   isRouteErrorResponse,
@@ -9,18 +22,24 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { AppHeader } from "./components/AppHeader";
+import { theme } from "./theme";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-GB">
+    <html lang="en-GB" {...mantineHtmlProps}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <ColorSchemeScript defaultColorScheme="light" />
         <Meta />
         <Links />
       </head>
       <body>
-        {children}
+        <MantineProvider theme={theme} defaultColorScheme="light">
+          <Notifications />
+          {children}
+        </MantineProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -29,7 +48,16 @@ export function Layout({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <AppShell header={{ height: 56 }} padding="md">
+      <AppShell.Header>
+        <AppHeader />
+      </AppShell.Header>
+      <AppShell.Main>
+        <Outlet />
+      </AppShell.Main>
+    </AppShell>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
@@ -49,14 +77,14 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main>
-      <h1>{message}</h1>
-      <p>{details}</p>
+    <Container component="main" py="xl">
+      <Title order={1}>{message}</Title>
+      <Text>{details}</Text>
       {stack && (
         <pre>
           <code>{stack}</code>
         </pre>
       )}
-    </main>
+    </Container>
   );
 }
