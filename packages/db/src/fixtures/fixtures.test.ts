@@ -311,7 +311,7 @@ describe("createFixtureRepositories", () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const items = await repos.feedback.forStudent(DEMO_STUDENT_ID);
     expect(items.map((f) => f.id)).toEqual(["fb-ada-siren-2", "fb-ada-siren-1"]);
-    expect(await repos.feedback.forStudent("student-ben")).toEqual([]);
+    expect(await repos.feedback.forStudent("student-dev")).toEqual([]);
   });
 
   it("resolves fixture times against the now it is given", async () => {

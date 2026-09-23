@@ -135,7 +135,7 @@ const enrolments = (at: At): Enrolment[] => [
     offerId: "offer-founder-monthly",
     status: "active",
     currentPeriodEnd: at(19 * DAY),
-    submissionsUsed: 1,
+    submissionsUsed: 2,
   },
   {
     id: "enrol-cara",
@@ -276,6 +276,13 @@ const assignments = (at: At): Assignment[] => [
     status: "todo",
   },
   {
+    id: "asg-ben-hiss-1",
+    enrolmentId: "enrol-ben",
+    libraryItemId: "lib-breath-hiss",
+    assignedAt: at(-14 * DAY),
+    status: "feedback_ready",
+  },
+  {
     id: "asg-ben-hiss",
     enrolmentId: "enrol-ben",
     libraryItemId: "lib-breath-hiss",
@@ -330,6 +337,16 @@ const submissions = (at: At): Submission[] => [
     status: "awaiting_review",
   },
   {
+    id: "sub-ben-hiss-1",
+    enrolmentId: "enrol-ben",
+    assignmentId: "asg-ben-hiss-1",
+    libraryItemId: "lib-breath-hiss",
+    mediaId: "media-student-take-b",
+    note: "First try at the hiss. I'm gasping by the end.",
+    submittedAt: at(-12 * DAY - 12),
+    status: "reviewed",
+  },
+  {
     id: "sub-ben-hiss",
     enrolmentId: "enrol-ben",
     assignmentId: "asg-ben-hiss",
@@ -378,6 +395,13 @@ const feedback = (at: At): Feedback[] => [
     sentAt: at(-5 * DAY),
   },
   {
+    id: "fb-ben-hiss-1",
+    submissionId: "sub-ben-hiss-1",
+    coachId: "coach-founder",
+    body: "Good low breath to start. Most of the effort is in keeping the hiss steady, not long: stop while it still feels easy, and the length will come.",
+    sentAt: at(-10 * DAY - 10),
+  },
+  {
     id: "fb-cara-arpeggio",
     submissionId: "sub-cara-arpeggio",
     coachId: "coach-standard",
@@ -397,6 +421,9 @@ const feedbackComments: FeedbackComment[] = [
   { id: "fc-ada-2-3", feedbackId: "fb-ada-siren-2", tSeconds: 45.5, body: "Breath runs low here. Take a quick top-up before the next slide." },
   { id: "fc-ada-2-4", feedbackId: "fb-ada-siren-2", tSeconds: 58, body: "Lovely easy vibrato at the bottom." },
   { id: "fc-ada-2-5", feedbackId: "fb-ada-siren-2", tSeconds: 70, body: "Last slide: think up before you start it." },
+  { id: "fc-ben-1-1", feedbackId: "fb-ben-hiss-1", tSeconds: 5, body: "Lovely low breath in, shoulders still." },
+  { id: "fc-ben-1-2", feedbackId: "fb-ben-hiss-1", tSeconds: 18, body: "The hiss gets louder here. Keep it steady and quiet." },
+  { id: "fc-ben-1-3", feedbackId: "fb-ben-hiss-1", tSeconds: 31, body: "You're squeezing out the last air. Stop before it tightens." },
   { id: "fc-cara-1", feedbackId: "fb-cara-arpeggio", tSeconds: 8, body: "Clear, bright tone at the start." },
   { id: "fc-cara-2", feedbackId: "fb-cara-arpeggio", tSeconds: 33, body: "The notes start to run together here." },
   { id: "fc-cara-3", feedbackId: "fb-cara-arpeggio", tSeconds: 55.5, body: "Breath has stopped moving: keep it flowing." },
