@@ -41,6 +41,9 @@ importers:
       '@singology/db':
         specifier: workspace:^
         version: link:../../packages/db
+      hls.js:
+        specifier: 1.7.3
+        version: 1.7.3
       isbot:
         specifier: 5.1.40
         version: 5.1.40
@@ -53,6 +56,9 @@ importers:
       react-router:
         specifier: 8.4.0
         version: 8.4.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      wavesurfer.js:
+        specifier: 8.0.0
+        version: 8.0.0
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 1.58.0
@@ -92,6 +98,10 @@ importers:
         version: 4.137.0(@types/node@24.13.6)
 
   jobs/media:
+    dependencies:
+      '@singology/shared':
+        specifier: workspace:^
+        version: link:../../packages/shared
     devDependencies:
       '@types/node':
         specifier: ^24
@@ -1217,6 +1227,9 @@ packages:
   hermes-parser@0.25.1:
     resolution: {integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==}
 
+  hls.js@1.7.3:
+    resolution: {integrity: sha512-MsPlx6yVW4Qv4C7mEVou4/gk/5cN2dVxOTnrNjPSmyH2f0Ln+/UkG10Ax1PE6OvrmTVPKgQYozTtBaPOuCzq7A==}
+
   hookified@1.15.1:
     resolution: {integrity: sha512-MvG/clsADq1GPM2KGo2nyfaWVyn9naPiXrqIe4jYjXNZQt238kWyOGrsyc/DmRAQ+Re6yeo6yX/yoNCG5KAEVg==}
 
@@ -1810,6 +1823,9 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  wavesurfer.js@8.0.0:
+    resolution: {integrity: sha512-xvtlehwRjKim7cgr9O5fc0hweYFlnch7A5l7i2qsJWODf7s1E2ZFjHOMHOuz1/Q0LXmgR6et5I2KlFgtke4avw==}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -2869,6 +2885,8 @@ snapshots:
     dependencies:
       hermes-estree: 0.25.1
 
+  hls.js@1.7.3: {}
+
   hookified@1.15.1: {}
 
   hookified@2.2.0: {}
@@ -3356,6 +3374,8 @@ snapshots:
       '@types/node': 24.13.6
     transitivePeerDependencies:
       - msw
+
+  wavesurfer.js@8.0.0: {}
 
   which@2.0.2:
     dependencies:
