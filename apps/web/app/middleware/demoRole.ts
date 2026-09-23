@@ -1,8 +1,8 @@
-import { DEMO_STUDENT_ID } from "@singology/db";
+import { DEMO_COACH_ID, DEMO_STUDENT_ID } from "@singology/db";
 import type { DemoRole } from "@singology/shared";
 import { type MiddlewareFunction, redirect } from "react-router";
 
-import { demoRoleContext, studentIdContext } from "../context";
+import { coachIdContext, demoRoleContext, studentIdContext } from "../context";
 import { readDemoRole } from "../demo/roleCookie.server";
 
 /** Reads the role cookie into `demoRoleContext` for every request. */
@@ -26,4 +26,9 @@ export function requireDemoRole(role?: DemoRole): MiddlewareFunction<Response> {
 /** Puts the fixed demo student on the context for the student surfaces. */
 export const demoStudentMiddleware: MiddlewareFunction<Response> = ({ context }) => {
   context.set(studentIdContext, DEMO_STUDENT_ID);
+};
+
+/** Puts the fixed demo coach (the founder) on the context for the coach surfaces. */
+export const demoCoachMiddleware: MiddlewareFunction<Response> = ({ context }) => {
+  context.set(coachIdContext, DEMO_COACH_ID);
 };

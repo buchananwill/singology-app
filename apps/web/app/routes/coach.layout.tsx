@@ -1,10 +1,13 @@
 import { Outlet } from "react-router";
 
-import { requireDemoRole } from "../middleware/demoRole";
+import { demoCoachMiddleware, requireDemoRole } from "../middleware/demoRole";
 import type { Route } from "./+types/coach.layout";
 
-/** The coach surfaces: only with the coach role. */
-export const middleware: Route.MiddlewareFunction[] = [requireDemoRole("coach")];
+/** The coach surfaces: only with the coach role, always as the demo coach. */
+export const middleware: Route.MiddlewareFunction[] = [
+  requireDemoRole("coach"),
+  demoCoachMiddleware,
+];
 
 export default function CoachLayout() {
   return <Outlet />;
