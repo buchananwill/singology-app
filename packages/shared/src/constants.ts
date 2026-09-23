@@ -1,6 +1,12 @@
 /** Coach pricing tiers. The founder coaches on the premium tier. */
 export const COACH_TIERS = ["premium", "standard"] as const;
 
+/**
+ * How a coach offer is billed: a monthly plan with a set number of reviews,
+ * or one single review (05-product-landscape §MVP flows, step 4).
+ */
+export const OFFER_BILLING = ["monthly", "single"] as const;
+
 /** Every role in the WP4 data model. */
 export const ROLES = ["student", "coach", "admin", "guardian"] as const;
 

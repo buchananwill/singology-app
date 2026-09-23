@@ -7,6 +7,7 @@ import {
   ENROLMENT_STATUSES,
   LIBRARY_CATEGORIES,
   MEDIA_KINDS,
+  OFFER_BILLING,
   ROLES,
   SUBMISSION_STATUSES,
   VOICE_TYPES,
@@ -75,13 +76,18 @@ export const CoachSchema = z.object({
 });
 export type Coach = z.infer<typeof CoachSchema>;
 
+export const OfferBillingSchema = z.enum(OFFER_BILLING);
+export type OfferBilling = z.infer<typeof OfferBillingSchema>;
+
 export const CoachOfferSchema = z.object({
   id: IdSchema,
   coachId: IdSchema,
   tier: CoachTierSchema,
   name: z.string().min(1),
-  /** Monthly price in pence (GBP). */
-  pricePencePerMonth: z.number().int().nonnegative(),
+  billing: OfferBillingSchema,
+  /** Price in pence (GBP): per month for `monthly`, per review for `single`. */
+  pricePence: z.number().int().nonnegative(),
+  /** Reviews included: per month for `monthly`, always 1 for `single`. */
   submissionsPerPeriod: z.number().int().positive(),
 });
 export type CoachOffer = z.infer<typeof CoachOfferSchema>;

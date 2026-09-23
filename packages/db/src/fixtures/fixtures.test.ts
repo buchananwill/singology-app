@@ -1,3 +1,7 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import {
   AssignmentSchema,
   CoachOfferSchema,
@@ -6,6 +10,7 @@ import {
   FeedbackCommentSchema,
   FeedbackSchema,
   LibraryItemSchema,
+  LIBRARY_CATEGORIES,
   MediaAssetSchema,
   StudentSchema,
   SubmissionSchema,
@@ -13,7 +18,26 @@ import {
 import { describe, expect, it } from "vitest";
 
 import { createFixtureRepositories } from "./createFixtureRepositories";
-import { fixtureData } from "./data";
+import { DEMO_COACH_ID, DEMO_STUDENT_ID, fixtureData } from "./data";
+
+const PUBLIC_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../../apps/web/public",
+);
+
+function byId<T extends { id: string }>(items: readonly T[]): Map<string, T> {
+  return new Map(items.map((item) => [item.id, item]));
+}
+
+const coaches = byId(fixtureData.coaches);
+const offers = byId(fixtureData.coachOffers);
+const students = byId(fixtureData.students);
+const enrolments = byId(fixtureData.enrolments);
+const library = byId(fixtureData.libraryItems);
+const media = byId(fixtureData.mediaAssets);
+const assignments = byId(fixtureData.assignments);
+const submissions = byId(fixtureData.submissions);
+const feedback = byId(fixtureData.feedback);
 
 describe("fixture data", () => {
   it("parses against the shared Zod schemas", () => {
@@ -31,10 +55,154 @@ describe("fixture data", () => {
     }).not.toThrow();
   });
 
+  it("has unique ids in every collection", () => {
+    const collections: ReadonlyArray<ReadonlyArray<{ id: string }>> = Object.values(fixtureData);
+    for (const collection of collections) {
+      const ids = collection.map((item) => item.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+  });
+
+  it("has the decision 17 cast", () => {
+    expect(fixtureData.coaches.map((c) => [c.displayName, c.tier])).toEqual([
+      ["Singology founder", "premium"],
+      ["Standard coach", "standard"],
+    ]);
+    expect(fixtureData.students).toHaveLength(4);
+    expect(fixtureData.libraryItems).toHaveLength(8);
+    expect(new Set(fixtureData.libraryItems.map((i) => i.category))).toEqual(
+      new Set(LIBRARY_CATEGORIES),
+    );
+    expect(fixtureData.submissions.length).toBeGreaterThanOrEqual(5);
+    expect(fixtureData.feedback.length).toBeGreaterThanOrEqual(3);
+    for (const item of fixtureData.feedback) {
+      const count = fixtureData.feedbackComments.filter((c) => c.feedbackId === item.id).length;
+      expect(count).toBeGreaterThanOrEqual(3);
+      expect(count).toBeLessThanOrEqual(5);
+    }
+    expect(
+      fixtureData.submissions.some((s) => media.get(s.mediaId)?.kind === "video"),
+    ).toBe(true);
+    expect(new Set(fixtureData.assignments.map((a) => a.status))).toEqual(
+      new Set(["todo", "submitted", "feedback_ready"]),
+    );
+  });
+
+  it("has the illustrative pricing", () => {
+    const price = (coachId: string, billing: string) =>
+      fixtureData.coachOffers.find((o) => o.coachId === coachId && o.billing === billing)
+        ?.pricePence;
+    expect(price("coach-founder", "monthly")).toBe(8000);
+    expect(price("coach-standard", "monthly")).toBe(4500);
+    expect(price("coach-founder", "single")).toBe(2500);
+    expect(price("coach-standard", "single")).toBe(1200);
+    for (const offer of fixtureData.coachOffers) {
+      expect(offer.submissionsPerPeriod).toBe(offer.billing === "monthly" ? 4 : 1);
+      expect(offer.tier).toBe(coaches.get(offer.coachId)?.tier);
+    }
+  });
+
+  it("has two takes of the same exercise by the demo student, for A/B", () => {
+    const takes = fixtureData.submissions.filter(
+      (s) => enrolments.get(s.enrolmentId)?.studentId === DEMO_STUDENT_ID,
+    );
+    const perItem = new Map<string, Set<string>>();
+    for (const take of takes) {
+      perItem.set(take.libraryItemId, (perItem.get(take.libraryItemId) ?? new Set()).add(take.mediaId));
+    }
+    expect([...perItem.values()].some((mediaIds) => mediaIds.size >= 2)).toBe(true);
+  });
+
+  it("has demo identities that exist", () => {
+    expect(students.has(DEMO_STUDENT_ID)).toBe(true);
+    expect(coaches.has(DEMO_COACH_ID)).toBe(true);
+  });
+
+  it("has coach avatars in the web app's public folder", () => {
+    for (const coach of fixtureData.coaches) {
+      expect(existsSync(path.join(PUBLIC_DIR, ...coach.avatarSrc.split("/").filter(Boolean)))).toBe(
+        true,
+      );
+    }
+  });
+
+  it("references only existing coaches from offers", () => {
+    for (const offer of fixtureData.coachOffers) {
+      expect(coaches.has(offer.coachId)).toBe(true);
+    }
+  });
+
+  it("references existing students, coaches and that coach's offers from enrolments", () => {
+    for (const enrolment of fixtureData.enrolments) {
+      expect(students.has(enrolment.studentId)).toBe(true);
+      expect(coaches.has(enrolment.coachId)).toBe(true);
+      expect(offers.get(enrolment.offerId)?.coachId).toBe(enrolment.coachId);
+    }
+  });
+
   it("references only existing media from library items", () => {
-    const mediaIds = new Set(fixtureData.mediaAssets.map((m) => m.id));
     for (const item of fixtureData.libraryItems) {
-      expect(mediaIds).toContain(item.demoMediaId);
+      expect(media.has(item.demoMediaId)).toBe(true);
+      if (item.backingTrackMediaId !== undefined) {
+        expect(media.get(item.backingTrackMediaId)?.kind).toBe("audio");
+      }
+    }
+  });
+
+  it("references existing enrolments and library items from assignments", () => {
+    for (const assignment of fixtureData.assignments) {
+      expect(enrolments.has(assignment.enrolmentId)).toBe(true);
+      expect(library.has(assignment.libraryItemId)).toBe(true);
+    }
+  });
+
+  it("references a matching enrolment, assignment, library item and media from submissions", () => {
+    for (const submission of fixtureData.submissions) {
+      expect(enrolments.has(submission.enrolmentId)).toBe(true);
+      expect(library.has(submission.libraryItemId)).toBe(true);
+      expect(media.has(submission.mediaId)).toBe(true);
+      if (submission.assignmentId !== undefined) {
+        const assignment = assignments.get(submission.assignmentId);
+        expect(assignment?.enrolmentId).toBe(submission.enrolmentId);
+        expect(assignment?.libraryItemId).toBe(submission.libraryItemId);
+      }
+    }
+  });
+
+  it("keeps assignment and submission statuses consistent with feedback", () => {
+    for (const submission of fixtureData.submissions) {
+      const hasFeedback = fixtureData.feedback.some((f) => f.submissionId === submission.id);
+      expect(submission.status).toBe(hasFeedback ? "reviewed" : "awaiting_review");
+      if (submission.assignmentId !== undefined) {
+        expect(assignments.get(submission.assignmentId)?.status).toBe(
+          hasFeedback ? "feedback_ready" : "submitted",
+        );
+      }
+    }
+    for (const assignment of fixtureData.assignments) {
+      const submitted = fixtureData.submissions.some((s) => s.assignmentId === assignment.id);
+      expect(assignment.status === "todo").toBe(!submitted);
+    }
+  });
+
+  it("references the submission's own coach and existing reply media from feedback", () => {
+    for (const item of fixtureData.feedback) {
+      const submission = submissions.get(item.submissionId);
+      expect(submission).toBeDefined();
+      expect(item.coachId).toBe(enrolments.get(submission?.enrolmentId ?? "")?.coachId);
+      if (item.replyMediaId !== undefined) {
+        expect(media.has(item.replyMediaId)).toBe(true);
+      }
+      expect(item.sentAt > (submission?.submittedAt ?? "")).toBe(true);
+    }
+  });
+
+  it("positions every comment within its submission's media", () => {
+    for (const comment of fixtureData.feedbackComments) {
+      const submission = submissions.get(feedback.get(comment.feedbackId)?.submissionId ?? "");
+      const asset = media.get(submission?.mediaId ?? "");
+      expect(asset).toBeDefined();
+      expect(comment.tSeconds).toBeLessThan(asset?.durationSec ?? 0);
     }
   });
 });
@@ -43,7 +211,7 @@ describe("createFixtureRepositories", () => {
   it("lists coaches", async () => {
     const repos = createFixtureRepositories();
     const coaches = await repos.coaches.list();
-    expect(coaches.map((c) => c.displayName)).toContain("Singology founder");
+    expect(coaches.map((c) => c.displayName)).toEqual(["Singology founder", "Standard coach"]);
   });
 
   it("returns copies that cannot mutate the fixtures", async () => {
@@ -55,5 +223,19 @@ describe("createFixtureRepositories", () => {
     }
     const [again] = await repos.coaches.list();
     expect(again?.displayName).toBe("Singology founder");
+  });
+
+  it("filters the library by category and voice type", async () => {
+    const repos = createFixtureRepositories();
+    expect(await repos.library.list({ category: "range" })).toHaveLength(2);
+    const bass = await repos.library.list({ voiceType: "bass" });
+    expect(bass.every((i) => i.voiceTypes.includes("bass"))).toBe(true);
+    expect(bass.length).toBeLessThan(8);
+  });
+
+  it("queues a coach's unreviewed submissions oldest first", async () => {
+    const repos = createFixtureRepositories();
+    const queue = await repos.submissions.queueForCoach("coach-founder");
+    expect(queue.map((s) => s.id)).toEqual(["sub-ben-hiss", "sub-ada-onset"]);
   });
 });
