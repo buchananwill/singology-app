@@ -18,6 +18,15 @@ dist/
 build/
 .wrangler/
 .react-router/
+*.tsbuildinfo
+worker-configuration.d.ts
+
+# Test output (Vitest, Playwright traces, reports and screenshots)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+coverage/
 
 # OS and editor
 .DS_Store
