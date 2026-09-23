@@ -206,6 +206,8 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 
 **30. TypeScript is pinned to `~6.0.3` until typescript-eslint supports 7.** npm `latest` is TypeScript 7.0.2, but typescript-eslint 8.70.1 peers `<6.1.0` (facade pitfall 1). This matches D18's TS 6 baseline. Revisit when typescript-eslint ships TS 7 support.
 
+**31. Media must be served by something that honours HTTP Range. In the slice, that is always Bunny's CDN; in the facade, it is a Range-aware Worker route.** Facade pitfall 6: the local Workers assets handler (miniflare) returns `200` with the full body for `Range: bytes=0-99`. Chromium then can't seek into unbuffered media, so comment clicks and loops snap back to 0. Safari requires Range for video. Cloudflare's static-assets docs are silent on Range in production (the lead checked 2026-09-23). **The product is unaffected:** under D21, media in the slice never touches Workers static assets. **Facade fix:** a resource route serves `/media/*` by reading the asset through the `ASSETS` binding and answering `Range` with `206` plus `Content-Range` and `Accept-Ranges: bytes`. It runs before the static handler for that path (e.g. wrangler `assets.run_worker_first` for `/media/*`, verified against current docs). The Playwright seek test is tightened to assert the **completed** seek in Chromium. **Standing rule:** any future media-serving code path is checked with a `Range` curl before it is accepted.
+
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
 - **Mock-up stage (about £0):** Workers Free, Supabase Free (projects pause after about a week of inactivity; no Branching), Bunny's $1 monthly minimum, and Stripe (no fixed fee).
 - **Pilot-ready (about $30/month plus a domain):** Workers Paid ($5) and Supabase Pro ($25, needed for Branching, no pausing, backups and London hosting), plus usage-based Bunny.
@@ -244,5 +246,12 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Lint gate convicted by mutation:** a probe component with a missing-deps `useEffect` and a setState-in-effect failed `pnpm lint` with **two errors** (`react-hooks/exhaustive-deps` and `react-hooks/set-state-in-effect`). The probe was deleted, never committed. The second rule directly targets the recursive-update class the CTO reported (D24).
 - **Stack versions:** React 19.3.0, Vite 8.3.0 (above the spec's 7+ floor), TypeScript 6.0.3, Zod 4.6.5, wrangler 4.137.0.
 - **Pitfalls 1 to 4** are in [facade-pitfalls.md](./facade-pitfalls.md): the TypeScript 7 / typescript-eslint gap (D30); orphaned `workerd.exe` on Windows; the `*.m4a` ignore rule versus committed media (stage 2 adds a scoped exception); Mantine `Title` not being polymorphic.
+
+**F11. Facade stage 2: media pipeline prototype and player built; one real pitfall (Range).** Commits `9c52f0a` to `44b7678`.
+- **Built:** synthetic fixture media (3.73 MB, including an HLS rendition); a unit-tested ffmpeg peaks job (the D21 prototype); wavesurfer.js 8.0.0 on pre-computed peaks; hls.js 1.7.3 with native-HLS detection; and a `useReducer` `PlayerProvider` with an imperative handle.
+- **Lead re-verification:** `pnpm test` passes (8 + 15 + 8 tests); the tree is clean.
+- **Pitfall 6 (Range)** is ruled in D31.
+- **Pitfall 7:** Playwright WebKit on Windows has neither native HLS nor MSE, so it falls back to MP4. **Real iOS Safari HLS remains untested** until a device check.
+- **Pitfall 5:** pnpm and path case on Windows.
 
 **F5. WP4 and WP5 differ slightly on CoachNow.** WP4 says there's no multi-coach payout from one sale. WP5 found that CoachNow Academy has Stripe Connect and multi-coach roles, but per-coach pricing is unverified. The lead's re-fetch confirms Academy includes "Invoicing and Billing through Stripe Connect" and "Flexible Multi-Coach Pricing Available". **The difference doesn't affect the plan:** the pilot takes payment through Stripe Payment Links outside the tool, and the build owns its DB either way.
