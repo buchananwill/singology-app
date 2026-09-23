@@ -15,7 +15,7 @@ test("home renders the coach name from the fixture repositories with no console 
 
   await page.goto("/");
 
-  await expect(page.getByTestId("coach-name")).toHaveText(["Singology founder"]);
+  await expect(page.getByTestId("coach-name")).toHaveText(["Singology founder", "Standard coach"]);
   await expect(page.getByRole("banner")).toContainText("Singology");
 
   await page.screenshot({
