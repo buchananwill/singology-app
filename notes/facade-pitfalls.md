@@ -35,3 +35,10 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** The header brand link uses `<Anchor component={Link} to="/">` with bold, large text.
 - **Affects.** Later stages that want React Router links inside Mantine components: use a polymorphic component such as `Anchor`, `Button` or `UnstyledButton`, or wrap the element in a `Link`. Minor.
 - **Evidence.** `tsc -b` error TS2322 in `apps/web/app/components/AppHeader.tsx`, Mantine `@mantine/core` 9.6.2.
+
+## 5. Windows: pnpm misbehaves when the shell's path case differs from the folder's real case
+
+- **What happened.** The repo folder is `D:\Coding\singology-app`, but shells opened at `D:\coding\singology-app` (lower-case `c`). In that state, `pnpm add <pkg>` run inside a workspace package crashed with `Cannot destructure property 'manifest' of 'manifestsByPath[rootDir]' as it is undefined`. `pnpm --filter <pkg> ...` from the root printed `No projects matched the filters "D:\coding\singology-app" in "D:\Coding\singology-app"`; `--filter <pkg> add` still worked, but `--filter <pkg> pkg set scripts.test=...` silently changed nothing.
+- **Workaround.** Add dependencies with `pnpm --filter <pkg> add ...` from the root and check the resulting `package.json`; edit `scripts` by hand. Opening the shell at the correctly-cased path avoids the problem.
+- **Affects.** Local development on Windows only. Neither the slice's runtime nor the founder demo.
+- **Evidence.** pnpm 9.12.1 stack trace at `pnpm.cjs:198085`; `apps/web/package.json` had no `test` script after the `pkg set` call reported no error.
