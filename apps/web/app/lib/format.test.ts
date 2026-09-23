@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { formatBytes, formatDate, formatDuration, formatPence } from "./format";
+import {
+  formatBytes,
+  formatDate,
+  formatDuration,
+  formatElapsed,
+  formatPence,
+  formatTimeLeft,
+} from "./format";
 
 describe("format", () => {
   it("formats pence as pounds", () => {
@@ -18,6 +25,23 @@ describe("format", () => {
   it("formats durations as m:ss", () => {
     expect(formatDuration(76.6)).toBe("1:17");
     expect(formatDuration(5)).toBe("0:05");
+  });
+
+  it("formats time since an event", () => {
+    const minute = 60 * 1000;
+    expect(formatElapsed(20 * 1000)).toBe("just now");
+    expect(formatElapsed(12 * minute)).toBe("12 min ago");
+    expect(formatElapsed(60 * minute)).toBe("1 hour ago");
+    expect(formatElapsed(62 * 60 * minute)).toBe("62 hours ago");
+    expect(formatElapsed(12.5 * 24 * 60 * minute)).toBe("12 days ago");
+  });
+
+  it("formats time left before a deadline", () => {
+    const minute = 60 * 1000;
+    expect(formatTimeLeft((46 * 60 + 5) * minute + 30 * 1000)).toBe("46h 05m left");
+    expect(formatTimeLeft(9 * minute + 59 * 1000)).toBe("9m left");
+    expect(formatTimeLeft(0)).toBe("overdue");
+    expect(formatTimeLeft(-5 * minute)).toBe("overdue");
   });
 
   it("formats byte counts", () => {
