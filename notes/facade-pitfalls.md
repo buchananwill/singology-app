@@ -25,7 +25,7 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 ## 3. `.gitignore` ignores `*.m4a`, which conflicts with committing generated media
 
 - **What happened.** The repo's `.gitignore` excludes `*.ogg`, `*.m4a`, `*.mp3` and `*.wav` to keep the founder's source recordings out of history. Decisions 22 and 23 say the generated fixture audio is AAC `.m4a` and is committed. As it stands, `git add` will silently skip it.
-- **Workaround.** None applied in stage 1 (no media exists yet). The media stage needs a scoped exception such as `!apps/web/public/media/**/*.m4a`, placed after the ignore rule, so personal recordings elsewhere stay ignored.
+- **Workaround.** None applied in stage 1 (no media exists yet). Resolved in stage 2: `.gitignore` now has `!apps/web/public/media/**` after the audio rules, so generated fixture media is committed while personal recordings elsewhere stay ignored. `git check-ignore -v --no-index apps/web/public/media/student-take.m4a` reports the negation rule (`.gitignore:7`), and `recordings/lesson.m4a` still matches `*.m4a` (`.gitignore:3`).
 - **Affects.** The founder demo: without the exception, a fresh clone would have no audio.
 - **Evidence.** `.gitignore` lines 1 to 5 ("Source recordings: personal data, kept out of history").
 
