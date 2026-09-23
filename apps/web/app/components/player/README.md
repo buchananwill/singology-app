@@ -59,4 +59,4 @@ import { WaveformPlayer } from "~/components/player/WaveformPlayer";
 
 ## Known limits
 
-- Seeking into media that is not fully buffered fails in Chromium while the files are served from Workers static assets, which ignore Range requests. See pitfall 6 in [facade-pitfalls.md](../../../../../notes/facade-pitfalls.md).
+- Seeking into unbuffered media needs a server that answers HTTP Range with `206`. Workers static assets ignore Range, so the facade serves `/media/*` through a Range-aware Worker handler ([serveMedia.ts](../../../workers/media/serveMedia.ts)). See pitfall 6 in [facade-pitfalls.md](../../../../../notes/facade-pitfalls.md).
