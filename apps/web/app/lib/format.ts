@@ -33,6 +33,11 @@ export function formatDuration(seconds: number): string {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 }
 
+/** A playback position as `m:ss`, truncated like a player's clock (matches the waveform markers). */
+export function formatTimestamp(seconds: number): string {
+  return formatDuration(Math.floor(Math.max(0, seconds)));
+}
+
 /** A byte count as `512 B`, `1.2 KB` or `3.4 MB`. */
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) {
