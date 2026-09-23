@@ -1,4 +1,4 @@
-import { Anchor, Badge, Container, Stack, Text, Timeline, Title } from "@mantine/core";
+import { Anchor, Badge, Container, Group, Stack, Text, Timeline, Title } from "@mantine/core";
 import type { MediaAsset, Submission } from "@singology/shared";
 import { Link } from "react-router";
 
@@ -93,14 +93,14 @@ export default function StudentProgress({ loaderData }: Route.ComponentProps) {
           </Title>
           {exercises.map(({ item, takes }) => (
             <Stack key={item.id} gap="xs" data-testid="progress-exercise">
-              <Text fw={600}>
-                <Anchor component={Link} to={`/student/exercises/${item.id}`} c="inherit">
+              <Group gap="xs">
+                <Anchor component={Link} to={`/student/exercises/${item.id}`} c="inherit" fw={600}>
                   {item.title}
-                </Anchor>{" "}
+                </Anchor>
                 <Badge variant="light" size="sm">
                   {CATEGORY_LABEL[item.category]}
                 </Badge>
-              </Text>
+              </Group>
               <Timeline active={takes.length - 1} bulletSize={16} lineWidth={2}>
                 {takes.map(({ submission }, index) => (
                   <Timeline.Item
