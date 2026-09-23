@@ -247,13 +247,13 @@ describe("fixture data", () => {
 
 describe("createFixtureRepositories", () => {
   it("lists coaches", async () => {
-    const repos = createFixtureRepositories();
+    const repos = createFixtureRepositories({ now: TEST_NOW });
     const coaches = await repos.coaches.list();
     expect(coaches.map((c) => c.displayName)).toEqual(["Singology founder", "Standard coach"]);
   });
 
   it("returns copies that cannot mutate the fixtures", async () => {
-    const repos = createFixtureRepositories();
+    const repos = createFixtureRepositories({ now: TEST_NOW });
     const [coach] = await repos.coaches.list();
     expect(coach).toBeDefined();
     if (coach) {
@@ -264,7 +264,7 @@ describe("createFixtureRepositories", () => {
   });
 
   it("filters the library by category and voice type", async () => {
-    const repos = createFixtureRepositories();
+    const repos = createFixtureRepositories({ now: TEST_NOW });
     expect(await repos.library.list({ category: "range" })).toHaveLength(2);
     const bass = await repos.library.list({ voiceType: "bass" });
     expect(bass.every((i) => i.voiceTypes.includes("bass"))).toBe(true);
@@ -272,14 +272,23 @@ describe("createFixtureRepositories", () => {
   });
 
   it("lists a student's feedback newest first", async () => {
-    const repos = createFixtureRepositories();
+    const repos = createFixtureRepositories({ now: TEST_NOW });
     const items = await repos.feedback.forStudent(DEMO_STUDENT_ID);
     expect(items.map((f) => f.id)).toEqual(["fb-ada-siren-2", "fb-ada-siren-1"]);
     expect(await repos.feedback.forStudent("student-ben")).toEqual([]);
   });
 
+  it("resolves fixture times against the now it is given", async () => {
+    const now = new Date("2031-01-15T08:00:00.000Z");
+    const repos = createFixtureRepositories({ now });
+    const [oldest] = await repos.submissions.queueForCoach(DEMO_COACH_ID);
+    expect(oldest?.submittedAt).toBe(
+      new Date(now.getTime() - 62 * 60 * 60 * 1000).toISOString(),
+    );
+  });
+
   it("queues a coach's unreviewed submissions oldest first", async () => {
-    const repos = createFixtureRepositories();
+    const repos = createFixtureRepositories({ now: TEST_NOW });
     const queue = await repos.submissions.queueForCoach("coach-founder");
     expect(queue.map((s) => s.id)).toEqual(["sub-ben-hiss", "sub-ada-onset"]);
   });

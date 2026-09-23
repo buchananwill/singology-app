@@ -1,6 +1,6 @@
 import type { LibraryFilter } from "@singology/shared";
 
-import type { Repositories } from "../repositories";
+import type { Repositories, RepositoryOptions } from "../repositories";
 import { createFixtureData, type FixtureData } from "./data";
 
 /**
@@ -27,10 +27,12 @@ function matchesFilter(
   return true;
 }
 
-/** Implements the repository interface over in-module fixture data. Nothing persists. */
-export function createFixtureRepositories(
-  data: FixtureData = createFixtureData(new Date()),
-): Repositories {
+/**
+ * Implements the repository interface over in-module fixture data, with the
+ * fixtures' time offsets resolved against `now` (the request time). Nothing persists.
+ */
+export function createFixtureRepositories({ now }: RepositoryOptions): Repositories {
+  const data = createFixtureData(now);
   const enrolmentIdsForStudent = (studentId: string): Set<string> =>
     new Set(data.enrolments.filter((e) => e.studentId === studentId).map((e) => e.id));
 

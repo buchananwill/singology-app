@@ -55,6 +55,15 @@ export interface FeedbackRepository {
 }
 
 /**
+ * What every repository factory takes. `now` is the request time: the fixture
+ * repositories resolve their time offsets against it (journal decision 32);
+ * the slice's Drizzle repositories take the same shape and ignore it.
+ */
+export interface RepositoryOptions {
+  now: Date;
+}
+
+/**
  * The data seam. The facade implements it over fixtures; the slice adds a
  * Drizzle implementation behind the same interface.
  */
