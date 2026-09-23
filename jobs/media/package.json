@@ -6,11 +6,16 @@
   "description": "Generates the synthetic fixture media and computes waveform peaks with the ffmpeg on PATH (prototype of the D21 media job).",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "generate": "node src/generate.ts"
+    "generate": "node src/generate.ts",
+    "peaks": "node src/peaks.ts",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^24",
     "typescript": "~6.0.3",
     "vitest": "5.0.1"
+  },
+  "dependencies": {
+    "@singology/shared": "workspace:^"
   }
 }
