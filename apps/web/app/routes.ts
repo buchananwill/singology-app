@@ -10,6 +10,7 @@ export default [
     route("student/progress", "routes/student.progress.tsx"),
   ]),
   layout("routes/coach.layout.tsx", [route("coach", "routes/coach.home.tsx")]),
+  layout("routes/anyRole.layout.tsx", [route("library", "routes/library.tsx")]),
   // Player regression page (stage 2); deliberately not linked from the navigation.
   route("lab/player", "routes/lab.player.tsx"),
 ] satisfies RouteConfig;
