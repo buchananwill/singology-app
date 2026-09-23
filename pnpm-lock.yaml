@@ -119,6 +119,9 @@ importers:
         specifier: workspace:^
         version: link:../shared
     devDependencies:
+      '@types/node':
+        specifier: ^24
+        version: 24.13.6
       typescript:
         specifier: ~6.0.3
         version: 6.0.3

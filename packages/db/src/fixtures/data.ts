@@ -11,6 +11,8 @@ import type {
   Submission,
 } from "@singology/shared";
 
+import { mediaAssets } from "./media";
+
 /** Every fixture collection the fixture repositories read from. */
 export interface FixtureData {
   coaches: Coach[];
@@ -56,18 +58,11 @@ export const fixtureData: FixtureData = {
       category: "breath",
       voiceTypes: ["soprano", "mezzo", "alto", "tenor", "baritone", "bass"],
       instructions: "Placeholder instructions.",
-      demoMediaId: "media-demo-hiss",
+      demoMediaId: "media-test-pattern",
+      backingTrackMediaId: "media-backing-track",
     },
   ],
-  mediaAssets: [
-    {
-      id: "media-demo-hiss",
-      kind: "audio",
-      src: "/media/demo-hiss.m4a",
-      peaksSrc: "/media/demo-hiss.peaks.json",
-      durationSec: 30,
-    },
-  ],
+  mediaAssets,
   assignments: [],
   submissions: [],
   feedback: [],
