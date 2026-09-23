@@ -1,0 +1,18 @@
+{
+  "name": "@singology/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@singology/shared": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}

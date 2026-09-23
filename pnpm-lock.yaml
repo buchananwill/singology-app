@@ -27,6 +27,16 @@ importers:
         specifier: ^8.70.1
         version: 8.70.1(eslint@10.11.0)(typescript@6.0.3)
 
+  packages/db:
+    dependencies:
+      '@singology/shared':
+        specifier: workspace:^
+        version: link:../shared
+    devDependencies:
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
   packages/shared:
     dependencies:
       zod:
