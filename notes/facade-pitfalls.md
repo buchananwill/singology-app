@@ -85,3 +85,10 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** None. Nothing in the app was changed for it.
 - **Affects.** Local test reliability only, as far as is known: `vite preview` wraps the Worker in a Node proxy (the Cloudflare Vite plugin, miniflare), which production does not use. Worth knowing if the slice's CI runs e2e against `pnpm preview` with high parallelism.
 - **Evidence.** `[WebServer] TypeError: fetch failed at Object.processResponse (undici@7.29.0 .../fetch/index.js:237:16) ... at async _Miniflare.dispatchFetch (miniflare@5.20260921.0-alpha .../index.js:119777:22)`; browser console `Failed to load resource: the server responded with a status of 500 (Internal Server Error)`; Playwright `page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4173/student`.
+
+## 12. A live clock that rounds the browser time down can run behind the server's time
+
+- **What happened.** The review queue renders "Submitted 62 hours ago" on the server from the loader's request time, then follows a browser clock (`useSyncExternalStore`, journal decision 32). The first clock rounded `Date.now()` down to its 15-second tick, so repeated reads returned the same value. Right after hydration that rounded value could be up to 15 seconds *earlier* than the server's request time, and an item exactly 62 hours old re-rendered as "61 hours ago". There was no hydration error, because hydration itself used the server's time; the text just stepped backwards a moment later.
+- **Workaround.** The clock now re-reads `Date.now()` at most once per tick and never rounds it ([useNow.ts](../apps/web/app/lib/useNow.ts)). The queue e2e test asserts the exact "Submitted 62 hours ago" text after hydration.
+- **Affects.** The slice: any live countdown must start from a client time at or after the server's, and a browser clock that is behind the server's will still step backwards (only by its skew). Not the founder demo now it is fixed.
+- **Evidence.** Playwright, Chromium: `Expected: "Submitted 62 hours ago"`, `Received: "Submitted 61 hours ago"` with the rounded clock; passes in Chromium and WebKit without rounding.

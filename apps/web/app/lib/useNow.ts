@@ -8,9 +8,20 @@ function subscribe(onTick: () => void): () => void {
   return () => window.clearInterval(timer);
 }
 
-/** Rounded down to the tick, so repeated reads between ticks return the same value. */
+let latest = 0;
+
+/**
+ * The browser clock, re-read at most once a tick so repeated reads between
+ * ticks return the same value. It is never rounded down: a rounded value
+ * could sit below the server's request time and make the first client
+ * update read "61 hours ago" where the server said "62 hours ago".
+ */
 function getSnapshot(): number {
-  return Math.floor(Date.now() / CLOCK_TICK_MS) * CLOCK_TICK_MS;
+  const now = Date.now();
+  if (now - latest >= CLOCK_TICK_MS) {
+    latest = now;
+  }
+  return latest;
 }
 
 /**
