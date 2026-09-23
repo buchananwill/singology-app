@@ -18,7 +18,7 @@ Evidence is in five research briefs: [01 video hosting](./research/01-video-host
 - **Video: Bunny Stream** for all media, with Cloudflare R2 plus our own pipeline as the fallback (D11). **YouTube is ruled out:** its API policy forbids charging users to watch embedded videos (D10). Vimeo stops fitting at about 1,000 students.
 - **Infrastructure cost is not the constraint.** At 1,000 students, video costs roughly **$225/month (about $0.23 per student)** under our retention policy, against roughly £35k/month of subscription revenue. The real constraints are coach time per review and VAT structure.
 - **Copyright: there is no educational carve-out for a paid platform.** Strictly one-to-one private submissions are probably not "communication to the public", which keeps the risk low, but not nil. Product rules keep it that way: no sharing, no public links, no original master recordings as backing tracks.
-- **Client: web-first is right, but not blind.** The native-iOS case is real and specific: singing along to a guide track in headphones. Web-first holds on two conditions: a measured iPhone audio test before the build, and a pre-agreed trigger list for moving to a Capacitor shell.
+- **Client: web-first is right, but not blind.** The native-iOS case is real and specific: singing along to a guide track in headphones. Web-first holds because students record in the phone's own recorder app and upload the file, which avoids the browser's audio stack entirely (D16, D28). A pre-agreed trigger list governs any move to a Capacitor shell.
 - **Backend: own a Supabase (Postgres) database in London; bill through Stripe Connect.** There is one subscription per student–coach pair, and card data never touches us (D8).
 - **Biggest open risk: VAT.** The founder's business is already VAT-registered, so if the platform sells coaching as principal, 20% VAT applies to every sale from day one (F6). The platform must be structured as the coaches' agent, and possibly as a separate entity. **This needs an accountant before launch.**
 - **Launch:** adults only (D13), audio-first submissions (D14), invite-only to choir members, 12–15 students and 2 coaches for 12 weeks.
@@ -156,10 +156,10 @@ What the native case does **not** win:
 **Capture is upload-first** (D16). Every assignment accepts a file recorded in the device's own recorder: Voice Memos set to Lossless, or the Camera app, on iPhone; the best built-in or recommended app on Android; a DAW or USB interface for advanced students. The native recorder bypasses the browser's voice-processing path, so this is the audio-quality escape hatch, and it ships first. In-page recording is added on top, only where the phase-0 test shows it is as clean.
 
 **Web-first, with three conditions:**
-1. **Before the build, test audio on real iPhones for 1–2 days** (the WP3 §2.7 script): spectral ceiling, gain pumping, headphone bleed, and routing of the guide track. Compare in-page MediaRecorder with the native Camera app via `<input type=file capture>`. The winner becomes the default capture path on iOS.
+1. **Capture uses the phone's own recorder, then an upload** (D16). Its audio quality is trusted without a pre-build test (D28). The remaining risks are workflow ones: a backing track on the same phone, recorder settings, mic distance, and large files. The recommended-recorder guide and the beta circle handle them. In-page recording is a later convenience, and WP3's fidelity test applies to it if built.
 2. **Uploads are chunked and resumable** (tus, supported by Bunny), and the UI tells the student to keep the screen open.
 3. **Pre-agreed triggers for a Capacitor shell.** It reuses the web UI and adds a native recorder and background upload. Move when any one is measured:
-   - the iPhone audio test fails;
+   - an in-page recording fidelity test fails (applies only if in-page recording is built);
    - coaches flag more than 10% of iPhone submissions as having unusable audio;
    - iPhone upload failure exceeds 5%;
    - iPhone 8-week retention trails other platforms by 10 points or more;
@@ -175,7 +175,8 @@ What the native case does **not** win:
 
 - **Stack:** TypeScript throughout. React Router v8 (framework mode, via `@cloudflare/vite-plugin`) on Cloudflare Workers, Supabase, Bunny Stream and Stripe Connect (D17, D18).
 - **Bootstrapping cost:** a mock-up runs on free tiers for about £0. Pilot-ready costs about $30/month plus a domain (Workers Paid plus Supabase Pro), plus Bunny usage.
-- **Repo:** a GitHub monorepo holding the web app, database migrations and Edge Functions.
+- **Repo:** a pnpm workspace monorepo (D25): `apps/web` (the Worker), `packages/db` (Drizzle schema, RLS policies, repositories), `packages/shared` (Zod schemas and types), `supabase/` (config, migrations, pgTAP tests) and `jobs/media/` (the ffmpeg Container). No Turborepo; no Supabase Edge Functions (D23).
+- **App libraries:** Mantine 9 (D19); wavesurfer.js 8 on pre-computed peaks, hls.js, tus-js-client, and native `preservesPitch` slow-down with no DSP library in the MVP (D20); no global client store, just loaders plus a scoped `useReducer` for the player (D24).
 - **Previews:** every PR gets a preview frontend on Cloudflare Workers and a preview database (Supabase Branching). Previews and staging sit behind Cloudflare Access with an email one-time PIN allow-list, so the founder and coaches can review builds without platform seats (D17).
 - **Checks on every PR:** typecheck, lint, unit tests, and Playwright on Chromium, Firefox and WebKit. Recording tests use Chromium's fake media device.
 - **Before every release:** a manual check on the physical iPhone.
@@ -185,7 +186,7 @@ What the native case does **not** win:
 
 **Own the core database: confirmed.** No off-the-shelf platform does all three of multi-coach payouts, per-coach pricing, and control of the audio pipeline.
 
-**Backend: Supabase Pro in London** (`eu-west-2`). It's Postgres with row-level security, Auth and Edge Functions. It costs **$25/month from 100 to 10,000 students** (100k monthly active users included; verified, F3), because video bytes live on Bunny, not in Supabase. The exit path is `pg_dump`.
+**Backend: Supabase Pro in London** (`eu-west-2`). It's Postgres with row-level security, plus Auth. **Only the Worker talks to Postgres,** via Hyperdrive (query caching disabled) and Drizzle ORM. Every user query runs under the user's role and claims, so row-level security stays the authority. The Data API is disabled, and supabase-js handles Auth sessions only (D22). It costs **$25/month from 100 to 10,000 students** (100k monthly active users included; verified, F3), because video bytes live on Bunny, not in Supabase. The exit path is `pg_dump`.
 
 **Data model** (WP4 §3):
 - **Accounts:** profiles and roles (student, coach, admin, and guardian later), plus coach offers (the price tier).
@@ -195,7 +196,9 @@ What the native case does **not** win:
 
 Key rule: *a coach can read a submission only if they are the coach on an active enrolment.*
 
-**Auth:** magic link or one-time code, plus Google and Apple sign-in. Multi-factor authentication is required for coaches and admins. Coaches join by invitation only. Edge Functions mint Bunny playback tokens after checking row-level security.
+**Auth:** magic link or one-time code, plus Google and Apple sign-in. Multi-factor authentication is required for coaches and admins. Coaches join by invitation only. Worker routes mint Bunny upload signatures and playback tokens after the access check, and host the Stripe and Bunny webhooks (D23).
+
+**Media pipeline** (D21): video submissions go to Bunny Stream. Audio submissions go to Bunny Storage with the original kept untouched. A Cloudflare Container running ffmpeg makes a browser-playable listening copy (iPhone's lossless Voice Memos use ALAC, which only Safari plays) and computes the waveform peaks for both.
 
 **Billing: Stripe Connect** with Express-style connected accounts. Stripe runs coach identity checks (KYC); we never see coach bank details. Sales use destination charges plus Stripe Billing subscriptions: **one monthly subscription per enrolment**, priced by the coach's tier, with a submission allowance and the library bundled. We use Stripe Checkout and the Customer Portal, which puts us in the lightest PCI scope (SAQ A). We store only Stripe IDs and status, updated by webhook.
 
@@ -218,7 +221,7 @@ Durations are indicative.
 
 | Phase | What | Exit condition |
 |---|---|---|
-| **0. Gates** (weeks 0–2) | The iPhone audio test (buy a used iPhone). The host audio test on Bunny and R2. The accountant on VAT structure and entity. The solicitor pack (§8). An enquiry to PRS. Founder answers on prices, choir size and adults only. | Capture path and host confirmed; VAT structure agreed |
+| **0. Gates** (weeks 0–2) | A used iPhone as a Safari QA device (not a test gate; D28). A video-path audio check on Bunny Stream; audio submissions keep their originals (D21). The accountant on VAT structure and entity. The solicitor pack (§8). An enquiry to PRS. Founder answers on prices, choir size and adults only. | Capture path and host confirmed; VAT structure agreed |
 | **1. MVP** (weeks 2–8) | Invite-only onboarding; coach cards; Stripe Connect subscriptions; the weekly loop; audio-first recording with resumable upload; a coach review queue with waveform, timestamped comments and a reply recording; about 10 original warm-up videos; email notifications; takedown process and terms. | The founder and one coach can run the full loop end to end |
 | **2. Pilot** (12 weeks) | 12–15 choir members, founder plus one standard coach, paid from week 1 at a founding-member price. Coaches log minutes per review. | See the thresholds below |
 | **3. Grow** | Open to the wider choirs; more coaches; Web Push; A/B comparison and progress timeline; Capacitor shell if a trigger fires; under-18s behind their own safeguarding gate. | |
