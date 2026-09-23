@@ -14,10 +14,19 @@ export const MEDIA_DIR = path.resolve(
 /** Largest stdout buffer we accept from ffmpeg/ffprobe (decoded PCM for a few minutes of mono audio). */
 const MAX_BUFFER_BYTES = 256 * 1024 * 1024;
 
+export interface RunFfmpegOptions {
+  /** Working directory for ffmpeg; relative output names resolve against it. */
+  cwd?: string;
+}
+
 /** Runs the `ffmpeg` on PATH with the given arguments, quiet except for errors. */
-export async function runFfmpeg(args: readonly string[]): Promise<void> {
+export async function runFfmpeg(
+  args: readonly string[],
+  options: RunFfmpegOptions = {},
+): Promise<void> {
   await execFileAsync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], {
     maxBuffer: MAX_BUFFER_BYTES,
+    cwd: options.cwd,
   });
 }
 
