@@ -7,6 +7,7 @@ export default [
     route("student", "routes/student.home.tsx"),
     route("student/exercises/:id", "routes/student.exercise.tsx"),
     route("student/submissions/:id", "routes/student.submission.tsx"),
+    route("student/progress", "routes/student.progress.tsx"),
   ]),
   layout("routes/coach.layout.tsx", [route("coach", "routes/coach.home.tsx")]),
   // Player regression page (stage 2); deliberately not linked from the navigation.
