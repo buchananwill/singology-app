@@ -7,4 +7,8 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  preview: {
+    port: 4173,
+    strictPort: true,
+  },
 });

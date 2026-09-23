@@ -7,6 +7,7 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "preview": "pnpm run build && vite preview",
+    "test:e2e": "playwright test",
     "cf-typegen": "wrangler types",
     "typecheck": "wrangler types && react-router typegen && tsc -b"
   },
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.58.0",
+    "@playwright/test": "1.63.0",
     "@react-router/dev": "8.4.0",
     "@types/node": "^24",
     "@types/react": "^19.3.0",
