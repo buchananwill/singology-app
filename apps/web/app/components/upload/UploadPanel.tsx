@@ -45,6 +45,11 @@ export interface UploadPanelProps {
   fields?: Readonly<Record<string, string>>;
   /** Route to post to; defaults to the current route's action. */
   action?: string;
+  /**
+   * Shares the panel's fetcher under this key, so the page can read the
+   * action's result with `useFetcher({ key })`.
+   */
+  fetcherKey?: string;
 }
 
 /**
@@ -61,10 +66,11 @@ export function UploadPanel({
   noteLabel,
   fields,
   action,
+  fetcherKey,
 }: UploadPanelProps) {
   const inputId = useId();
   const hydrated = useHydrated();
-  const fetcher = useFetcher<UploadActionResult>();
+  const fetcher = useFetcher<UploadActionResult>({ key: fetcherKey });
   const { submit } = fetcher;
 
   const [picked, setPicked] = useState<PickedFile | null>(null);

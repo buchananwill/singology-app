@@ -10,6 +10,9 @@ import { AddComment } from "../components/review/AddComment";
 import { AssignChecklist } from "../components/review/AssignChecklist";
 import { PreviousTake } from "../components/review/PreviousTake";
 import { initialReviewState, reviewReducer } from "../components/review/reviewReducer";
+import { parseRecordingUpload } from "../components/upload/parseRecordingUpload";
+import { UploadPanel } from "../components/upload/UploadPanel";
+import type { UploadActionResult } from "../components/upload/uploadResult";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import { CATEGORY_LABEL, formatDate, formatElapsed } from "../lib/format";
 import type { Route } from "./+types/coach.review";
@@ -22,15 +25,36 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
   },
 ];
 
+/**
+ * The submission with its enrolment, when it belongs to one of this coach's
+ * students. Anything else is "not found", not "forbidden".
+ */
+async function findCoachSubmission(
+  repositories: Repositories,
+  coachId: string,
+  submissionId: string,
+) {
+  const submission = await repositories.submissions.get(submissionId);
+  const enrolment = submission ? await repositories.enrolments.get(submission.enrolmentId) : undefined;
+  return submission && enrolment?.coachId === coachId ? { submission, enrolment } : null;
+}
+
+/** The fetcher key the reply's upload panel shares with the page, one per submission. */
+function replyFetcherKey(submissionId: string): string {
+  return `coach-reply-${submissionId}`;
+}
+
 export async function loader({ context, params }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
-  const coachId = context.get(coachIdContext);
-  const submission = await repositories.submissions.get(params.submissionId);
-  const enrolment = submission ? await repositories.enrolments.get(submission.enrolmentId) : undefined;
-  // Only this coach's students; anything else is "not found", not "forbidden".
-  if (!submission || enrolment?.coachId !== coachId) {
+  const found = await findCoachSubmission(
+    repositories,
+    context.get(coachIdContext),
+    params.submissionId,
+  );
+  if (!found) {
     throw data("Submission not found", { status: 404 });
   }
+  const { submission, enrolment } = found;
   const [student, item, take, feedback] = await Promise.all([
     repositories.students.get(enrolment.studentId),
     repositories.library.get(submission.libraryItemId),
@@ -56,6 +80,35 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     previous,
     library: library.map(({ id, title, category }) => ({ id, title, category })),
   };
+}
+
+/**
+ * The reply upload (the shared upload panel, posting `intent=reply`):
+ * validates the reply's metadata and echoes it back, so the page can send it
+ * with the feedback. Nothing is saved (decision 11).
+ */
+export async function action({ context, params, request }: Route.ActionArgs) {
+  const found = await findCoachSubmission(
+    context.get(repositoriesContext),
+    context.get(coachIdContext),
+    params.submissionId,
+  );
+  if (!found) {
+    return data<UploadActionResult>({ ok: false, error: "Submission not found." }, { status: 404 });
+  }
+  const formData = await request.formData();
+  if (formData.get("intent") !== "reply") {
+    return data<UploadActionResult>({ ok: false, error: "Unknown request." }, { status: 400 });
+  }
+  const parsed = parseRecordingUpload(formData);
+  if (!parsed.ok) {
+    return data<UploadActionResult>({ ok: false, error: parsed.error }, { status: 400 });
+  }
+  return data<UploadActionResult>({
+    ok: true,
+    message: `"${parsed.upload.fileName}" is attached. It goes to the student when you send your feedback.`,
+    upload: parsed.upload,
+  });
 }
 
 /** The student's previous take of the same exercise, with its media and any comments. */
@@ -160,6 +213,13 @@ function ReviewWorkspace({
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 5 }}>
             <Stack gap="md">
+              <UploadPanel
+                title="Reply (optional)"
+                submitLabel="Attach reply"
+                successTitle="Reply attached"
+                fields={{ intent: "reply" }}
+                fetcherKey={replyFetcherKey(submission.id)}
+              />
               <Card withBorder padding="lg">
                 <AssignChecklist
                   items={library}
