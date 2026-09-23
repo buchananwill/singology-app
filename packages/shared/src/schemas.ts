@@ -189,3 +189,32 @@ export const FeedbackCommentSchema = z.object({
   body: z.string().min(1),
 });
 export type FeedbackComment = z.infer<typeof FeedbackCommentSchema>;
+
+/** A timestamped comment as the coach sends it: no ids yet, those are the server's job. */
+export const DraftFeedbackCommentSchema = z.object({
+  tSeconds: z.number().nonnegative().finite(),
+  body: z.string().trim().min(1, "A comment can't be empty.").max(500),
+});
+export type DraftFeedbackComment = z.infer<typeof DraftFeedbackCommentSchema>;
+
+/**
+ * Everything "Send feedback" posts from the coach's review workspace (spec
+ * decision 16) as JSON: the comments, an optional written summary, the reply's
+ * metadata (never the file, decision 19) and the exercises to assign next.
+ * The submission comes from the URL, not the payload.
+ */
+export const SendFeedbackSchema = z
+  .object({
+    summary: z.string().trim().max(2000).default(""),
+    comments: z.array(DraftFeedbackCommentSchema).max(100),
+    reply: RecordingUploadSchema.nullable(),
+    assignLibraryItemIds: z
+      .array(IdSchema)
+      .max(20)
+      .refine((ids) => new Set(ids).size === ids.length, "Each exercise can be assigned once."),
+  })
+  .refine((feedback) => feedback.comments.length > 0 || feedback.summary !== "" || feedback.reply !== null, {
+    message: "Add a comment, a summary or a reply before sending.",
+    path: ["comments"],
+  });
+export type SendFeedback = z.infer<typeof SendFeedbackSchema>;

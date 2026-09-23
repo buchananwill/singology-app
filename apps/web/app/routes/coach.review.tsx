@@ -1,7 +1,7 @@
 import { Anchor, Badge, Card, Container, Grid, Group, Stack, Text, Title } from "@mantine/core";
 import type { Repositories } from "@singology/db";
 import { useReducer } from "react";
-import { data, Link } from "react-router";
+import { data, Link, useFetcher } from "react-router";
 
 import { CommentList } from "../components/player/CommentList";
 import { PlayerProvider } from "../components/player/PlayerProvider";
@@ -10,6 +10,8 @@ import { AddComment } from "../components/review/AddComment";
 import { AssignChecklist } from "../components/review/AssignChecklist";
 import { PreviousTake } from "../components/review/PreviousTake";
 import { initialReviewState, reviewReducer } from "../components/review/reviewReducer";
+import { SendFeedbackCard } from "../components/review/SendFeedbackCard";
+import { parseSendFeedback, type SendFeedbackResult } from "../components/review/sendFeedback";
 import { parseRecordingUpload } from "../components/upload/parseRecordingUpload";
 import { UploadPanel } from "../components/upload/UploadPanel";
 import type { UploadActionResult } from "../components/upload/uploadResult";
@@ -77,24 +79,32 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     /** New comments join the existing feedback, or a page-local draft. */
     feedbackId: feedback?.id ?? `draft-feedback-${submission.id}`,
     comments: feedback ? await repositories.feedback.comments(feedback.id) : [],
+    summary: feedback?.body ?? "",
     previous,
     library: library.map(({ id, title, category }) => ({ id, title, category })),
   };
 }
 
 /**
- * The reply upload (the shared upload panel, posting `intent=reply`):
- * validates the reply's metadata and echoes it back, so the page can send it
- * with the feedback. Nothing is saved (decision 11).
+ * Two requests, neither of which saves anything (decision 11):
+ * - "Send feedback" posts the whole review as JSON; it is validated with
+ *   `SendFeedbackSchema` plus the take's length and the library.
+ * - The reply upload (the shared upload panel, posting `intent=reply`)
+ *   validates the reply's metadata and echoes it back, so the page can send
+ *   it with the feedback.
  */
 export async function action({ context, params, request }: Route.ActionArgs) {
+  const repositories = context.get(repositoriesContext);
   const found = await findCoachSubmission(
-    context.get(repositoriesContext),
+    repositories,
     context.get(coachIdContext),
     params.submissionId,
   );
   if (!found) {
-    return data<UploadActionResult>({ ok: false, error: "Submission not found." }, { status: 404 });
+    return data<SendFeedbackResult>({ ok: false, error: "Submission not found." }, { status: 404 });
+  }
+  if (request.headers.get("Content-Type")?.startsWith("application/json")) {
+    return sendFeedback(repositories, found, await request.json().catch(() => null));
   }
   const formData = await request.formData();
   if (formData.get("intent") !== "reply") {
@@ -108,6 +118,37 @@ export async function action({ context, params, request }: Route.ActionArgs) {
     ok: true,
     message: `"${parsed.upload.fileName}" is attached. It goes to the student when you send your feedback.`,
     upload: parsed.upload,
+  });
+}
+
+async function sendFeedback(
+  repositories: Repositories,
+  { submission, enrolment }: NonNullable<Awaited<ReturnType<typeof findCoachSubmission>>>,
+  body: unknown,
+) {
+  const [take, library, student] = await Promise.all([
+    repositories.media.get(submission.mediaId),
+    repositories.library.list(),
+    repositories.students.get(enrolment.studentId),
+  ]);
+  const parsed = parseSendFeedback(body, {
+    durationSec: take?.durationSec ?? 0,
+    libraryItemIds: new Set(library.map((item) => item.id)),
+  });
+  if (!parsed.ok) {
+    return data<SendFeedbackResult>({ ok: false, error: parsed.error }, { status: 400 });
+  }
+  const { comments, reply, assignLibraryItemIds } = parsed.feedback;
+  const parts = [
+    `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`,
+    reply ? "your reply" : null,
+    assignLibraryItemIds.length > 0
+      ? `${assignLibraryItemIds.length} new ${assignLibraryItemIds.length === 1 ? "exercise" : "exercises"}`
+      : null,
+  ].filter((part) => part !== null);
+  return data<SendFeedbackResult>({
+    ok: true,
+    message: `${student?.displayName ?? "The student"} gets ${parts.join(", ")}. This is a demo, so nothing was saved.`,
   });
 }
 
@@ -147,12 +188,16 @@ function ReviewWorkspace({
   take,
   feedbackId,
   comments,
+  summary,
   previous,
   library,
 }: ReviewWorkspaceProps) {
   const [review, dispatch] = useReducer(reviewReducer, null, () =>
-    initialReviewState(feedbackId, comments),
+    initialReviewState(feedbackId, comments, summary),
   );
+  const replyFetcher = useFetcher<UploadActionResult>({ key: replyFetcherKey(submission.id) });
+  const reply = replyFetcher.data?.ok === true ? (replyFetcher.data.upload ?? null) : null;
+  const firstName = student.displayName.split(" ")[0] ?? student.displayName;
   return (
     <Container size="lg">
       <Stack gap="lg">
@@ -176,7 +221,7 @@ function ReviewWorkspace({
             <Stack gap="md">
               {submission.note !== "" && (
                 <Text data-testid="review-note">
-                  <strong>{student.displayName.split(" ")[0]}'s note:</strong> {submission.note}
+                  <strong>{firstName}'s note:</strong> {submission.note}
                 </Text>
               )}
               <Stack component="section" gap="sm" aria-labelledby="take-title" data-testid="review-take">
@@ -206,7 +251,7 @@ function ReviewWorkspace({
                 <PreviousTake {...previous} />
               ) : (
                 <Text size="sm" c="dimmed" data-testid="no-previous-take">
-                  This is {student.displayName.split(" ")[0]}'s first take of this exercise.
+                  This is {firstName}'s first take of this exercise.
                 </Text>
               )}
             </Stack>
@@ -227,6 +272,12 @@ function ReviewWorkspace({
                   onChange={(libraryItemIds) => dispatch({ type: "setAssigned", libraryItemIds })}
                 />
               </Card>
+              <SendFeedbackCard
+                review={review}
+                dispatch={dispatch}
+                reply={reply}
+                studentFirstName={firstName}
+              />
             </Stack>
           </Grid.Col>
         </Grid>

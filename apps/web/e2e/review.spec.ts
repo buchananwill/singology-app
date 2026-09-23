@@ -1,6 +1,14 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { expect, type Locator, test } from "@playwright/test";
 
 import { chooseRole, settle, trackErrors } from "./helpers";
+
+const REPLY_FILE = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../public/media/coach-reply.m4a",
+);
 
 /** Seeks the take's media element (what `handle.seek` does) and waits for the seek to land. */
 async function seekTo(media: Locator, timeSec: number): Promise<void> {
@@ -42,7 +50,9 @@ test.describe("the coach review workspace", () => {
   // The whole flow in Chromium; WebKit gets the smoke test (pitfall 8 blocks its reply upload).
   test.skip(({ browserName }) => browserName !== "chromium", "Chromium only");
 
-  test("adds a comment at the player's current time", async ({ page }) => {
+  test("adds a comment at the current time, attaches a reply, assigns and sends", async ({
+    page,
+  }) => {
     const errors = trackErrors(page);
     await chooseRole(page, "coach");
     await page.goto("/coach/reviews/sub-ben-hiss");
@@ -70,6 +80,43 @@ test.describe("the coach review workspace", () => {
       30,
       0,
     );
+
+    // A reply through the shared upload panel.
+    const upload = page.getByTestId("upload-panel");
+    const input = upload.getByTestId("upload-input");
+    await expect(input).toBeEnabled();
+    await input.setInputFiles(REPLY_FILE);
+    await expect(upload.getByTestId("upload-file-duration")).toContainText("0:28");
+    await upload.getByRole("button", { name: "Attach reply" }).click();
+    await expect(upload.getByTestId("upload-success")).toContainText("coach-reply.m4a");
+
+    // Assign one exercise, then send.
+    await page.getByTestId("assign-checklist").getByLabel("Five-note runs").check();
+    const send = page.getByTestId("send-feedback");
+    await expect(send.getByTestId("send-summary")).toHaveText(
+      "1 comment · reply attached · 1 exercise to assign",
+    );
+    await send.getByRole("button", { name: "Send feedback" }).click();
+    await expect(send.getByTestId("send-success")).toContainText(
+      "Ben Sample gets 1 comment, your reply, 1 new exercise.",
+    );
+    await expect(page.locator(".mantine-Notification-root").last()).toContainText("Feedback sent");
     expect(errors).toEqual([]);
+  });
+
+  test("won't send empty feedback", async ({ page }) => {
+    const errors = trackErrors(page);
+    await chooseRole(page, "coach");
+    await page.goto("/coach/reviews/sub-ada-onset");
+    const send = page.getByTestId("send-feedback");
+    const button = send.getByRole("button", { name: "Send feedback" });
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(send.getByRole("alert")).toHaveText(
+      "Add a comment, a summary or a reply before sending.",
+    );
+    await expect(send.getByTestId("send-success")).toHaveCount(0);
+    // The 400 response is expected; nothing else may log an error.
+    expect(errors.filter((e) => !e.includes("400"))).toEqual([]);
   });
 });

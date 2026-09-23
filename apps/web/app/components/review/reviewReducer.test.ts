@@ -55,6 +55,12 @@ describe("reviewReducer", () => {
     expect(initialReviewState("fb", []).assigned).toEqual([]);
   });
 
+  it("seeds and edits the summary", () => {
+    const state = initialReviewState("fb", [], "Existing summary");
+    expect(state.summary).toBe("Existing summary");
+    expect(reviewReducer(state, { type: "setSummary", summary: "New" }).summary).toBe("New");
+  });
+
   it("clamps a negative time to zero", () => {
     const state = reviewReducer(initialReviewState("fb", []), { type: "openDraft", tSeconds: -1 });
     expect(state.draft).toEqual({ tSeconds: 0 });

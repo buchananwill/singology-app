@@ -15,17 +15,21 @@ export interface ReviewState {
   draft: { tSeconds: number } | null;
   /** Library item ids ticked in "Assign next exercises", in library order. */
   assigned: readonly string[];
+  /** The written summary sent with the comments. */
+  summary: string;
 }
 
 export type ReviewEvent =
   | { type: "openDraft"; tSeconds: number }
   | { type: "cancelDraft" }
   | { type: "addComment"; body: string }
-  | { type: "setAssigned"; libraryItemIds: readonly string[] };
+  | { type: "setAssigned"; libraryItemIds: readonly string[] }
+  | { type: "setSummary"; summary: string };
 
 export function initialReviewState(
   feedbackId: string,
   comments: readonly FeedbackComment[],
+  summary = "",
 ): ReviewState {
   return {
     feedbackId,
@@ -33,6 +37,7 @@ export function initialReviewState(
     nextCommentNumber: 1,
     draft: null,
     assigned: [],
+    summary,
   };
 }
 
@@ -63,5 +68,7 @@ export function reviewReducer(state: ReviewState, event: ReviewEvent): ReviewSta
     }
     case "setAssigned":
       return { ...state, assigned: [...new Set(event.libraryItemIds)] };
+    case "setSummary":
+      return { ...state, summary: event.summary };
   }
 }
