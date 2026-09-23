@@ -19,7 +19,15 @@ Measured against [gtm-vision.md](./gtm-vision.md). Rulings are recorded in the j
 | 5 | Product/UX flows and competitive landscape | Vision (founder's brief), GTM context | [research/05-product-landscape.md](./research/05-product-landscape.md) |
 | 6 | Synthesis | All | [gtm-proposal.md](./gtm-proposal.md) |
 
-WP1 to WP5 run in parallel. WP6 is the lead's work and waits for all five.
+| 7 | App stack: UI kit, media libraries, repo layout, data layer, state | CTO follow-up questions, 2026-09-23 | [research/07-app-stack.md](./research/07-app-stack.md) |
+
+WP1 to WP5 run in parallel. WP6 is the lead's work and waits for all five. WP7 was added after the proposal draft.
+
+## CTO's near-term roadmap (2026-09-23)
+
+1. **Facade:** a live online mock-up (no real coaches, students or payments) to share with the founder and confirm a shared vision.
+2. **Legal and accounting:** get the questions in proposal §8 answered.
+3. **Vertical slice:** take the facade forward to a working slice and open it to a tiny beta circle.
 
 **Status 2026-09-23:** WP1 to WP5 have returned and been spot-checked. WP6 is in draft, awaiting the user's review.
 
