@@ -45,6 +45,11 @@ export interface SubmissionRepository {
   forStudent(studentId: string): Promise<Submission[]>;
   /** Submissions awaiting review for this coach, oldest first. */
   queueForCoach(coachId: string): Promise<Submission[]>;
+  /**
+   * The same student's most recent earlier submission of the same exercise,
+   * or `undefined` when this is their first take (or the id is unknown).
+   */
+  previousFor(submissionId: string): Promise<Submission | undefined>;
 }
 
 export interface FeedbackRepository {

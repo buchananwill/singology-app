@@ -323,6 +323,22 @@ describe("createFixtureRepositories", () => {
     );
   });
 
+  it("finds the same student's previous take of the same exercise", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    expect((await repos.submissions.previousFor("sub-ben-hiss"))?.id).toBe("sub-ben-hiss-1");
+    expect((await repos.submissions.previousFor("sub-ada-siren-2"))?.id).toBe("sub-ada-siren-1");
+    expect(await repos.submissions.previousFor("sub-ada-siren-1")).toBeUndefined();
+    expect(await repos.submissions.previousFor("sub-ada-onset")).toBeUndefined();
+    expect(await repos.submissions.previousFor("no-such-submission")).toBeUndefined();
+  });
+
+  it("gives at least one item in the demo coach's queue a previous take", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const queue = await repos.submissions.queueForCoach(DEMO_COACH_ID);
+    const previous = await Promise.all(queue.map((s) => repos.submissions.previousFor(s.id)));
+    expect(previous.some((p) => p !== undefined)).toBe(true);
+  });
+
   it("queues a coach's unreviewed submissions oldest first", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const queue = await repos.submissions.queueForCoach("coach-founder");

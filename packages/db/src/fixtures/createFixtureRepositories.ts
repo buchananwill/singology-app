@@ -79,6 +79,23 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
           .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
         return copy(queue);
       },
+      previousFor: async (submissionId) => {
+        const current = data.submissions.find((s) => s.id === submissionId);
+        const studentId = data.enrolments.find((e) => e.id === current?.enrolmentId)?.studentId;
+        if (current === undefined || studentId === undefined) {
+          return undefined;
+        }
+        const enrolmentIds = enrolmentIdsForStudent(studentId);
+        const [previous] = data.submissions
+          .filter(
+            (s) =>
+              enrolmentIds.has(s.enrolmentId) &&
+              s.libraryItemId === current.libraryItemId &&
+              s.submittedAt < current.submittedAt,
+          )
+          .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+        return copy(previous);
+      },
     },
     feedback: {
       forSubmission: async (submissionId) =>
