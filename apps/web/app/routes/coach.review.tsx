@@ -1,4 +1,4 @@
-import { Anchor, Badge, Container, Grid, Group, Stack, Text, Title } from "@mantine/core";
+import { Anchor, Badge, Card, Container, Grid, Group, Stack, Text, Title } from "@mantine/core";
 import type { Repositories } from "@singology/db";
 import { useReducer } from "react";
 import { data, Link } from "react-router";
@@ -7,6 +7,7 @@ import { CommentList } from "../components/player/CommentList";
 import { PlayerProvider } from "../components/player/PlayerProvider";
 import { WaveformPlayer } from "../components/player/WaveformPlayer";
 import { AddComment } from "../components/review/AddComment";
+import { AssignChecklist } from "../components/review/AssignChecklist";
 import { PreviousTake } from "../components/review/PreviousTake";
 import { initialReviewState, reviewReducer } from "../components/review/reviewReducer";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
@@ -39,7 +40,10 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   if (!student || !item || !take) {
     throw data("Submission data not found", { status: 404 });
   }
-  const previous = await loadPreviousTake(repositories, submission.id);
+  const [previous, library] = await Promise.all([
+    loadPreviousTake(repositories, submission.id),
+    repositories.library.list(),
+  ]);
   return {
     now: context.get(requestTimeContext).getTime(),
     submission,
@@ -50,6 +54,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     feedbackId: feedback?.id ?? `draft-feedback-${submission.id}`,
     comments: feedback ? await repositories.feedback.comments(feedback.id) : [],
     previous,
+    library: library.map(({ id, title, category }) => ({ id, title, category })),
   };
 }
 
@@ -90,6 +95,7 @@ function ReviewWorkspace({
   feedbackId,
   comments,
   previous,
+  library,
 }: ReviewWorkspaceProps) {
   const [review, dispatch] = useReducer(reviewReducer, null, () =>
     initialReviewState(feedbackId, comments),
@@ -150,6 +156,17 @@ function ReviewWorkspace({
                   This is {student.displayName.split(" ")[0]}'s first take of this exercise.
                 </Text>
               )}
+            </Stack>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 5 }}>
+            <Stack gap="md">
+              <Card withBorder padding="lg">
+                <AssignChecklist
+                  items={library}
+                  value={review.assigned}
+                  onChange={(libraryItemIds) => dispatch({ type: "setAssigned", libraryItemIds })}
+                />
+              </Card>
             </Stack>
           </Grid.Col>
         </Grid>

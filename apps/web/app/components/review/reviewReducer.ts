@@ -13,12 +13,15 @@ export interface ReviewState {
   nextCommentNumber: number;
   /** The comment being written, pinned at the time it was opened at; `null` when none. */
   draft: { tSeconds: number } | null;
+  /** Library item ids ticked in "Assign next exercises", in library order. */
+  assigned: readonly string[];
 }
 
 export type ReviewEvent =
   | { type: "openDraft"; tSeconds: number }
   | { type: "cancelDraft" }
-  | { type: "addComment"; body: string };
+  | { type: "addComment"; body: string }
+  | { type: "setAssigned"; libraryItemIds: readonly string[] };
 
 export function initialReviewState(
   feedbackId: string,
@@ -29,6 +32,7 @@ export function initialReviewState(
     comments: [...comments].sort((a, b) => a.tSeconds - b.tSeconds),
     nextCommentNumber: 1,
     draft: null,
+    assigned: [],
   };
 }
 
@@ -57,5 +61,7 @@ export function reviewReducer(state: ReviewState, event: ReviewEvent): ReviewSta
         draft: null,
       };
     }
+    case "setAssigned":
+      return { ...state, assigned: [...new Set(event.libraryItemIds)] };
   }
 }

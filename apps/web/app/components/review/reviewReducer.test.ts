@@ -46,6 +46,15 @@ describe("reviewReducer", () => {
     expect(reviewReducer(closed, { type: "addComment", body: "Hi" })).toBe(closed);
   });
 
+  it("holds the ticked exercises, without duplicates", () => {
+    const state = reviewReducer(initialReviewState("fb", []), {
+      type: "setAssigned",
+      libraryItemIds: ["lib-a", "lib-b", "lib-a"],
+    });
+    expect(state.assigned).toEqual(["lib-a", "lib-b"]);
+    expect(initialReviewState("fb", []).assigned).toEqual([]);
+  });
+
   it("clamps a negative time to zero", () => {
     const state = reviewReducer(initialReviewState("fb", []), { type: "openDraft", tSeconds: -1 });
     expect(state.draft).toEqual({ tSeconds: 0 });
