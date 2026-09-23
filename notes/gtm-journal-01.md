@@ -209,6 +209,13 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 
 **31. Media must be served by something that honours HTTP Range. In the slice, that is always Bunny's CDN; in the facade, it is a Range-aware Worker route.** Facade pitfall 6: the local Workers assets handler (miniflare) returns `200` with the full body for `Range: bytes=0-99`. Chromium then can't seek into unbuffered media, so comment clicks and loops snap back to 0. Safari requires Range for video. Cloudflare's static-assets docs are silent on Range in production (the lead checked 2026-09-23). **The product is unaffected:** under D21, media in the slice never touches Workers static assets. **Facade fix:** a resource route serves `/media/*` by reading the asset through the `ASSETS` binding and answering `Range` with `206` plus `Content-Range` and `Accept-Ranges: bytes`. It runs before the static handler for that path (e.g. wrangler `assets.run_worker_first` for `/media/*`, verified against current docs). The Playwright seek test is tightened to assert the **completed** seek in Chromium. **Standing rule:** any future media-serving code path is checked with a `Range` curl before it is accepted.
 
+**32. Fixture times are relative to the request's "now", so the demo never goes stale.** WP 3a used fixed fixture dates, so the stage 3b coach queue would show every item as overdue against the 72-hour SLA. That is a bad first impression for the founder, and it would worsen every day the facade is live. The rules:
+- **Fixtures store offsets** (e.g. "submitted 26 hours ago").
+- **`createFixtureRepositories({ now })`** resolves them to absolute timestamps. Root middleware passes the request time, and the slice's Drizzle repositories take the same argument shape and ignore it.
+- **The server renders all times and countdowns from loader data.** A live-ticking countdown may update only after hydration, through `useSyncExternalStore` on a clock source, never `setState` in an effect (lint D24). Its server-rendered text must equal the first client render.
+- **Dates keep 3a's hand-rolled UTC formatting** (hydration-safe).
+*Reason:* a demo that reads "overdue" everywhere undermines the product story the facade exists to show.
+
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
 - **Mock-up stage (about £0):** Workers Free, Supabase Free (projects pause after about a week of inactivity; no Branching), Bunny's $1 monthly minimum, and Stripe (no fixed fee).
 - **Pilot-ready (about $30/month plus a domain):** Workers Paid ($5) and Supabase Pro ($25, needed for Branching, no pausing, backups and London hosting), plus usage-based Bunny.
@@ -259,5 +266,16 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Lead's own check against `pnpm preview`:** `Range: bytes=0-99` on `student-take-a.m4a` returned `206`, `content-range: bytes 0-99/611219`, `content-length: 100`.
 - **Delegate's mutation run:** with the route disabled, the tightened Chromium seek test failed 6 of 6 (the seek landed at 0). With it enabled, the test passed 12 of 12 across both browsers. The test throttles `.m4a` to 64 KB/s so media is genuinely unbuffered at click time. Without throttling, Chromium sometimes buffered the whole file and masked the bug.
 - **Operational:** stop preview servers by matching the command line to this repo (`Win32_Process` where CommandLine contains `singology-app`) plus the repo's `workerd.exe`. Other `node.exe` processes on this machine are unrelated and must not be killed.
+
+**F13. Facade stage 3a: landing, role switcher, shell and every student surface are built.** Commits `4c6a7d3` to `4a6c228`.
+- **Lead re-verification:** `pnpm test` passes 73 tests (8 + 31 + 34); typecheck is clean; the tree is clean.
+- **Delegate evidence:** e2e passed 33, with 1 skipped by design; `--repeat-each=3` passed 99 of 99.
+- **New pitfalls:**
+  - 8: Playwright WebKit on Windows can't play `blob:` media, so the upload-panel flow is proven only in Chromium. **It needs a real-Safari check.**
+  - 9: a Mantine `Badge` inside `Text` breaks hydration (fixed).
+  - 10: WebKit logs a console error for a cancelled `/__manifest` fetch on navigation (the test accommodates it).
+  - 11: the preview server crashed once under stress, cause unknown. **The lead watches for it in stage 4.**
+- **Accepted interpretations:** `CoachOffer.billing` with `pricePence` (to fit single-review pricing); a mismatched role redirects to `/demo`; the upload action posts metadata only, never the file.
+- **Ruled in D32:** fixed fixture dates.
 
 **F5. WP4 and WP5 differ slightly on CoachNow.** WP4 says there's no multi-coach payout from one sale. WP5 found that CoachNow Academy has Stripe Connect and multi-coach roles, but per-coach pricing is unverified. The lead's re-fetch confirms Academy includes "Invoicing and Billing through Stripe Connect" and "Flexible Multi-Coach Pricing Available". **The difference doesn't affect the plan:** the pilot takes payment through Stripe Payment Links outside the tool, and the build owns its DB either way.
