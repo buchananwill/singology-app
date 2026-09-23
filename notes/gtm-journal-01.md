@@ -278,4 +278,12 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Accepted interpretations:** `CoachOffer.billing` with `pricePence` (to fit single-review pricing); a mismatched role redirects to `/demo`; the upload action posts metadata only, never the file.
 - **Ruled in D32:** fixed fixture dates.
 
+**F14. Facade stage 3b: the coach surfaces are built and D32 is implemented. Pitfall 11 now reproduces.** Commits `52dd4c4` to `f8be525`.
+- **Built:** the `/coach` queue (SLA from loader data, with a `useNow` clock on `useSyncExternalStore`) and the `/coach/reviews/:submissionId` workspace (add-comment-at-current-time, previous take, reply upload, assign checklist, and a Zod-validated send action).
+- **Lead re-verification:** `pnpm test` passes 105 tests (shared 9, media 8, db 41, web 47); the tree is clean.
+- **Delegate evidence:** plain `test:e2e` passed 47 of 47 (3 skipped); **`--repeat-each=2` failed on all 4 runs** with miniflare `fetch failed`, then 500s or connection refused, across unrelated specs.
+- **Pitfall 12:** a floor-rounded client clock ran behind server time (fixed).
+- **Accepted interpretations:** an added earlier take for one student so "previous take" has data; an optional feedback summary field; the upload panel's `fetcherKey` prop for reuse.
+- **Pitfall 11 is under bisection by a diagnostic delegate** (2026-09-24). The question: is it our code (the media handler, leaks) or the local Vite-plugin/miniflare proxy?
+
 **F5. WP4 and WP5 differ slightly on CoachNow.** WP4 says there's no multi-coach payout from one sale. WP5 found that CoachNow Academy has Stripe Connect and multi-coach roles, but per-coach pricing is unverified. The lead's re-fetch confirms Academy includes "Invoicing and Billing through Stripe Connect" and "Flexible Multi-Coach Pricing Available". **The difference doesn't affect the plan:** the pilot takes payment through Stripe Payment Links outside the tool, and the build owns its DB either way.
