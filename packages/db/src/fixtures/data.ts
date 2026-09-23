@@ -27,6 +27,16 @@ export interface FixtureData {
   feedbackComments: FeedbackComment[];
 }
 
+/**
+ * Resolves a fixture's time offset to an ISO timestamp. Fixtures store every
+ * time as hours from "now" (negative is in the past), so the demo never goes
+ * stale (journal decision 32).
+ */
+type At = (hoursFromNow: number) => string;
+
+const HOUR_MS = 60 * 60 * 1000;
+const DAY = 24;
+
 /** The student the facade's student view shows (there is no sign-in). */
 export const DEMO_STUDENT_ID = "student-ada";
 
@@ -108,14 +118,14 @@ const students: Student[] = [
   { id: "student-dev", displayName: "Dev Demo", voiceType: "tenor" },
 ];
 
-const enrolments: Enrolment[] = [
+const enrolments = (at: At): Enrolment[] => [
   {
     id: "enrol-ada",
     studentId: "student-ada",
     coachId: "coach-founder",
     offerId: "offer-founder-monthly",
     status: "active",
-    currentPeriodEnd: "2026-10-05T00:00:00.000Z",
+    currentPeriodEnd: at(12 * DAY),
     submissionsUsed: 2,
   },
   {
@@ -124,7 +134,7 @@ const enrolments: Enrolment[] = [
     coachId: "coach-founder",
     offerId: "offer-founder-monthly",
     status: "active",
-    currentPeriodEnd: "2026-10-12T00:00:00.000Z",
+    currentPeriodEnd: at(19 * DAY),
     submissionsUsed: 1,
   },
   {
@@ -133,7 +143,7 @@ const enrolments: Enrolment[] = [
     coachId: "coach-standard",
     offerId: "offer-standard-monthly",
     status: "active",
-    currentPeriodEnd: "2026-10-01T00:00:00.000Z",
+    currentPeriodEnd: at(8 * DAY),
     submissionsUsed: 1,
   },
   {
@@ -142,7 +152,7 @@ const enrolments: Enrolment[] = [
     coachId: "coach-standard",
     offerId: "offer-standard-single",
     status: "active",
-    currentPeriodEnd: "2026-10-20T00:00:00.000Z",
+    currentPeriodEnd: at(27 * DAY),
     submissionsUsed: 1,
   },
 ];
@@ -229,66 +239,66 @@ const libraryItems: LibraryItem[] = [
   },
 ];
 
-const assignments: Assignment[] = [
+const assignments = (at: At): Assignment[] => [
   {
     id: "asg-ada-siren-1",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-range-siren",
-    assignedAt: "2026-09-07T09:00:00.000Z",
+    assignedAt: at(-16 * DAY),
     status: "feedback_ready",
   },
   {
     id: "asg-ada-siren-2",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-range-siren",
-    assignedAt: "2026-09-14T09:00:00.000Z",
+    assignedAt: at(-9 * DAY),
     status: "feedback_ready",
   },
   {
     id: "asg-ada-onset",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-onset-balanced",
-    assignedAt: "2026-09-14T09:00:00.000Z",
+    assignedAt: at(-9 * DAY),
     status: "submitted",
   },
   {
     id: "asg-ada-runs",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-agility-five-note",
-    assignedAt: "2026-09-19T09:00:00.000Z",
+    assignedAt: at(-4 * DAY),
     status: "todo",
   },
   {
     id: "asg-ada-hiss",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-breath-hiss",
-    assignedAt: "2026-09-19T09:00:00.000Z",
+    assignedAt: at(-4 * DAY),
     status: "todo",
   },
   {
     id: "asg-ben-hiss",
     enrolmentId: "enrol-ben",
     libraryItemId: "lib-breath-hiss",
-    assignedAt: "2026-09-15T09:00:00.000Z",
+    assignedAt: at(-5 * DAY),
     status: "submitted",
   },
   {
     id: "asg-cara-arpeggio",
     enrolmentId: "enrol-cara",
     libraryItemId: "lib-agility-arpeggio",
-    assignedAt: "2026-09-10T09:00:00.000Z",
+    assignedAt: at(-13 * DAY),
     status: "feedback_ready",
   },
   {
     id: "asg-dev-bridge",
     enrolmentId: "enrol-dev",
     libraryItemId: "lib-range-bridge",
-    assignedAt: "2026-09-18T09:00:00.000Z",
+    assignedAt: at(-5 * DAY),
     status: "submitted",
   },
 ];
 
-const submissions: Submission[] = [
+const submissions = (at: At): Submission[] => [
   {
     id: "sub-ada-siren-1",
     enrolmentId: "enrol-ada",
@@ -296,7 +306,7 @@ const submissions: Submission[] = [
     libraryItemId: "lib-range-siren",
     mediaId: "media-student-take-a",
     note: "First go at the sirens. My voice cracks near the top.",
-    submittedAt: "2026-09-08T19:30:00.000Z",
+    submittedAt: at(-14 * DAY - 16),
     status: "reviewed",
   },
   {
@@ -306,7 +316,7 @@ const submissions: Submission[] = [
     libraryItemId: "lib-range-siren",
     mediaId: "media-student-take-b",
     note: "Tried it quieter this time, as you said. Is the top better?",
-    submittedAt: "2026-09-16T20:10:00.000Z",
+    submittedAt: at(-6 * DAY - 16),
     status: "reviewed",
   },
   {
@@ -316,7 +326,7 @@ const submissions: Submission[] = [
     libraryItemId: "lib-onset-balanced",
     mediaId: "media-test-pattern",
     note: "Filmed this one so you can see my jaw.",
-    submittedAt: "2026-09-21T18:45:00.000Z",
+    submittedAt: at(-26),
     status: "awaiting_review",
   },
   {
@@ -326,7 +336,7 @@ const submissions: Submission[] = [
     libraryItemId: "lib-breath-hiss",
     mediaId: "media-student-take-a",
     note: "I run out of air at about 20 seconds.",
-    submittedAt: "2026-09-20T08:15:00.000Z",
+    submittedAt: at(-62),
     status: "awaiting_review",
   },
   {
@@ -336,7 +346,7 @@ const submissions: Submission[] = [
     libraryItemId: "lib-agility-arpeggio",
     mediaId: "media-student-take-b",
     note: "The fast ones get muddy.",
-    submittedAt: "2026-09-12T17:00:00.000Z",
+    submittedAt: at(-11 * DAY),
     status: "reviewed",
   },
   {
@@ -346,18 +356,18 @@ const submissions: Submission[] = [
     libraryItemId: "lib-range-bridge",
     mediaId: "media-test-pattern",
     note: "Video of the bridge exercise. It flips every time.",
-    submittedAt: "2026-09-22T12:30:00.000Z",
+    submittedAt: at(-8),
     status: "awaiting_review",
   },
 ];
 
-const feedback: Feedback[] = [
+const feedback = (at: At): Feedback[] => [
   {
     id: "fb-ada-siren-1",
     submissionId: "sub-ada-siren-1",
     coachId: "coach-founder",
     body: "A good start. The crack at the top comes from pushing more air as you go up. Next time, sing the whole siren at half the volume and let the top be thin: that's fine for now.",
-    sentAt: "2026-09-10T10:00:00.000Z",
+    sentAt: at(-13 * DAY),
   },
   {
     id: "fb-ada-siren-2",
@@ -365,7 +375,7 @@ const feedback: Feedback[] = [
     coachId: "coach-founder",
     body: "Much better. The top is smoother and the crack has almost gone. Listen to my reply for how I'd shape the last slide, then move on to the five-note runs.",
     replyMediaId: "media-coach-reply",
-    sentAt: "2026-09-18T09:30:00.000Z",
+    sentAt: at(-5 * DAY),
   },
   {
     id: "fb-cara-arpeggio",
@@ -373,7 +383,7 @@ const feedback: Feedback[] = [
     coachId: "coach-standard",
     body: "Lovely tone. The runs blur when you speed up because the breath stops moving. Slow them right down and keep the air flowing through every note.",
     replyMediaId: "media-coach-reply",
-    sentAt: "2026-09-14T16:00:00.000Z",
+    sentAt: at(-9 * DAY),
   },
 ];
 
@@ -392,16 +402,23 @@ const feedbackComments: FeedbackComment[] = [
   { id: "fc-cara-3", feedbackId: "fb-cara-arpeggio", tSeconds: 55.5, body: "Breath has stopped moving: keep it flowing." },
 ];
 
-/** The full facade cast (spec decision 17). Names are fictional; there are no real people here. */
-export const fixtureData: FixtureData = {
-  coaches,
-  coachOffers,
-  students,
-  enrolments,
-  libraryItems,
-  mediaAssets,
-  assignments,
-  submissions,
-  feedback,
-  feedbackComments,
-};
+/**
+ * The full facade cast (spec decision 17), with every time offset resolved
+ * against `now`. Names are fictional; there are no real people here.
+ */
+export function createFixtureData(now: Date): FixtureData {
+  const nowMs = now.getTime();
+  const at: At = (hoursFromNow) => new Date(nowMs + hoursFromNow * HOUR_MS).toISOString();
+  return {
+    coaches,
+    coachOffers,
+    students,
+    enrolments: enrolments(at),
+    libraryItems,
+    mediaAssets,
+    assignments: assignments(at),
+    submissions: submissions(at),
+    feedback: feedback(at),
+    feedbackComments,
+  };
+}

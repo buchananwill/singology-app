@@ -1,7 +1,7 @@
 import type { LibraryFilter } from "@singology/shared";
 
 import type { Repositories } from "../repositories";
-import { type FixtureData, fixtureData } from "./data";
+import { createFixtureData, type FixtureData } from "./data";
 
 /**
  * Returns a deep copy so callers can never mutate the fixtures.
@@ -28,7 +28,9 @@ function matchesFilter(
 }
 
 /** Implements the repository interface over in-module fixture data. Nothing persists. */
-export function createFixtureRepositories(data: FixtureData = fixtureData): Repositories {
+export function createFixtureRepositories(
+  data: FixtureData = createFixtureData(new Date()),
+): Repositories {
   const enrolmentIdsForStudent = (studentId: string): Set<string> =>
     new Set(data.enrolments.filter((e) => e.studentId === studentId).map((e) => e.id));
 

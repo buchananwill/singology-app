@@ -18,7 +18,11 @@ import {
 import { describe, expect, it } from "vitest";
 
 import { createFixtureRepositories } from "./createFixtureRepositories";
-import { DEMO_COACH_ID, DEMO_STUDENT_ID, fixtureData } from "./data";
+import { createFixtureData, DEMO_COACH_ID, DEMO_STUDENT_ID } from "./data";
+
+/** Any fixed instant: fixture times are offsets from it. */
+const TEST_NOW = new Date("2026-09-23T12:00:00.000Z");
+const fixtureData = createFixtureData(TEST_NOW);
 
 const PUBLIC_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -53,6 +57,40 @@ describe("fixture data", () => {
       FeedbackSchema.array().parse(fixtureData.feedback);
       FeedbackCommentSchema.array().parse(fixtureData.feedbackComments);
     }).not.toThrow();
+  });
+
+  it("stores times as offsets from now, so every timestamp moves with now", () => {
+    const hundredDays = 1000 * 60 * 60 * 24 * 100;
+    const later = createFixtureData(new Date(TEST_NOW.getTime() + hundredDays));
+    const shift = (a: string, b: string) => new Date(b).getTime() - new Date(a).getTime();
+    fixtureData.submissions.forEach((s, i) =>
+      expect(shift(s.submittedAt, later.submissions[i]?.submittedAt ?? "")).toBe(hundredDays),
+    );
+    fixtureData.assignments.forEach((a, i) =>
+      expect(shift(a.assignedAt, later.assignments[i]?.assignedAt ?? "")).toBe(hundredDays),
+    );
+    fixtureData.feedback.forEach((f, i) =>
+      expect(shift(f.sentAt, later.feedback[i]?.sentAt ?? "")).toBe(hundredDays),
+    );
+    fixtureData.enrolments.forEach((e, i) =>
+      expect(shift(e.currentPeriodEnd, later.enrolments[i]?.currentPeriodEnd ?? "")).toBe(
+        hundredDays,
+      ),
+    );
+  });
+
+  it("puts past events in the past and enrolment periods in the future", () => {
+    const now = TEST_NOW.toISOString();
+    for (const item of [
+      ...fixtureData.assignments.map((a) => a.assignedAt),
+      ...fixtureData.submissions.map((s) => s.submittedAt),
+      ...fixtureData.feedback.map((f) => f.sentAt),
+    ]) {
+      expect(item < now).toBe(true);
+    }
+    for (const enrolment of fixtureData.enrolments) {
+      expect(enrolment.currentPeriodEnd > now).toBe(true);
+    }
   });
 
   it("has unique ids in every collection", () => {
