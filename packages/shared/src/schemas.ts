@@ -167,6 +167,20 @@ export const FeedbackSchema = z.object({
 });
 export type Feedback = z.infer<typeof FeedbackSchema>;
 
+/**
+ * What the upload panel posts to a route action: the picked file's metadata,
+ * never the file itself (spec decision 19: nothing leaves the browser in the
+ * facade). Form values arrive as strings, so numbers are coerced.
+ */
+export const RecordingUploadSchema = z.object({
+  fileName: z.string().min(1).max(255),
+  sizeBytes: z.coerce.number().int().positive(),
+  durationSec: z.coerce.number().positive().finite(),
+  mimeType: z.string().regex(/^(audio|video)\//, "Pick an audio or video file."),
+  note: z.string().max(1000).default(""),
+});
+export type RecordingUpload = z.infer<typeof RecordingUploadSchema>;
+
 export const FeedbackCommentSchema = z.object({
   id: IdSchema,
   feedbackId: IdSchema,
