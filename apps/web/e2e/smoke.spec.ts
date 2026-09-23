@@ -130,6 +130,24 @@ test("role-scoped routes redirect to /demo until a role is picked", async ({ pag
   await expect(page.getByRole("heading", { level: 1, name: "Review queue" })).toBeVisible();
 });
 
+test("the coach nav has Queue and Library, and Queue stays current in a review", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+  await chooseRole(page, "coach");
+  const nav = page.getByRole("navigation", { name: "Main" });
+  await expect(nav.getByRole("link")).toHaveText(["Queue", "Library"]);
+  await expect(nav.getByRole("link", { name: "Queue" })).toHaveAttribute("aria-current", "page");
+  await page.getByTestId("queue-item").first().getByRole("link", { name: "Review" }).click();
+  await expect(page).toHaveURL(/\/coach\/reviews\/sub-ben-hiss$/);
+  await expect(nav.getByRole("link", { name: "Queue" })).toHaveAttribute("aria-current", "page");
+  await nav.getByRole("link", { name: "Library" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Exercise library" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Library" })).toHaveAttribute("aria-current", "page");
+  await settle(page);
+  expect(errors).toEqual([]);
+});
+
 test("the review queue is oldest first, with no item overdue", async ({ page }) => {
   const errors = trackErrors(page);
   await chooseRole(page, "coach");

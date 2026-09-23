@@ -27,7 +27,8 @@ const NAV_ITEMS: Record<DemoRole, readonly NavItem[]> = {
     },
   ],
   coach: [
-    { label: "Review queue", to: "/coach", isActive: (pathname) => pathname.startsWith("/coach") },
+    // The queue stays current inside a review (/coach/reviews/:id).
+    { label: "Queue", to: "/coach", isActive: (pathname) => pathname.startsWith("/coach") },
     { label: "Library", to: "/library", isActive: (pathname) => pathname === "/library" },
   ],
 };
