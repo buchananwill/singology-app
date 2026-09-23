@@ -19,10 +19,13 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "react-router";
 
 import type { Route } from "./+types/root";
-import { AppHeader } from "./components/AppHeader";
+import { AppHeader } from "./components/shell/AppHeader";
+import { DemoBanner } from "./components/shell/DemoBanner";
+import { RoleNav } from "./components/shell/RoleNav";
 import { demoRoleContext } from "./context";
 import { demoRoleMiddleware } from "./middleware/demoRole";
 import { repositoriesMiddleware } from "./middleware/repositories";
@@ -56,13 +59,21 @@ export function Layout({ children }: { children: ReactNode }) {
   );
 }
 
-export default function App() {
+export default function App({ loaderData }: Route.ComponentProps) {
+  const { role } = loaderData;
+  const isLanding = useLocation().pathname === "/";
   return (
     <AppShell header={{ height: 56 }} padding="md">
       <AppShell.Header>
-        <AppHeader />
+        <AppHeader role={role} />
       </AppShell.Header>
       <AppShell.Main>
+        {!isLanding && (
+          <Container size="md">
+            <DemoBanner />
+            {role !== null && <RoleNav role={role} />}
+          </Container>
+        )}
         <Outlet />
       </AppShell.Main>
     </AppShell>
