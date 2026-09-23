@@ -23,10 +23,16 @@ import {
 
 import type { Route } from "./+types/root";
 import { AppHeader } from "./components/AppHeader";
+import { demoRoleContext } from "./context";
+import { demoRoleMiddleware } from "./middleware/demoRole";
 import { repositoriesMiddleware } from "./middleware/repositories";
 import { theme } from "./theme";
 
-export const middleware: Route.MiddlewareFunction[] = [repositoriesMiddleware];
+export const middleware: Route.MiddlewareFunction[] = [repositoriesMiddleware, demoRoleMiddleware];
+
+export function loader({ context }: Route.LoaderArgs) {
+  return { role: context.get(demoRoleContext) };
+}
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
