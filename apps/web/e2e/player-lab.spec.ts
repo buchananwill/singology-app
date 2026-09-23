@@ -63,10 +63,27 @@ test.describe("/lab/player", () => {
     expect(errors).toEqual([]);
   });
 
-  test("clicking a comment marker seeks to the comment", async ({ page, browserName }) => {
+  test("clicking a comment marker seeks to the comment", async ({ page, browserName, baseURL }) => {
     const errors = trackErrors(page);
-    // Record every seek the page asks for, so the click-to-seek wiring is checked even where the
-    // browser cannot complete the seek (see the Chromium note below).
+    if (browserName === "chromium") {
+      // On localhost Chromium can buffer a whole fixture before the click, and then the seek
+      // succeeds with or without Range support. Throttling only the audio files (not the app's
+      // scripts) keeps the comment's time unbuffered, so the seek has to fetch a byte range.
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send("Network.enable");
+      await cdp.send("Network.emulateNetworkConditionsByRule", {
+        matchedNetworkConditions: [
+          {
+            urlPattern: `${baseURL ?? ""}/media/*.m4a`,
+            latency: 0,
+            downloadThroughput: 64 * 1024,
+            uploadThroughput: -1,
+          },
+        ],
+      });
+    }
+    // Record every seek the page asks for, so a failure shows whether the click asked for the
+    // right time or the browser failed to reach it.
     await page.addInitScript(() => {
       const native = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "currentTime");
       if (!native?.get || !native.set) {
@@ -90,20 +107,40 @@ test.describe("/lab/player", () => {
     await expect(audio.getByTestId("waveform")).toHaveAttribute("data-ready", "true");
     const markers = audio.getByTestId("comment-marker");
     await expect(markers).toHaveCount(3);
-    await markers.nth(1).click();
-
     const audioMedia = audio.getByTestId("player-media");
-    await expect(audioMedia).toHaveAttribute("data-requested-time", "24");
+    await expect
+      .poll(() => audioMedia.evaluate((el: HTMLMediaElement) => el.readyState))
+      .toBeGreaterThanOrEqual(1);
 
-    // Pitfall 6: Workers static assets (and so `pnpm preview`) ignore HTTP Range requests. Chromium
-    // then cannot seek into media it has not fully buffered, and the position falls back to 0
-    // depending on download timing. The completed seek is asserted only in WebKit until the
-    // media is served with Range support.
-    if (browserName !== "chromium") {
-      await expect
-        .poll(() => audioMedia.evaluate((el: HTMLMediaElement) => el.currentTime))
-        .toBeCloseTo(24, 0);
+    // Pitfall 6 / decision 31: the seek must land in media that is not yet buffered, which only
+    // works when `/media/*` answers HTTP Range with 206. With the throttle above, Chromium has only
+    // the start of the file, so the comment's time must still be outside every buffered range.
+    if (browserName === "chromium") {
+      const commentTimeBuffered = await audioMedia.evaluate((el: HTMLMediaElement) => {
+        for (let i = 0; i < el.buffered.length; i += 1) {
+          if (el.buffered.start(i) <= 24 && el.buffered.end(i) >= 24) {
+            return true;
+          }
+        }
+        return false;
+      });
+      expect(commentTimeBuffered, "the comment's time is already buffered").toBe(false);
     }
+
+    // Wait for the first `seeked` after the click (NaN if none within 10 s), then read where the
+    // media actually is.
+    const seekedAt = audioMedia.evaluate(
+      (el: HTMLMediaElement) =>
+        new Promise<number>((resolve) => {
+          el.addEventListener("seeked", () => resolve(el.currentTime), { once: true });
+          setTimeout(() => resolve(Number.NaN), 10_000);
+        }),
+    );
+    await markers.nth(1).click();
+    await expect(audioMedia).toHaveAttribute("data-requested-time", "24");
+    expect(await seekedAt).toBeCloseTo(24, 0);
+    // The position holds after the seek instead of snapping back to 0.
+    expect(await audioMedia.evaluate((el: HTMLMediaElement) => el.currentTime)).toBeCloseTo(24, 0);
     expect(errors).toEqual([]);
   });
 
