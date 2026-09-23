@@ -85,6 +85,13 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** None. Nothing in the app was changed for it.
 - **Affects.** Local test reliability only, as far as is known: `vite preview` wraps the Worker in a Node proxy (the Cloudflare Vite plugin, miniflare), which production does not use. Worth knowing if the slice's CI runs e2e against `pnpm preview` with high parallelism.
 - **Evidence.** `[WebServer] TypeError: fetch failed at Object.processResponse (undici@7.29.0 .../fetch/index.js:237:16) ... at async _Miniflare.dispatchFetch (miniflare@5.20260921.0-alpha .../index.js:119777:22)`; browser console `Failed to load resource: the server responded with a status of 500 (Internal Server Error)`; Playwright `page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4173/student`.
+- **Stage 3b update: it now reproduces on every stressed run.** The suite grew to 50 tests (47 run, 3 skipped), with two review pages that each load a waveform, an upload panel and the library. Plain `pnpm test:e2e` passed 47 of 47 three times. Every `--repeat-each=2` run failed:
+  - Run 1 (default workers): 93 passed, 1 failed. The preview server stopped: `page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4173/demo`.
+  - Run 2: 92 passed, 2 failed. Two `[WebServer] TypeError: fetch failed` traces (the same undici `processResponse` to miniflare `dispatchFetch` stack as above, reached from `@cloudflare/vite-plugin@1.58.0 dist/index.mjs:51227`), then `500 (Internal Server Error)` on the landing page in WebKit and on "Send feedback" in Chromium.
+  - Run 3: 91 passed, 3 failed, after three `fetch failed`.
+  - Run 4 with `--workers=4`: four `fetch failed`, and at least four failures across unrelated specs (student feedback, upload, `/lab/player`, review).
+
+  The failing tests are spread across old and new specs, and the review flow alone passed 30 of 30 (`review.spec --project chromium --repeat-each=10`), so no single route is the trigger. A comparison against the 3a commit was attempted in a scratch worktree, but its preview server would not start there (`ERR_PACKAGE_IMPORT_NOT_DEFINED: "#development-condition-enabled"` from `@react-router/dev`, an artefact of the scratch install), so whether 3a fails the same way under today's load is not proven. The cause is still unknown. This is reported to the lead rather than worked around: nothing in the app or the tests was changed for it.
 
 ## 12. A live clock that rounds the browser time down can run behind the server's time
 
