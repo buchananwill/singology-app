@@ -35,6 +35,13 @@ Produce a GTM proposal for an asynchronous singing-coaching platform (PT-style: 
 ## 4. Next work
 
 - **The draft proposal is complete:** [gtm-proposal.md](./gtm-proposal.md), written 2026-09-23 from all five briefs (F1 to F9). It awaits the user's review.
+- **Overnight facade build (D29) in progress on branch `facade`.** The contract is [facade-spec.md](./facade-spec.md). The stages run in sequence:
+  - (1) scaffold and toolchain proof;
+  - (2) media fixtures, peaks script and player component;
+  - (3) fixtures and all surfaces;
+  - (4) lead verification, Playwright screenshots and the pitfalls report.
+  Pitfalls accumulate in `notes/facade-pitfalls.md`.
+- **WP7 (app stack) returned and ruled 2026-09-23 as decisions 19 to 27.** See [07-app-stack.md](./research/07-app-stack.md). Next: facade work (D26) can start whenever the CTO chooses; it should begin with a planning-session decision spec. The CTO's near-term roadmap (facade, then legal/accounting, then vertical slice) is recorded in [gtm-plan.md](./gtm-plan.md).
 - **Next session:** fold in the user's review comments and the founder's answers (§5). Then, if asked, turn launch-plan phase 0 (gates) and phase 1 (MVP) into a planning-session decision spec for the build. Phase 0 items are the iPhone audio test, the host audio test, and the accountant, solicitor and PRS enquiries.
 
 ## 5. Open items
@@ -120,6 +127,82 @@ The file input omits `capture`, so iOS offers Photo Library, Camera and Files. T
 - **SSR** covers the public surfaces (landing page, coach cards). **Client-side** handles the authenticated app.
 - React has the densest ecosystem for what the product needs: Supabase and Stripe client examples, waveform and media components (e.g. wavesurfer.js), and agent familiarity.
 *Reason:* the user left the choice open. The lead rules so phase 1 does not stall on it, and picks the option with the least integration surface on the chosen host.
+
+**19. UI kit: Mantine 9.x** (the CTO's default, confirmed by WP7). The lead verified 9.6.2, released 2026-09-01, on mantine.dev. It uses plain CSS modules with no runtime CSS-in-JS, so SSR on Workers needs no extra setup. It ships forms, dates, charts and notifications, which the coach/admin surfaces need. Theming covers the founder's brand. *Not verified:* a running build with `@cloudflare/vite-plugin`; the first facade commit proves it.
+
+**20. Media UI libraries.**
+- **Waveform:** wavesurfer.js 8.x (BSD), attached to our own media element, rendering **pre-computed peaks** (never decoding whole files in the browser). The Regions plugin handles timestamped comments and loops.
+- **Streaming:** hls.js for HLS, with Safari's native HLS as the fallback.
+- **Slow-down:** the browser's built-in `playbackRate` with `preservesPitch`. **No DSP library in the MVP.**
+- **Transposition** (post-MVP): Signalsmith Stretch (MIT). Rubber Band is excluded (GPL or commercial licence).
+- **Uploads:** tus-js-client, with a server-minted Bunny signature. No Uppy.
+- **Player:** our own, never the Bunny iframe (D11 requires owning the look).
+*The CTO asked whether they were overthinking DSP: yes, for the MVP.*
+
+**21. Media pipeline: audio and video take different routes, with one processing job.** WP7 could not confirm that Bunny Stream accepts audio-only uploads, and the lead couldn't either (Bunny's formats page 404s). Separately, iPhone Voice Memos "Lossless" produces **ALAC**, which only Safari plays.
+- **Video submissions** go to Bunny Stream (D11).
+- **Audio submissions** upload to Bunny Storage (the plain file store behind Bunny's CDN, token-authenticated). The original is kept as-is, and there is no Stream re-encode.
+- **A processing job** runs in a Cloudflare Container with ffmpeg, triggered on upload completion (Bunny webhook, or our upload-complete route). For every submission it (a) writes a browser-playable listening copy (AAC 256 kbps, or Opus) for audio and (b) computes waveform peaks for both audio and video.
+*Reason:* this removes the unconfirmed Stream dependency, keeps the original audio untouched (D4; better than any host re-encode), and gives D12's audio archive for free on the audio path.
+*Unverified:* Containers pricing and whether Workers Paid covers them. Check before the slice. **The facade needs none of this** (fixture peaks and files).
+
+**22. Data layer: Drizzle on the server only; RLS remains the authority.**
+- **Only the Worker talks to Postgres,** through Hyperdrive, with Drizzle ORM (0.45.x). The browser never talks to Postgres, and **Supabase's Data API (PostgREST) is disabled.**
+- **Every user-scoped query runs in a transaction** that sets `role authenticated` and `request.jwt.claims` (Drizzle's Supabase RLS pattern), so RLS policies (declared in the Drizzle schema with `pgPolicy`) enforce access. Server code adds checks on top. An `adminDb` without claims is used only by webhooks and jobs.
+- **Hyperdrive query caching is disabled.** The lead verified that caching is on by default, and the docs don't say whether cached reads account for the session's role or claims. A cached read could serve one user's rows to another.
+- **drizzle-kit pinned to 0.31.x,** with `out: supabase/migrations` and the `supabase` prefix, so Supabase Branching applies the flat SQL files. The lead verified drizzle-orm issue #5166: the v1 beta writes per-folder migrations, which break Supabase. It has been open since 2025-12-22. **Do not upgrade to drizzle-kit v1 until it is fixed. Never run `drizzle-kit push` against Branching or production.**
+- **supabase-js** (`@supabase/ssr`) is used only for Auth sessions (cookies, in React Router v8 middleware).
+*This endorses the CTO's Drizzle lean,* with the portability escape hatch intact. *It amends the WP4 assumption* that the browser queries Supabase directly under RLS.
+
+**23. No Supabase Edge Functions.** The Worker hosts the Stripe webhook (`constructEventAsync` on the raw body), the Bunny tus-signature, playback-token and webhook routes, and job triggers, all as React Router resource routes. Auth hooks, if needed, are Postgres functions. *Amends proposal §6* ("Edge Functions mint Bunny playback tokens") and the §5 repo line.
+
+**24. Client state: no global store.** Server state lives in React Router loaders and actions.
+- **Player:** a typed `useReducer` in a `PlayerProvider` scoped to the review page, with events `play`, `pause`, `seek`, `setRate`, `setLoop` and `mediaTime`. The wavesurfer and hls.js instances live in refs. **High-frequency `timeupdate` never goes into React state:** use a ref or a `useSyncExternalStore` read.
+- **Upload progress:** local state.
+- **If the player reducer outgrows about 10 events,** swap it for `@xstate/store` behind the same hook.
+- **Zustand (the CTO's usual choice)** only if cross-route client state appears, and then under four rules: (a) selectors return primitives or use `useShallow`; (b) no `set` during render; (c) `react-hooks/exhaustive-deps` is an error; (d) no high-frequency media time in the store. These rules target the recursive-update loops the CTO has seen agents cause.
+
+**25. Repo layout: a pnpm workspace, no Turborepo or Nx.**
+- `apps/web`: the React Router v8 Worker (routes, UI, resource routes).
+- `packages/db`: the Drizzle schema, RLS policies, `userDb`/`adminDb` factories and repositories.
+- `packages/shared`: Zod 4 schemas, DTO types, and constants (tiers, roles).
+- `supabase/`: `config.toml`, `migrations/` (drizzle-kit output), `seed.sql`, and `tests/` (pgTAP RLS tests).
+- `jobs/media/`: the Dockerfile and ffmpeg script for the D21 Container.
+**A future Capacitor shell can't bundle a framework-mode SSR app.** It would need a second SPA build of the same routes calling the Worker over HTTP; loading the remote URL invites Apple guideline 4.2 rejection. **Standing rule:** data access stays behind `packages/db` repositories, exposed via loaders or resource routes, so that option stays open. Do not build it now.
+
+**26. The facade is the real app on fixtures.** Roadmap step 1 is a founder-facing facade with no real users or payments. It is **`apps/web` itself**:
+- the real routes and Mantine UI;
+- loaders reading **fixtures through the same repository interface** `packages/db` will implement, so the slice swaps implementations, not routes;
+- sample audio and video served as static assets with pre-computed peaks;
+- no Supabase, Stripe, Bunny or Container.
+It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-list (D17). *Reason:* D15 says foundations are never swapped under a cohort. The facade has no cohort, but its UI must survive into the slice, or the founder's sign-off on the vision is sign-off on a throwaway.
+
+**27. Slice-stage supporting choices:**
+- **Transactional email:** Resend (or Postmark), configured before any external user sees a magic link. Supabase's built-in SMTP sends only to team members, 2 emails an hour.
+- **Validation:** Zod 4.x in `packages/shared`.
+- **Dev database:** a remote free-tier Supabase dev project plus Branching. No local Docker stack on Windows.
+- **Tests:** pgTAP for RLS policies; Vitest; Playwright.
+- **Error tracking:** Sentry on Workers.
+- **Pilot metrics** (WP5 thresholds): an `events` table written from day one of the slice, since the data can't be backfilled.
+- ~~**The iPhone audio test** (D16) runs before the slice, not before the facade.~~ *STRUCK 2026-09-23 by D28.*
+
+**28. The upload path's audio quality is trusted; no fidelity gate before the slice.** *User steer 2026-09-23 ("be bold"); the lead agrees on the merits.*
+- **Why the risk is low:** the fidelity risk in WP3 lived almost entirely in **in-page recording**: WebKit's WebRTC voice processing and audio routing. The upload path (D16) uses Apple's own recorders, which never touch that stack, and D21 keeps the original file untouched. Musicians record on Voice Memos and the Camera app routinely. **That residual risk is accepted.**
+- **Workflow risks that remain** (not fidelity; the beta circle surfaces them, not a pre-slice gate):
+  - (a) whether a backing track can play from the same phone while Voice Memos or Camera records; the fallback is a second device;
+  - (b) Camera or Voice Memos processing options (Audio Mix, wind reduction, Enhance Recording), handled by the recommended-settings guide;
+  - (c) clipping when singing loudly close to the mic, handled by distance guidance in the guide;
+  - (d) photo-picker transcoding and large files in a foreground upload.
+- **In-page recording** is not in the slice. If it is ever built, WP3's fidelity test and trigger T1 apply to it then.
+- **The CTO's used iPhone** becomes a dev device for normal Safari QA, not a test gate.
+*Amends* D16's phase-0 test additions, D27's last bullet, and proposal §7 phase 0.
+
+**29. Overnight facade build (user, 2026-09-23).** The CTO wants to reply to the founder the next day knowing whether there are real imminent pitfalls.
+- **Scope:** landing page with coach cards, the student surfaces and the coach surfaces. No admin or founder console.
+- **Git:** work on branch `facade`; `main` stays untouched until the user reviews. **Commit regularly: many small, focused commits** (the user's standing preference; every delegate brief repeats it).
+- **Deploy:** local only. The user may already be logged in to wrangler, but a workers.dev URL is public until Cloudflare Access is configured, so the lead does not deploy. Verification is local: dev server, production build, the Workers runtime via `wrangler dev`, and browser screenshots.
+- **Deliverables by morning:** the facade (D26), plus a pitfalls report the CTO can use in their reply to the founder.
+- **Toolchain as measured:** Node v24.6.0; pnpm 9.12.1 (pinned in `packageManager`, the global install left alone).
 
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
 - **Mock-up stage (about £0):** Workers Free, Supabase Free (projects pause after about a week of inactivity; no Branching), Bunny's $1 monthly minimum, and Stripe (no fixed fee).
