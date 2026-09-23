@@ -40,7 +40,7 @@ const ROUTES: readonly RouteCase[] = [
     waveforms: 2,
   },
   { name: "library", path: "/library", role: "student", heading: "Exercise library", waveforms: 0 },
-  { name: "coach", path: "/coach", role: "coach", heading: "Coach view", waveforms: 0 },
+  { name: "coach", path: "/coach", role: "coach", heading: "Review queue", waveforms: 0 },
 ];
 
 async function expectWaveformsReady(page: Page, count: number): Promise<void> {
@@ -112,9 +112,27 @@ test("role-scoped routes redirect to /demo until a role is picked", async ({ pag
   await expect(page).toHaveURL(/\/demo$/);
   await chooseRole(page, "coach");
   await expect(page.getByTestId("current-role")).toHaveText("Coach view");
-  await expect(page.getByTestId("coach-placeholder")).toHaveText(
-    "Coach view: coming in the next stage",
+  await expect(page.getByRole("heading", { level: 1, name: "Review queue" })).toBeVisible();
+});
+
+test("the review queue is oldest first, with no item overdue", async ({ page }) => {
+  const errors = trackErrors(page);
+  await chooseRole(page, "coach");
+  const items = page.getByTestId("queue-item");
+  await expect(items).toHaveCount(2);
+  await expect(items.getByTestId("queue-student")).toHaveText(["Ben Sample", "Ada Example"]);
+  // Fixture times are offsets from the request time (journal decision 32): never overdue.
+  for (const item of await items.all()) {
+    await expect(item).not.toHaveAttribute("data-sla", "overdue");
+    await expect(item).not.toContainText(/overdue/i);
+  }
+  await expect(items.first()).toHaveAttribute("data-sla", "due_soon");
+  await expect(items.first().getByTestId("queue-submitted")).toHaveText("Submitted 62 hours ago");
+  await expect(items.first().getByTestId("queue-sla")).toHaveText(
+    /^Due soon: (9h 5\dm|10h 00m) left$/,
   );
+  await expect(items.nth(1)).toHaveAttribute("data-sla", "on_track");
+  expect(errors).toEqual([]);
 });
 
 test("library filters live in the URL", async ({ page }) => {
