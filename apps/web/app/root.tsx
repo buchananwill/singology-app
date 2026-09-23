@@ -23,7 +23,10 @@ import {
 
 import type { Route } from "./+types/root";
 import { AppHeader } from "./components/AppHeader";
+import { repositoriesMiddleware } from "./middleware/repositories";
 import { theme } from "./theme";
+
+export const middleware: Route.MiddlewareFunction[] = [repositoriesMiddleware];
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
