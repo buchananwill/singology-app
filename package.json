@@ -1,0 +1,19 @@
+{
+  "name": "singology",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.12.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --if-present run test",
+    "build": "pnpm -r --if-present run build",
+    "dev": "pnpm --filter @singology/web run dev",
+    "preview": "pnpm --filter @singology/web run preview"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}
