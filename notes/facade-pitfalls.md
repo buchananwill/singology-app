@@ -52,7 +52,7 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 
 ## 7. Playwright's WebKit on Windows has neither native HLS nor Media Source Extensions
 
-- **What happened.** In Playwright's WebKit build on Windows, `canPlayType("application/vnd.apple.mpegurl")` returns `""` and `Hls.isSupported()` is false. So the player uses the progressive MP4 for the HLS fixture, as `attachMediaSource` is designed to. Chromium 1.63 reports native HLS support, so by default it also skips hls.js.
+- **What happened.** In Playwright's WebKit build on Windows, `canPlayType("application/vnd.apple.mpegurl")` returns `""` and `Hls.isSupported()` is false. So the player uses the progressive MP4 for the HLS fixture, as `attachMediaSource` is designed to. Playwright 1.63's Chromium reports native HLS support, so by default it also skips hls.js.
 - **Workaround.** The e2e test expects an HLS mode (`native-hls` or `hls.js`) only when the browser offers native HLS or MSE, and `progressive` otherwise. A separate Chromium test hides native HLS with an init script, so the hls.js path is exercised and reaches `readyState >= 1`. The native-HLS path is exercised by Chromium. Real Safari and iOS behaviour needs a device check.
 - **Affects.** Test coverage only. Neither the slice's runtime nor the founder demo, but the iPhone path of decision 21 is not proven by automated tests.
 - **Evidence.** The first WebKit run failed with `data-source-mode="progressive"` on the `<video>`, with `src="/media/test-pattern.mp4"`. In Chromium, a manual check showed `data-source-mode="native-hls"` with `currentSrc` `.../test-pattern-hls/index.m3u8`.
