@@ -38,7 +38,7 @@ export function formatTimestamp(seconds: number): string {
 }
 
 /** Counts in hours below `hoursUntilDays`, so a review window reads precisely. */
-export function formatElapsed(ms: number, hoursUntilDays: number): string {
+function formatElapsed(ms: number, hoursUntilDays: number): string {
   const minutes = Math.floor(Math.max(0, ms) / MINUTE_MS);
   if (minutes < 1) {
     return "just now";

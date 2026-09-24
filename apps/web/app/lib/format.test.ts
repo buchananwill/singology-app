@@ -7,7 +7,6 @@ import {
   formatCount,
   formatDate,
   formatDuration,
-  formatElapsed,
   formatPence,
   formatSince,
   formatTimeLeft,
@@ -32,23 +31,25 @@ describe("format", () => {
     expect(formatDuration(5)).toBe("0:05");
   });
 
+  const nowMs = new Date("2026-09-23T12:00:00.000Z").getTime();
+  const msAgo = (ms: number) => new Date(nowMs - ms).toISOString();
+
   it("formats time since an event", () => {
-    expect(formatElapsed(20 * 1000, 72)).toBe("just now");
-    expect(formatElapsed(12 * MINUTE_MS, 72)).toBe("12 min ago");
-    expect(formatElapsed(60 * MINUTE_MS, 72)).toBe("1 hour ago");
-    expect(formatElapsed(62 * HOUR_MS, 72)).toBe("62 hours ago");
-    expect(formatElapsed(12.5 * 24 * HOUR_MS, 72)).toBe("12 days ago");
+    expect(formatSince(msAgo(20 * 1000), nowMs, 72)).toBe("just now");
+    expect(formatSince(msAgo(12 * MINUTE_MS), nowMs, 72)).toBe("12 min ago");
+    expect(formatSince(msAgo(60 * MINUTE_MS), nowMs, 72)).toBe("1 hour ago");
+    expect(formatSince(msAgo(62 * HOUR_MS), nowMs, 72)).toBe("62 hours ago");
+    expect(formatSince(msAgo(12.5 * 24 * HOUR_MS), nowMs, 72)).toBe("12 days ago");
   });
 
   it("switches from hours to days at the given threshold", () => {
-    expect(formatElapsed(47 * HOUR_MS, 48)).toBe("47 hours ago");
-    expect(formatElapsed(48 * HOUR_MS, 48)).toBe("2 days ago");
-    expect(formatElapsed(71 * HOUR_MS, 72)).toBe("71 hours ago");
-    expect(formatElapsed(72 * HOUR_MS, 72)).toBe("3 days ago");
+    expect(formatSince(msAgo(47 * HOUR_MS), nowMs, 48)).toBe("47 hours ago");
+    expect(formatSince(msAgo(48 * HOUR_MS), nowMs, 48)).toBe("2 days ago");
+    expect(formatSince(msAgo(71 * HOUR_MS), nowMs, 72)).toBe("71 hours ago");
+    expect(formatSince(msAgo(72 * HOUR_MS), nowMs, 72)).toBe("3 days ago");
   });
 
   it("formats the time since an ISO instant", () => {
-    const nowMs = new Date("2026-09-23T12:00:00.000Z").getTime();
     expect(formatSince("2026-09-20T22:00:00.000Z", nowMs, 72)).toBe("62 hours ago");
     expect(formatSince("2026-09-23T11:48:00.000Z", nowMs, 72)).toBe("12 min ago");
   });
