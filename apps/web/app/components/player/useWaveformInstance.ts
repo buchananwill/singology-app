@@ -1,10 +1,10 @@
-import { type FeedbackComment, type MediaAsset, WaveformPeaksSchema } from "@singology/shared";
+import type { FeedbackComment, MediaAsset } from "@singology/shared";
 import { type Dispatch, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 
-import { formatTimestamp } from "../../lib/format";
 import { attachMediaSource, type SourceMode } from "./attachMediaSource";
 import type { LoopState, PlayerEvent } from "./playerReducer";
+import { commentMarker, fetchPeaks } from "./waveformDom";
 import type { WaveformTheme } from "./waveformTheme";
 
 type Regions = InstanceType<typeof RegionsPlugin>;
@@ -29,33 +29,6 @@ export interface WaveformInstance {
   error: string | null;
   sourceMode: SourceMode | null;
   clearLoop(): void;
-}
-
-function commentMarker(index: number, comment: FeedbackComment, theme: WaveformTheme): HTMLElement {
-  const marker = document.createElement("span");
-  marker.textContent = String(index + 1);
-  marker.title = comment.body;
-  marker.setAttribute("role", "button");
-  marker.setAttribute("aria-label", `Comment ${index + 1} at ${formatTimestamp(comment.tSeconds)}`);
-  marker.dataset.testid = "comment-marker";
-  marker.dataset.commentId = comment.id;
-  Object.assign(marker.style, {
-    display: "inline-block",
-    minWidth: "1.4em",
-    padding: "0 0.3em",
-    textAlign: "center",
-    cursor: "pointer",
-    ...theme.commentMarker,
-  });
-  return marker;
-}
-
-async function fetchPeaks(url: string, signal: AbortSignal) {
-  const response = await fetch(url, { signal });
-  if (!response.ok) {
-    throw new Error(`Peaks request failed: ${response.status} ${url}`);
-  }
-  return WaveformPeaksSchema.parse(await response.json());
 }
 
 export function useWaveformInstance({
