@@ -322,6 +322,39 @@ describe("createFixtureRepositories", () => {
     expect(oldest?.submittedAt).toBe(new Date(now.getTime() - 62 * 60 * 60 * 1000).toISOString());
   });
 
+  it("gets a submission with its enrolment for the student who owns it", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const owned = await repos.submissions.getForStudent("student-ada", "sub-ada-onset");
+    expect(owned?.submission.id).toBe("sub-ada-onset");
+    expect(owned?.enrolment.id).toBe("enrol-ada");
+  });
+
+  it("hides a submission from any other student", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    expect(await repos.submissions.getForStudent("student-ben", "sub-ada-onset")).toBeUndefined();
+    expect(
+      await repos.submissions.getForStudent("student-ada", "no-such-submission"),
+    ).toBeUndefined();
+  });
+
+  it("gets a submission with its enrolment for the student's coach", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const owned = await repos.submissions.getForCoach("coach-founder", "sub-ben-hiss");
+    expect(owned?.submission.id).toBe("sub-ben-hiss");
+    expect(owned?.enrolment.studentId).toBe("student-ben");
+  });
+
+  it("hides a submission from any other coach", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    expect(await repos.submissions.getForCoach("coach-standard", "sub-ben-hiss")).toBeUndefined();
+    expect(
+      await repos.submissions.getForCoach("coach-founder", "sub-cara-arpeggio"),
+    ).toBeUndefined();
+    expect(
+      await repos.submissions.getForCoach("coach-founder", "no-such-submission"),
+    ).toBeUndefined();
+  });
+
   it("finds the same student's previous take of the same exercise", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     expect((await repos.submissions.previousFor("sub-ben-hiss"))?.id).toBe("sub-ben-hiss-1");

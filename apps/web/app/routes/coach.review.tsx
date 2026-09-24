@@ -1,5 +1,5 @@
 import { Anchor, Badge, Card, Container, Grid, Group, Stack, Text, Title } from "@mantine/core";
-import type { Repositories } from "@singology/db";
+import type { OwnedSubmission, Repositories } from "@singology/db";
 import { useReducer } from "react";
 import { data, Link, useFetcher } from "react-router";
 
@@ -27,22 +27,6 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
   },
 ];
 
-/**
- * The submission with its enrolment, when it belongs to one of this coach's
- * students. Anything else is "not found", not "forbidden".
- */
-async function findCoachSubmission(
-  repositories: Repositories,
-  coachId: string,
-  submissionId: string,
-) {
-  const submission = await repositories.submissions.get(submissionId);
-  const enrolment = submission
-    ? await repositories.enrolments.get(submission.enrolmentId)
-    : undefined;
-  return submission && enrolment?.coachId === coachId ? { submission, enrolment } : null;
-}
-
 /** The fetcher key the reply's upload panel shares with the page, one per submission. */
 function replyFetcherKey(submissionId: string): string {
   return `coach-reply-${submissionId}`;
@@ -50,8 +34,7 @@ function replyFetcherKey(submissionId: string): string {
 
 export async function loader({ context, params }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
-  const found = await findCoachSubmission(
-    repositories,
+  const found = await repositories.submissions.getForCoach(
     context.get(coachIdContext),
     params.submissionId,
   );
@@ -97,8 +80,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
  */
 export async function action({ context, params, request }: Route.ActionArgs) {
   const repositories = context.get(repositoriesContext);
-  const found = await findCoachSubmission(
-    repositories,
+  const found = await repositories.submissions.getForCoach(
     context.get(coachIdContext),
     params.submissionId,
   );
@@ -125,7 +107,7 @@ export async function action({ context, params, request }: Route.ActionArgs) {
 
 async function sendFeedback(
   repositories: Repositories,
-  { submission, enrolment }: NonNullable<Awaited<ReturnType<typeof findCoachSubmission>>>,
+  { submission, enrolment }: OwnedSubmission,
   body: unknown,
 ) {
   const [take, library, student] = await Promise.all([

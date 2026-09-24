@@ -26,14 +26,11 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
 export async function loader({ context, params }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const studentId = context.get(studentIdContext);
-  const submission = await repositories.submissions.get(params.id);
-  const enrolment = submission
-    ? await repositories.enrolments.get(submission.enrolmentId)
-    : undefined;
-  // Only the student's own submissions; anything else is "not found", not "forbidden".
-  if (!submission || enrolment?.studentId !== studentId) {
+  const owned = await repositories.submissions.getForStudent(studentId, params.id);
+  if (!owned) {
     throw data("Submission not found", { status: 404 });
   }
+  const { submission, enrolment } = owned;
   const [take, item, coach, feedback, assignments] = await Promise.all([
     repositories.media.get(submission.mediaId),
     repositories.library.get(submission.libraryItemId),

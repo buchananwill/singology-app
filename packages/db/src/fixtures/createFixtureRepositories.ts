@@ -1,7 +1,10 @@
 import type { LibraryFilter } from "@singology/shared";
 
-import type { Repositories, RepositoryOptions } from "../repositories";
+import type { OwnedSubmission, Repositories, RepositoryOptions } from "../repositories";
 import { createFixtureData, type FixtureData } from "./data";
+
+/** The enrolment field that names its owner: the student or the coach. */
+type EnrolmentOwner = "studentId" | "coachId";
 
 /**
  * Returns a deep copy so callers can never mutate the fixtures.
@@ -33,11 +36,20 @@ function matchesFilter(
  */
 export function createFixtureRepositories({ now }: RepositoryOptions): Repositories {
   const data = createFixtureData(now);
-  const enrolmentIdsForStudent = (studentId: string): Set<string> =>
-    new Set(data.enrolments.filter((e) => e.studentId === studentId).map((e) => e.id));
+  const enrolmentIdsFor = (owner: EnrolmentOwner, ownerId: string): Set<string> =>
+    new Set(data.enrolments.filter((e) => e[owner] === ownerId).map((e) => e.id));
 
-  const enrolmentIdsForCoach = (coachId: string): Set<string> =>
-    new Set(data.enrolments.filter((e) => e.coachId === coachId).map((e) => e.id));
+  const ownedSubmission = (
+    owner: EnrolmentOwner,
+    ownerId: string,
+    submissionId: string,
+  ): OwnedSubmission | undefined => {
+    const submission = data.submissions.find((s) => s.id === submissionId);
+    const enrolment = data.enrolments.find((e) => e.id === submission?.enrolmentId);
+    return submission && enrolment?.[owner] === ownerId
+      ? copy({ submission, enrolment })
+      : undefined;
+  };
 
   return {
     coaches: {
@@ -62,18 +74,22 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
     },
     assignments: {
       forStudent: async (studentId) => {
-        const enrolmentIds = enrolmentIdsForStudent(studentId);
+        const enrolmentIds = enrolmentIdsFor("studentId", studentId);
         return copy(data.assignments.filter((a) => enrolmentIds.has(a.enrolmentId)));
       },
     },
     submissions: {
       get: async (id) => copy(data.submissions.find((s) => s.id === id)),
+      getForStudent: async (studentId, submissionId) =>
+        ownedSubmission("studentId", studentId, submissionId),
+      getForCoach: async (coachId, submissionId) =>
+        ownedSubmission("coachId", coachId, submissionId),
       forStudent: async (studentId) => {
-        const enrolmentIds = enrolmentIdsForStudent(studentId);
+        const enrolmentIds = enrolmentIdsFor("studentId", studentId);
         return copy(data.submissions.filter((s) => enrolmentIds.has(s.enrolmentId)));
       },
       queueForCoach: async (coachId) => {
-        const enrolmentIds = enrolmentIdsForCoach(coachId);
+        const enrolmentIds = enrolmentIdsFor("coachId", coachId);
         const queue = data.submissions
           .filter((s) => s.status === "awaiting_review" && enrolmentIds.has(s.enrolmentId))
           .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
@@ -85,7 +101,7 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
         if (current === undefined || studentId === undefined) {
           return undefined;
         }
-        const enrolmentIds = enrolmentIdsForStudent(studentId);
+        const enrolmentIds = enrolmentIdsFor("studentId", studentId);
         const [previous] = data.submissions
           .filter(
             (s) =>
@@ -101,7 +117,7 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
       forSubmission: async (submissionId) =>
         copy(data.feedback.find((f) => f.submissionId === submissionId)),
       forStudent: async (studentId) => {
-        const enrolmentIds = enrolmentIdsForStudent(studentId);
+        const enrolmentIds = enrolmentIdsFor("studentId", studentId);
         const submissionIds = new Set(
           data.submissions.filter((s) => enrolmentIds.has(s.enrolmentId)).map((s) => s.id),
         );

@@ -40,8 +40,18 @@ export interface AssignmentRepository {
   forStudent(studentId: string): Promise<Assignment[]>;
 }
 
+/** A submission together with the enrolment that owns it. */
+export interface OwnedSubmission {
+  submission: Submission;
+  enrolment: Enrolment;
+}
+
 export interface SubmissionRepository {
   get(id: string): Promise<Submission | undefined>;
+  /** The submission, when it belongs to this student; otherwise `undefined`. */
+  getForStudent(studentId: string, submissionId: string): Promise<OwnedSubmission | undefined>;
+  /** The submission, when it belongs to one of this coach's students; otherwise `undefined`. */
+  getForCoach(coachId: string, submissionId: string): Promise<OwnedSubmission | undefined>;
   forStudent(studentId: string): Promise<Submission[]>;
   /** Submissions awaiting review for this coach, oldest first. */
   queueForCoach(coachId: string): Promise<Submission[]>;
