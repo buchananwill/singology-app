@@ -4,8 +4,11 @@ import { href } from "react-router";
 export interface NavItem {
   label: string;
   to: string;
-  isActive(pathname: string): boolean;
+  /** Defaults to an exact match on `to`. */
+  isActive?(pathname: string): boolean;
 }
+
+const LIBRARY_NAV_ITEM: NavItem = { label: "Library", to: href("/library") };
 
 // The first item of each role is that role's home.
 export const NAV_ITEMS: Record<DemoRole, readonly [NavItem, ...NavItem[]]> = {
@@ -18,17 +21,13 @@ export const NAV_ITEMS: Record<DemoRole, readonly [NavItem, ...NavItem[]]> = {
         pathname.startsWith("/student/exercises/") ||
         pathname.startsWith("/student/submissions/"),
     },
-    { label: "Library", to: href("/library"), isActive: (pathname) => pathname === "/library" },
-    {
-      label: "Progress",
-      to: href("/student/progress"),
-      isActive: (pathname) => pathname === "/student/progress",
-    },
+    LIBRARY_NAV_ITEM,
+    { label: "Progress", to: href("/student/progress") },
   ],
   coach: [
     // The queue stays current inside a review (/coach/reviews/:id).
     { label: "Queue", to: href("/coach"), isActive: (pathname) => pathname.startsWith("/coach") },
-    { label: "Library", to: href("/library"), isActive: (pathname) => pathname === "/library" },
+    LIBRARY_NAV_ITEM,
   ],
 };
 

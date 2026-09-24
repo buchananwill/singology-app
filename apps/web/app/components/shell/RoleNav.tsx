@@ -15,7 +15,7 @@ export function RoleNav({ role }: RoleNavProps) {
     <nav aria-label="Main">
       <Group gap="xxs" mb="md" wrap="nowrap">
         {NAV_ITEMS[role].map((item) => {
-          const active = item.isActive(pathname);
+          const active = item.isActive ? item.isActive(pathname) : pathname === item.to;
           return (
             <Button
               key={item.to}
