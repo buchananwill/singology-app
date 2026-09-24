@@ -19,23 +19,15 @@ export interface RunFfmpegOptions {
   cwd?: string;
 }
 
-/** Runs the `ffmpeg` on PATH with the given arguments, quiet except for errors. */
+/** Runs the `ffmpeg` on PATH, quiet except for errors, and returns its raw stdout (e.g. PCM on `pipe:1`). */
 export async function runFfmpeg(
   args: readonly string[],
   options: RunFfmpegOptions = {},
-): Promise<void> {
-  await execFileAsync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], {
-    maxBuffer: MAX_BUFFER_BYTES,
-    cwd: options.cwd,
-  });
-}
-
-/** Runs `ffmpeg` and returns its raw stdout, e.g. decoded PCM written to `pipe:1`. */
-export async function runFfmpegToBuffer(args: readonly string[]): Promise<Buffer> {
+): Promise<Buffer> {
   const { stdout } = await execFileAsync(
     "ffmpeg",
-    ["-hide_banner", "-loglevel", "error", ...args],
-    { encoding: "buffer", maxBuffer: MAX_BUFFER_BYTES },
+    ["-hide_banner", "-loglevel", "error", "-y", ...args],
+    { encoding: "buffer", maxBuffer: MAX_BUFFER_BYTES, cwd: options.cwd },
   );
   return stdout;
 }
