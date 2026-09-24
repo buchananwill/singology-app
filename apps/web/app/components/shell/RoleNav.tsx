@@ -33,11 +33,11 @@ const NAV_ITEMS: Record<DemoRole, readonly NavItem[]> = {
   ],
 };
 
-/** The section links for the current role. Short labels so all fit in one row at 375px. */
 export interface RoleNavProps {
   role: DemoRole;
 }
 
+/** Short labels so all fit in one row at 375px. */
 export function RoleNav({ role }: RoleNavProps) {
   const { pathname } = useLocation();
   return (

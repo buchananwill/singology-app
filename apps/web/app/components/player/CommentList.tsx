@@ -5,14 +5,11 @@ import { formatTimestamp } from "../../lib/format";
 import { FULL_WIDTH_LIST_ITEMS } from "../fullWidthListItems";
 import { usePlayer } from "./PlayerProvider";
 
-/**
- * The coach's timestamped comments as a list under the waveform. Clicking one
- * seeks the nearest player there. Render inside the same `PlayerProvider`.
- */
 export interface CommentListProps {
   comments: readonly FeedbackComment[];
 }
 
+/** Render inside the same `PlayerProvider`. */
 export function CommentList({ comments }: CommentListProps) {
   const { handle } = usePlayer();
   return (
