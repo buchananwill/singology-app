@@ -5,6 +5,7 @@ import {
   EnrolmentSchema,
   FeedbackCommentSchema,
   FeedbackSchema,
+  groupBy,
   HOUR_MS,
   indexById,
   LibraryItemSchema,
@@ -132,14 +133,10 @@ describe("fixture data", () => {
     const takes = fixtureData.submissions.filter(
       (s) => enrolments.get(s.enrolmentId)?.studentId === DEMO_STUDENT_ID,
     );
-    const perItem = new Map<string, Set<string>>();
-    for (const take of takes) {
-      perItem.set(
-        take.libraryItemId,
-        (perItem.get(take.libraryItemId) ?? new Set()).add(take.mediaId),
-      );
-    }
-    expect([...perItem.values()].some((mediaIds) => mediaIds.size >= 2)).toBe(true);
+    const perItem = groupBy(takes, (take) => take.libraryItemId);
+    expect(
+      [...perItem.values()].some((group) => new Set(group.map((t) => t.mediaId)).size >= 2),
+    ).toBe(true);
   });
 
   it("has demo identities that exist", () => {
@@ -352,7 +349,7 @@ describe("createFixtureRepositories", () => {
     expect(found?.comments).toEqual(await repos.feedback.comments("fb-ada-siren-2"));
     expect(found?.comments.length).toBeGreaterThanOrEqual(3);
     const times = found?.comments.map((c) => c.tSeconds) ?? [];
-    expect(times).toEqual([...times].sort((a, b) => a - b));
+    expect(times).toEqual(times.toSorted((a, b) => a - b));
     expect(await repos.feedback.forSubmissionWithComments("sub-ben-hiss")).toBeUndefined();
   });
 
