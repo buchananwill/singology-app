@@ -1,9 +1,11 @@
 import { Badge, Button, Card, Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import { type DemoRole, DemoRoleSchema } from "@singology/shared";
+import { DEMO_ROLES, type DemoRole } from "@singology/shared";
 import { data, Form, redirect } from "react-router";
+import { z } from "zod";
 
 import { demoRoleContext } from "../context";
 import { serializeDemoRole } from "../demo/roleCookie.server";
+import { type ActionResult, parseInput } from "../lib/actionResult";
 import type { Route } from "./+types/demo";
 
 export const meta: Route.MetaFunction = () => [{ title: "Try the demo | Singology" }];
@@ -17,14 +19,22 @@ export function loader({ context }: Route.LoaderArgs) {
   return { role: context.get(demoRoleContext) };
 }
 
+const PICK_A_VIEW = "Pick one of the two views.";
+
+const RoleChoiceSchema = z.object({ role: z.enum(DEMO_ROLES, { error: PICK_A_VIEW }) });
+
 export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const parsed = DemoRoleSchema.safeParse(formData.get("role"));
-  if (!parsed.success) {
-    return data({ error: "Pick one of the two views." }, { status: 400 });
+  const parsed = parseInput(
+    RoleChoiceSchema,
+    Object.fromEntries(await request.formData()),
+    PICK_A_VIEW,
+  );
+  if (!parsed.ok) {
+    return data<ActionResult>({ ok: false, error: parsed.error }, { status: 400 });
   }
-  return redirect(HOME_FOR_ROLE[parsed.data], {
-    headers: { "Set-Cookie": await serializeDemoRole(parsed.data) },
+  const { role } = parsed.data;
+  return redirect(HOME_FOR_ROLE[role], {
+    headers: { "Set-Cookie": await serializeDemoRole(role) },
   });
 }
 
@@ -72,7 +82,7 @@ export default function Demo({ loaderData, actionData }: Route.ComponentProps) {
             page.
           </Text>
         </div>
-        {actionData?.error && (
+        {actionData?.ok === false && (
           <Text c="red" role="alert">
             {actionData.error}
           </Text>

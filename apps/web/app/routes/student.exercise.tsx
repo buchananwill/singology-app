@@ -1,12 +1,12 @@
 import { Anchor, Badge, Container, Group, List, Stack, Text, Title } from "@mantine/core";
+import { RecordingUploadSchema } from "@singology/shared";
 import { data, Link } from "react-router";
 
 import { PlayerProvider } from "../components/player/PlayerProvider";
 import { WaveformPlayer } from "../components/player/WaveformPlayer";
-import { parseRecordingUpload } from "../components/upload/parseRecordingUpload";
 import { UploadPanel } from "../components/upload/UploadPanel";
-import type { UploadActionResult } from "../components/upload/uploadResult";
 import { repositoriesContext, studentIdContext } from "../context";
+import { type ActionResult, parseInput } from "../lib/actionResult";
 import {
   ASSIGNMENT_STATUS_COLOR,
   ASSIGNMENT_STATUS_LABEL,
@@ -55,18 +55,27 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 /** Validates the upload and reports success without persisting anything (decision 11). */
 export async function action({ context, params, request }: Route.ActionArgs) {
   const item = await context.get(repositoriesContext).library.get(params.id);
-  const parsed = parseRecordingUpload(await request.formData());
+  const parsed = parseInput(
+    RecordingUploadSchema,
+    Object.fromEntries(await request.formData()),
+    "The upload details were not valid.",
+  );
   if (!item) {
-    return data<UploadActionResult>({ ok: false, error: "Exercise not found." }, { status: 404 });
+    return data<ActionResult<{ message: string }>>(
+      { ok: false, error: "Exercise not found." },
+      { status: 404 },
+    );
   }
   if (!parsed.ok) {
-    return data<UploadActionResult>({ ok: false, error: parsed.error }, { status: 400 });
+    return data<ActionResult<{ message: string }>>(
+      { ok: false, error: parsed.error },
+      { status: 400 },
+    );
   }
-  const result: UploadActionResult = {
+  return data<ActionResult<{ message: string }>>({
     ok: true,
-    message: `"${parsed.upload.fileName}" is with your coach for "${item.title}". This is a demo, so nothing was saved.`,
-  };
-  return result;
+    message: `"${parsed.data.fileName}" is with your coach for "${item.title}". This is a demo, so nothing was saved.`,
+  });
 }
 
 export default function StudentExercise({ loaderData }: Route.ComponentProps) {

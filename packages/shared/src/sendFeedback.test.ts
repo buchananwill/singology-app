@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SendFeedbackSchema } from "./schemas";
+import { SendFeedbackSchema, sendFeedbackSchemaFor } from "./schemas";
 
 const reply = {
   fileName: "reply.m4a",
@@ -71,5 +71,66 @@ describe("SendFeedbackSchema", () => {
         assignLibraryItemIds: ["lib-a", "lib-a"],
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("sendFeedbackSchemaFor", () => {
+  const schema = sendFeedbackSchemaFor({
+    durationSec: 76.6,
+    libraryItemIds: new Set(["lib-a", "lib-b"]),
+  });
+  const firstMessage = (input: unknown) => schema.safeParse(input).error?.issues[0]?.message;
+
+  it("accepts a payload inside the take and the library", () => {
+    expect(
+      schema.parse({
+        summary: "",
+        comments: [{ tSeconds: 30, body: "Steady here." }],
+        reply: null,
+        assignLibraryItemIds: ["lib-b"],
+      }),
+    ).toEqual({
+      summary: "",
+      comments: [{ tSeconds: 30, body: "Steady here." }],
+      reply: null,
+      assignLibraryItemIds: ["lib-b"],
+    });
+  });
+
+  it("reports the shape's problems first", () => {
+    expect(firstMessage({ comments: [], reply: null, assignLibraryItemIds: [] })).toBe(
+      "Add a comment, a summary or a reply before sending.",
+    );
+    expect(schema.safeParse("not json").success).toBe(false);
+  });
+
+  it("rejects comments past the end of the take", () => {
+    expect(
+      firstMessage({
+        comments: [{ tSeconds: 80, body: "Late" }],
+        reply: null,
+        assignLibraryItemIds: [],
+      }),
+    ).toBe("A comment is past the end of the take.");
+  });
+
+  it("rejects exercises that are not in the library", () => {
+    expect(
+      firstMessage({
+        comments: [{ tSeconds: 1, body: "Hi" }],
+        reply: null,
+        assignLibraryItemIds: ["lib-x"],
+      }),
+    ).toBe("An assigned exercise is not in the library.");
+  });
+
+  it("leaves SendFeedbackSchema without the limits", () => {
+    expect(
+      SendFeedbackSchema.safeParse({
+        comments: [{ tSeconds: 80, body: "Late" }],
+        reply: null,
+        assignLibraryItemIds: ["lib-x"],
+      }).success,
+    ).toBe(true);
   });
 });

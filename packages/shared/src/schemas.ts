@@ -222,3 +222,31 @@ export const SendFeedbackSchema = z
     },
   );
 export type SendFeedback = z.infer<typeof SendFeedbackSchema>;
+
+/** What "Send feedback" is checked against beyond its shape. */
+export interface SendFeedbackLimits {
+  /** The take's length: every comment must sit inside it. */
+  durationSec: number;
+  /** Every exercise the coach may assign. */
+  libraryItemIds: ReadonlySet<string>;
+}
+
+/** `SendFeedbackSchema` that also checks the comments against the take and the exercises against the library. */
+export function sendFeedbackSchemaFor(limits: SendFeedbackLimits) {
+  return SendFeedbackSchema.superRefine((feedback, ctx) => {
+    if (feedback.comments.some((comment) => comment.tSeconds > limits.durationSec)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "A comment is past the end of the take.",
+        path: ["comments"],
+      });
+    }
+    if (feedback.assignLibraryItemIds.some((id) => !limits.libraryItemIds.has(id))) {
+      ctx.addIssue({
+        code: "custom",
+        message: "An assigned exercise is not in the library.",
+        path: ["assignLibraryItemIds"],
+      });
+    }
+  });
+}

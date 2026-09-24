@@ -1,5 +1,10 @@
 import { Anchor, Badge, Card, Container, Grid, Group, Stack, Text, Title } from "@mantine/core";
 import type { OwnedSubmission, Repositories } from "@singology/db";
+import {
+  type RecordingUpload,
+  RecordingUploadSchema,
+  sendFeedbackSchemaFor,
+} from "@singology/shared";
 import { useReducer } from "react";
 import { data, Link, useFetcher } from "react-router";
 
@@ -11,11 +16,9 @@ import { AssignChecklist } from "../components/review/AssignChecklist";
 import { PreviousTake } from "../components/review/PreviousTake";
 import { initialReviewState, reviewReducer } from "../components/review/reviewReducer";
 import { SendFeedbackCard } from "../components/review/SendFeedbackCard";
-import { parseSendFeedback, type SendFeedbackResult } from "../components/review/sendFeedback";
-import { parseRecordingUpload } from "../components/upload/parseRecordingUpload";
 import { UploadPanel } from "../components/upload/UploadPanel";
-import type { UploadActionResult } from "../components/upload/uploadResult";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
+import { type ActionResult, parseInput } from "../lib/actionResult";
 import { CATEGORY_LABEL, formatDate, formatElapsed } from "../lib/format";
 import type { Route } from "./+types/coach.review";
 
@@ -26,6 +29,9 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
       : "Review | Singology",
   },
 ];
+
+/** What the review action returns: a reply upload echoes its metadata back. */
+type ReviewActionResult = ActionResult<{ message: string; upload?: RecordingUpload }>;
 
 /** The fetcher key the reply's upload panel shares with the page, one per submission. */
 function replyFetcherKey(submissionId: string): string {
@@ -85,23 +91,27 @@ export async function action({ context, params, request }: Route.ActionArgs) {
     params.submissionId,
   );
   if (!found) {
-    return data<SendFeedbackResult>({ ok: false, error: "Submission not found." }, { status: 404 });
+    return data<ReviewActionResult>({ ok: false, error: "Submission not found." }, { status: 404 });
   }
   if (request.headers.get("Content-Type")?.startsWith("application/json")) {
     return sendFeedback(repositories, found, await request.json().catch(() => null));
   }
   const formData = await request.formData();
   if (formData.get("intent") !== "reply") {
-    return data<UploadActionResult>({ ok: false, error: "Unknown request." }, { status: 400 });
+    return data<ReviewActionResult>({ ok: false, error: "Unknown request." }, { status: 400 });
   }
-  const parsed = parseRecordingUpload(formData);
+  const parsed = parseInput(
+    RecordingUploadSchema,
+    Object.fromEntries(formData),
+    "The upload details were not valid.",
+  );
   if (!parsed.ok) {
-    return data<UploadActionResult>({ ok: false, error: parsed.error }, { status: 400 });
+    return data<ReviewActionResult>({ ok: false, error: parsed.error }, { status: 400 });
   }
-  return data<UploadActionResult>({
+  return data<ReviewActionResult>({
     ok: true,
-    message: `"${parsed.upload.fileName}" is attached. It goes to the student when you send your feedback.`,
-    upload: parsed.upload,
+    message: `"${parsed.data.fileName}" is attached. It goes to the student when you send your feedback.`,
+    upload: parsed.data,
   });
 }
 
@@ -115,14 +125,15 @@ async function sendFeedback(
     repositories.library.list(),
     repositories.students.get(enrolment.studentId),
   ]);
-  const parsed = parseSendFeedback(body, {
+  const schema = sendFeedbackSchemaFor({
     durationSec: take?.durationSec ?? 0,
     libraryItemIds: new Set(library.map((item) => item.id)),
   });
+  const parsed = parseInput(schema, body, "The feedback was not valid.");
   if (!parsed.ok) {
-    return data<SendFeedbackResult>({ ok: false, error: parsed.error }, { status: 400 });
+    return data<ReviewActionResult>({ ok: false, error: parsed.error }, { status: 400 });
   }
-  const { comments, reply, assignLibraryItemIds } = parsed.feedback;
+  const { comments, reply, assignLibraryItemIds } = parsed.data;
   const parts = [
     `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`,
     reply ? "your reply" : null,
@@ -130,7 +141,7 @@ async function sendFeedback(
       ? `${assignLibraryItemIds.length} new ${assignLibraryItemIds.length === 1 ? "exercise" : "exercises"}`
       : null,
   ].filter((part) => part !== null);
-  return data<SendFeedbackResult>({
+  return data<ReviewActionResult>({
     ok: true,
     message: `${student?.displayName ?? "The student"} gets ${parts.join(", ")}. This is a demo, so nothing was saved.`,
   });
@@ -179,7 +190,7 @@ function ReviewWorkspace({
   const [review, dispatch] = useReducer(reviewReducer, null, () =>
     initialReviewState(feedbackId, comments, summary),
   );
-  const replyFetcher = useFetcher<UploadActionResult>({ key: replyFetcherKey(submission.id) });
+  const replyFetcher = useFetcher<ReviewActionResult>({ key: replyFetcherKey(submission.id) });
   const reply = replyFetcher.data?.ok === true ? (replyFetcher.data.upload ?? null) : null;
   const firstName = student.displayName.split(" ")[0] ?? student.displayName;
   return (

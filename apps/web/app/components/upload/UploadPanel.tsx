@@ -17,9 +17,9 @@ import type { MediaKind } from "@singology/shared";
 import { type ChangeEvent, type SyntheticEvent, useEffect, useId, useState } from "react";
 import { useFetcher } from "react-router";
 
+import type { ActionResult } from "../../lib/actionResult";
 import { formatBytes, formatDuration } from "../../lib/format";
 import { useHydrated } from "../../lib/useHydrated";
-import type { UploadActionResult } from "./uploadResult";
 
 /** Simulated upload: this many percent per tick. */
 const PROGRESS_STEP = 8;
@@ -70,7 +70,7 @@ export function UploadPanel({
 }: UploadPanelProps) {
   const inputId = useId();
   const hydrated = useHydrated();
-  const fetcher = useFetcher<UploadActionResult>({ key: fetcherKey });
+  const fetcher = useFetcher<ActionResult<{ message: string }>>({ key: fetcherKey });
   const { submit } = fetcher;
 
   const [picked, setPicked] = useState<PickedFile | null>(null);

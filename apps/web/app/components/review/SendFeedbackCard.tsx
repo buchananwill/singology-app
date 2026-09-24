@@ -4,9 +4,9 @@ import type { RecordingUpload, SendFeedback } from "@singology/shared";
 import { type Dispatch, useEffect } from "react";
 import { Link, useFetcher } from "react-router";
 
+import type { ActionResult } from "../../lib/actionResult";
 import { useHydrated } from "../../lib/useHydrated";
 import type { ReviewEvent, ReviewState } from "./reviewReducer";
-import type { SendFeedbackResult } from "./sendFeedback";
 
 export interface SendFeedbackCardProps {
   review: ReviewState;
@@ -32,7 +32,7 @@ export function SendFeedbackCard({
   studentFirstName,
 }: SendFeedbackCardProps) {
   const hydrated = useHydrated();
-  const fetcher = useFetcher<SendFeedbackResult>();
+  const fetcher = useFetcher<ActionResult<{ message: string }>>();
   const result = fetcher.state === "idle" ? fetcher.data : undefined;
   const sent = result?.ok === true;
 
