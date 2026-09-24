@@ -20,7 +20,7 @@ import {
 import { href, Link } from "react-router";
 
 import { demoRoleContext, repositoriesContext } from "../context";
-import { CATEGORY_LABEL, VOICE_TYPE_LABEL } from "../lib/format";
+import { CATEGORY_LABEL, formatCount, VOICE_TYPE_LABEL } from "../lib/format";
 import type { Route } from "./+types/library";
 
 export const meta: Route.MetaFunction = () => [{ title: "Exercise library | Singology" }];
@@ -136,7 +136,7 @@ export default function Library({ loaderData }: Route.ComponentProps) {
         </Stack>
 
         <Text size="sm" c="dimmed" aria-live="polite" data-testid="library-count">
-          {items.length === 1 ? "1 exercise" : `${items.length} exercises`}
+          {formatCount(items.length, "exercise", "exercises")}
         </Text>
 
         <SimpleGrid cols={{ base: 1, sm: 2 }}>

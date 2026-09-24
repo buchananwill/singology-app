@@ -6,7 +6,7 @@ import { PlainOrderedList } from "../components/PlainOrderedList";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import {
   CATEGORY_LABEL,
-  formatElapsed,
+  formatSince,
   formatTimeLeft,
   formatTurnaround,
   MEDIA_KIND_LABEL,
@@ -89,11 +89,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
                       )}
                       <Group justify="space-between" align="center" wrap="wrap" gap="xs">
                         <Text size="sm" c="dimmed" data-testid="queue-submitted">
-                          Submitted{" "}
-                          {formatElapsed(
-                            now - new Date(submission.submittedAt).getTime(),
-                            turnaroundHours,
-                          )}
+                          Submitted {formatSince(submission.submittedAt, now, turnaroundHours)}
                         </Text>
                         <Button
                           component={Link}

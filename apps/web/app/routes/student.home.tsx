@@ -7,6 +7,7 @@ import {
   ASSIGNMENT_STATUS_COLOR,
   ASSIGNMENT_STATUS_LABEL,
   CATEGORY_LABEL,
+  firstName,
   formatDate,
   formatTurnaround,
 } from "../lib/format";
@@ -46,7 +47,7 @@ export async function loader({ context }: Route.LoaderArgs) {
   const itemById = indexById(recentItems);
 
   return {
-    firstName: student.displayName.split(" ")[0] ?? student.displayName,
+    firstName: firstName(student.displayName),
     coach: { name: coach.displayName, turnaroundHours: coach.turnaroundHours },
     thisWeek: recent.flatMap((assignment) => {
       const item = itemById.get(assignment.libraryItemId);

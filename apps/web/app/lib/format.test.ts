@@ -2,11 +2,14 @@ import { HOUR_MS, MINUTE_MS } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
 import {
+  firstName,
   formatBytes,
+  formatCount,
   formatDate,
   formatDuration,
   formatElapsed,
   formatPence,
+  formatSince,
   formatTimeLeft,
   formatTurnaround,
 } from "./format";
@@ -42,6 +45,23 @@ describe("format", () => {
     expect(formatElapsed(48 * HOUR_MS, 48)).toBe("2 days ago");
     expect(formatElapsed(71 * HOUR_MS, 72)).toBe("71 hours ago");
     expect(formatElapsed(72 * HOUR_MS, 72)).toBe("3 days ago");
+  });
+
+  it("formats the time since an ISO instant", () => {
+    const nowMs = new Date("2026-09-23T12:00:00.000Z").getTime();
+    expect(formatSince("2026-09-20T22:00:00.000Z", nowMs, 72)).toBe("62 hours ago");
+    expect(formatSince("2026-09-23T11:48:00.000Z", nowMs, 72)).toBe("12 min ago");
+  });
+
+  it("formats a count with its singular or plural noun", () => {
+    expect(formatCount(0, "comment", "comments")).toBe("0 comments");
+    expect(formatCount(1, "comment", "comments")).toBe("1 comment");
+    expect(formatCount(3, "exercise", "exercises")).toBe("3 exercises");
+  });
+
+  it("takes the first word of a display name", () => {
+    expect(firstName("Ada Lovelace")).toBe("Ada");
+    expect(firstName("Ada")).toBe("Ada");
   });
 
   it("formats a turnaround in days when it is whole days, else in hours", () => {

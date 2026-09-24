@@ -4,6 +4,7 @@ import type { Dispatch } from "react";
 import { href, Link, useFetcher } from "react-router";
 
 import type { MessageResult } from "../../lib/actionResult";
+import { formatCount } from "../../lib/format";
 import { useActionNotification } from "../../lib/useActionNotification";
 import { useHydrated } from "../../lib/useHydrated";
 import { SuccessState } from "../SuccessState";
@@ -15,10 +16,6 @@ export interface SendFeedbackCardProps {
   /** The attached reply's metadata, or `null` when there is none. */
   reply: RecordingUpload | null;
   studentFirstName: string;
-}
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
 }
 
 /**
@@ -74,9 +71,9 @@ export function SendFeedbackCard({
               minRows={3}
             />
             <Text size="sm" c="dimmed" data-testid="send-summary">
-              {plural(review.comments.length, "comment", "comments")} ·{" "}
+              {formatCount(review.comments.length, "comment", "comments")} ·{" "}
               {reply === null ? "no reply" : "reply attached"} ·{" "}
-              {plural(review.assigned.length, "exercise", "exercises")} to assign
+              {formatCount(review.assigned.length, "exercise", "exercises")} to assign
             </Text>
             {result?.ok === false && (
               <Text size="sm" c="red" role="alert">

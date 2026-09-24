@@ -61,6 +61,18 @@ export function formatElapsed(ms: number, hoursUntilDays: number): string {
   return `${Math.floor(hours / 24)} days ago`;
 }
 
+export function formatSince(iso: string, nowMs: number, hoursUntilDays: number): string {
+  return formatElapsed(nowMs - new Date(iso).getTime(), hoursUntilDays);
+}
+
+export function formatCount(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+export function firstName(displayName: string): string {
+  return displayName.split(" ")[0] ?? displayName;
+}
+
 export function formatTurnaround(hours: number): string {
   if (hours % 24 === 0) {
     const days = hours / 24;

@@ -14,7 +14,7 @@ import { SendFeedbackCard } from "../components/review/SendFeedbackCard";
 import { UploadPanel } from "../components/upload/UploadPanel";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import { type MessageResult, parseInput, readJson } from "../lib/actionResult";
-import { CATEGORY_LABEL, formatDate, formatElapsed } from "../lib/format";
+import { CATEGORY_LABEL, firstName, formatCount, formatDate, formatSince } from "../lib/format";
 import { useNow } from "../lib/useNow";
 import type { Route } from "./+types/coach.review";
 
@@ -119,10 +119,10 @@ function feedbackSentMessage(
   { comments, reply, assignLibraryItemIds }: SendFeedback,
 ): string {
   const parts = [
-    `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`,
+    formatCount(comments.length, "comment", "comments"),
     reply ? "your reply" : null,
     assignLibraryItemIds.length > 0
-      ? `${assignLibraryItemIds.length} new ${assignLibraryItemIds.length === 1 ? "exercise" : "exercises"}`
+      ? formatCount(assignLibraryItemIds.length, "new exercise", "new exercises")
       : null,
   ].filter((part) => part !== null);
   return `${studentName} gets ${parts.join(", ")}. This is a demo, so nothing was saved.`;
@@ -163,7 +163,7 @@ export interface SubmittedAgoProps {
 // Its own component, so the live clock re-renders only this text.
 function SubmittedAgo({ serverNow, submittedAt, turnaroundHours }: SubmittedAgoProps) {
   const now = useNow(serverNow);
-  return formatElapsed(now - new Date(submittedAt).getTime(), turnaroundHours);
+  return formatSince(submittedAt, now, turnaroundHours);
 }
 
 export type ReviewWorkspaceProps = Route.ComponentProps["loaderData"];
@@ -186,7 +186,7 @@ function ReviewWorkspace({
   );
   const replyFetcher = useFetcher<ReviewActionResult>({ key: replyFetcherKey(submission.id) });
   const reply = replyFetcher.data?.ok === true ? (replyFetcher.data.upload ?? null) : null;
-  const firstName = student.displayName.split(" ")[0] ?? student.displayName;
+  const studentFirstName = firstName(student.displayName);
   return (
     <Container size="lg">
       <Stack gap="lg">
@@ -215,7 +215,7 @@ function ReviewWorkspace({
             <Stack gap="md">
               {submission.note !== "" && (
                 <Text data-testid="review-note">
-                  <strong>{firstName}'s note:</strong> {submission.note}
+                  <strong>{studentFirstName}'s note:</strong> {submission.note}
                 </Text>
               )}
               <Stack
@@ -249,7 +249,7 @@ function ReviewWorkspace({
                 <PreviousTake {...previous} />
               ) : (
                 <Text size="sm" c="dimmed" data-testid="no-previous-take">
-                  This is {firstName}'s first take of this exercise.
+                  This is {studentFirstName}'s first take of this exercise.
                 </Text>
               )}
             </Stack>
@@ -274,7 +274,7 @@ function ReviewWorkspace({
                 review={review}
                 dispatch={dispatch}
                 reply={reply}
-                studentFirstName={firstName}
+                studentFirstName={studentFirstName}
               />
             </Stack>
           </Grid.Col>
