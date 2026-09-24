@@ -18,29 +18,18 @@ const SLA_COLOR: Record<ReviewSlaState, string> = {
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const coachId = context.get(coachIdContext);
-  const [coach, queue] = await Promise.all([
+  const [coach, items] = await Promise.all([
     repositories.coaches.get(coachId),
-    repositories.submissions.queueForCoach(coachId),
+    repositories.submissions.queueViewForCoach(coachId),
   ]);
   if (!coach) {
     throw data("The demo coach was not found", { status: 404 });
   }
-  const items = await Promise.all(
-    queue.map(async (submission) => {
-      const [enrolment, item, media] = await Promise.all([
-        repositories.enrolments.get(submission.enrolmentId),
-        repositories.library.get(submission.libraryItemId),
-        repositories.media.get(submission.mediaId),
-      ]);
-      const student = enrolment ? await repositories.students.get(enrolment.studentId) : undefined;
-      return student && item && media ? [{ submission, student, item, mediaKind: media.kind }] : [];
-    }),
-  );
   return {
     /** The instant fixture times were resolved against: the server renders every countdown from it. */
     now: context.get(requestTimeContext).getTime(),
     turnaroundHours: coach.turnaroundHours,
-    items: items.flat(),
+    items,
   };
 }
 

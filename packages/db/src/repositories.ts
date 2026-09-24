@@ -8,6 +8,7 @@ import type {
   LibraryFilter,
   LibraryItem,
   MediaAsset,
+  MediaKind,
   Student,
   Submission,
 } from "@singology/shared";
@@ -50,6 +51,14 @@ export interface OwnedSubmission {
   enrolment: Enrolment;
 }
 
+/** One row of a coach's review queue. */
+export interface CoachQueueItem {
+  submission: Submission;
+  student: Student;
+  item: LibraryItem;
+  mediaKind: MediaKind;
+}
+
 export interface SubmissionRepository {
   get(id: string): Promise<Submission | undefined>;
   /** The submission, when it belongs to this student; otherwise `undefined`. */
@@ -59,6 +68,8 @@ export interface SubmissionRepository {
   forStudent(studentId: string): Promise<Submission[]>;
   /** Submissions awaiting review for this coach, oldest first. */
   queueForCoach(coachId: string): Promise<Submission[]>;
+  /** The same queue, each item joined with its student, exercise and media kind. */
+  queueViewForCoach(coachId: string): Promise<CoachQueueItem[]>;
   /**
    * The same student's most recent earlier submission of the same exercise,
    * or `undefined` when this is their first take (or the id is unknown).

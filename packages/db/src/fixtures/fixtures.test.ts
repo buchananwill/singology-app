@@ -335,6 +335,18 @@ describe("createFixtureRepositories", () => {
     expect(await repos.library.getMany([])).toEqual([]);
   });
 
+  it("joins each queue item with its student, exercise and media kind", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const view = await repos.submissions.queueViewForCoach("coach-founder");
+    const queue = await repos.submissions.queueForCoach("coach-founder");
+    expect(view.map((row) => row.submission)).toEqual(queue);
+    for (const row of view) {
+      expect(row.student.id).toBe(enrolments.get(row.submission.enrolmentId)?.studentId);
+      expect(row.item.id).toBe(row.submission.libraryItemId);
+      expect(row.mediaKind).toBe(media.get(row.submission.mediaId)?.kind);
+    }
+  });
+
   it("gets a submission's feedback with its comments in time order", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const found = await repos.feedback.forSubmissionWithComments("sub-ada-siren-2");

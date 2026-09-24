@@ -1,6 +1,11 @@
 import type { LibraryFilter } from "@singology/shared";
 
-import type { OwnedSubmission, Repositories, RepositoryOptions } from "../repositories";
+import type {
+  CoachQueueItem,
+  OwnedSubmission,
+  Repositories,
+  RepositoryOptions,
+} from "../repositories";
 import { createFixtureData, type FixtureData } from "./data";
 
 /** The enrolment field that names its owner: the student or the coach. */
@@ -57,6 +62,13 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
       : undefined;
   };
 
+  const queueFor = (coachId: string) => {
+    const enrolmentIds = enrolmentIdsFor("coachId", coachId);
+    return data.submissions
+      .filter((s) => s.status === "awaiting_review" && enrolmentIds.has(s.enrolmentId))
+      .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
+  };
+
   const commentsFor = (feedbackId: string) =>
     data.feedbackComments
       .filter((c) => c.feedbackId === feedbackId)
@@ -101,13 +113,19 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
         const enrolmentIds = enrolmentIdsFor("studentId", studentId);
         return copy(data.submissions.filter((s) => enrolmentIds.has(s.enrolmentId)));
       },
-      queueForCoach: async (coachId) => {
-        const enrolmentIds = enrolmentIdsFor("coachId", coachId);
-        const queue = data.submissions
-          .filter((s) => s.status === "awaiting_review" && enrolmentIds.has(s.enrolmentId))
-          .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
-        return copy(queue);
-      },
+      queueForCoach: async (coachId) => copy(queueFor(coachId)),
+      queueViewForCoach: async (coachId) =>
+        copy(
+          queueFor(coachId).flatMap((submission): CoachQueueItem[] => {
+            const enrolment = data.enrolments.find((e) => e.id === submission.enrolmentId);
+            const student = data.students.find((s) => s.id === enrolment?.studentId);
+            const item = data.libraryItems.find((i) => i.id === submission.libraryItemId);
+            const media = data.mediaAssets.find((m) => m.id === submission.mediaId);
+            return student && item && media
+              ? [{ submission, student, item, mediaKind: media.kind }]
+              : [];
+          }),
+        ),
       previousFor: async (submissionId) => {
         const current = data.submissions.find((s) => s.id === submissionId);
         const studentId = data.enrolments.find((e) => e.id === current?.enrolmentId)?.studentId;
