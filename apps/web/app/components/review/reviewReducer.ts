@@ -33,7 +33,7 @@ export function initialReviewState(
 ): ReviewState {
   return {
     feedbackId,
-    comments: [...comments].sort((a, b) => a.tSeconds - b.tSeconds),
+    comments: comments.toSorted((a, b) => a.tSeconds - b.tSeconds),
     nextCommentNumber: 1,
     draft: null,
     assigned: [],
@@ -61,7 +61,7 @@ export function reviewReducer(state: ReviewState, event: ReviewEvent): ReviewSta
       return {
         ...state,
         // A stable sort keeps an earlier comment first when two share a time.
-        comments: [...state.comments, comment].sort((a, b) => a.tSeconds - b.tSeconds),
+        comments: [...state.comments, comment].toSorted((a, b) => a.tSeconds - b.tSeconds),
         nextCommentNumber: state.nextCommentNumber + 1,
         draft: null,
       };

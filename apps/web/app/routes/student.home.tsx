@@ -33,8 +33,8 @@ export async function loader({ context }: Route.LoaderArgs) {
     throw data("The demo student has no active coach", { status: 404 });
   }
 
-  const recent = [...assignments]
-    .sort((a, b) => b.assignedAt.localeCompare(a.assignedAt))
+  const recent = assignments
+    .toSorted((a, b) => b.assignedAt.localeCompare(a.assignedAt))
     .slice(0, THIS_WEEK_LIMIT);
   const [latest] = feedback;
   const latestSubmission = submissions.find((s) => s.id === latest?.submissionId);
