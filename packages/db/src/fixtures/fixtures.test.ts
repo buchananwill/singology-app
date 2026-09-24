@@ -225,21 +225,26 @@ describe("fixture data", () => {
   it("references the submission's own coach and existing reply media from feedback", () => {
     for (const item of fixtureData.feedback) {
       const submission = submissions.get(item.submissionId);
-      expect(submission).toBeDefined();
-      expect(item.coachId).toBe(enrolments.get(submission?.enrolmentId ?? "")?.coachId);
+      assert(submission, "the feedback's submission exists");
+      const enrolment = enrolments.get(submission.enrolmentId);
+      assert(enrolment, "the submission's enrolment exists");
+      expect(item.coachId).toBe(enrolment.coachId);
       if (item.replyMediaId !== undefined) {
         expect(media.has(item.replyMediaId)).toBe(true);
       }
-      expect(item.sentAt > (submission?.submittedAt ?? "")).toBe(true);
+      expect(item.sentAt > submission.submittedAt).toBe(true);
     }
   });
 
   it("positions every comment within its submission's media", () => {
     for (const comment of fixtureData.feedbackComments) {
-      const submission = submissions.get(feedback.get(comment.feedbackId)?.submissionId ?? "");
-      const asset = media.get(submission?.mediaId ?? "");
-      expect(asset).toBeDefined();
-      expect(comment.tSeconds).toBeLessThan(asset?.durationSec ?? 0);
+      const item = feedback.get(comment.feedbackId);
+      assert(item, "the comment's feedback exists");
+      const submission = submissions.get(item.submissionId);
+      assert(submission, "the feedback's submission exists");
+      const asset = media.get(submission.mediaId);
+      assert(asset, "the submission's media exists");
+      expect(comment.tSeconds).toBeLessThan(asset.durationSec);
     }
   });
 });
@@ -305,12 +310,11 @@ describe("createFixtureRepositories", () => {
   it("returns copies that cannot mutate the fixtures", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const [row] = await repos.coaches.listWithOffers();
-    expect(row).toBeDefined();
-    if (row) {
-      row.coach.displayName = "Mutated";
-    }
+    assert(row, "there is a coach");
+    row.coach.displayName = "Mutated";
     const [again] = await repos.coaches.listWithOffers();
-    expect(again?.coach.displayName).toBe("Singology founder");
+    assert(again, "there is still a coach");
+    expect(again.coach.displayName).toBe("Singology founder");
   });
 
   it("filters the library by category and voice type", async () => {
