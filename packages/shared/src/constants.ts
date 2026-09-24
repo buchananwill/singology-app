@@ -7,9 +7,6 @@ export const COACH_TIERS = ["premium", "standard"] as const;
  */
 export const OFFER_BILLING = ["monthly", "single"] as const;
 
-/** Every role in the WP4 data model. */
-export const ROLES = ["student", "coach", "admin", "guardian"] as const;
-
 /** The roles a visitor can pick on the facade's role switcher. */
 export const DEMO_ROLES = ["student", "coach"] as const;
 

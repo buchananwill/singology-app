@@ -8,7 +8,6 @@ import {
   LIBRARY_CATEGORIES,
   MEDIA_KINDS,
   OFFER_BILLING,
-  ROLES,
   SUBMISSION_STATUSES,
   VOICE_TYPES,
 } from "./constants";
@@ -18,9 +17,6 @@ export const IsoDateTimeSchema = z.iso.datetime();
 
 export const CoachTierSchema = z.enum(COACH_TIERS);
 export type CoachTier = z.infer<typeof CoachTierSchema>;
-
-export const RoleSchema = z.enum(ROLES);
-export type Role = z.infer<typeof RoleSchema>;
 
 export const DemoRoleSchema = z.enum(DEMO_ROLES, { error: "Pick one of the two views." });
 export type DemoRole = z.infer<typeof DemoRoleSchema>;
