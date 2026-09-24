@@ -62,7 +62,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { coaches } = loaderData;
   return (
     <Container size="md">
-      <Stack gap={48} py="lg">
+      <Stack gap="xxl" py="lg">
         <Stack component="section" gap="md" aria-labelledby="hero-title">
           <Title id="hero-title" order={1}>
             Personal singing feedback between choir rehearsals

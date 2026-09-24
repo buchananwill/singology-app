@@ -78,7 +78,7 @@ export default function StudentExercise({ loaderData }: Route.ComponentProps) {
     <Container size="md">
       <Stack gap="lg">
         <div>
-          <Group gap="xs" mb={4}>
+          <Group gap="xs" mb="xxs">
             <Badge variant="light">{CATEGORY_LABEL[item.category]}</Badge>
             {assignment !== null && (
               <Badge variant="light" color={ASSIGNMENT_STATUS_COLOR[assignment.status]}>

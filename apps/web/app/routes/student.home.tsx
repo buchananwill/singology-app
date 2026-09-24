@@ -86,7 +86,7 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
           {thisWeek.map(({ assignment, item, submissionId }) => (
             <Card key={assignment.id} withBorder padding="md" data-testid="assignment">
               <Group justify="space-between" wrap="nowrap" align="flex-start">
-                <Stack gap={4}>
+                <Stack gap="xxs">
                   <Anchor component={Link} to={`/student/exercises/${item.id}`} fw={600}>
                     {item.title}
                   </Anchor>

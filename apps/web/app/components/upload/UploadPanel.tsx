@@ -201,7 +201,8 @@ export function UploadPanel({
               id={inputId}
             >
               {/* No `capture` attribute, so iOS offers Photos, Camera and Files (decision 19). */}
-              <input
+              <Box
+                component="input"
                 key={inputKey}
                 id={inputId}
                 type="file"
@@ -209,7 +210,9 @@ export function UploadPanel({
                 onChange={onFileChange}
                 disabled={!hydrated || busy}
                 data-testid="upload-input"
-                style={{ display: "block", marginTop: 6, maxWidth: "100%" }}
+                display="block"
+                mt="xxs"
+                maw="100%"
               />
             </Input.Wrapper>
 
@@ -249,7 +252,8 @@ export function UploadPanel({
                     playsInline
                     w="100%"
                     bg="black"
-                    style={{ display: "block", maxHeight: 320 }}
+                    display="block"
+                    mah={320}
                     {...previewProps}
                   />
                 ) : (

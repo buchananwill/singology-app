@@ -81,11 +81,11 @@ function FilterRow<T extends string>({
     ...values.map((value) => ({ value, text: labels[value] })),
   ];
   return (
-    <Stack gap={4} role="group" aria-label={label}>
+    <Stack gap="xxs" role="group" aria-label={label}>
       <Text size="sm" fw={600}>
         {label}
       </Text>
-      <Group gap={6}>
+      <Group gap="xxs">
         {options.map(({ value, text }) => {
           const selected = value === current;
           return (
@@ -142,7 +142,7 @@ export default function Library({ loaderData }: Route.ComponentProps) {
         <SimpleGrid cols={{ base: 1, sm: 2 }}>
           {items.map((item) => (
             <Card key={item.id} withBorder padding="md" data-testid="library-item">
-              <Stack gap={6}>
+              <Stack gap="xxs">
                 <Group justify="space-between" wrap="nowrap" align="flex-start">
                   {linkToExercises ? (
                     <Anchor component={Link} to={`/student/exercises/${item.id}`} fw={600}>

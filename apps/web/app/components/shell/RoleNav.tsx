@@ -38,7 +38,7 @@ export function RoleNav({ role }: { role: DemoRole }) {
   const { pathname } = useLocation();
   return (
     <nav aria-label="Main">
-      <Group gap={4} mb="md" wrap="nowrap">
+      <Group gap="xxs" mb="md" wrap="nowrap">
         {NAV_ITEMS[role].map((item) => {
           const active = item.isActive(pathname);
           return (

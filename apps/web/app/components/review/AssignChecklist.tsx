@@ -29,7 +29,7 @@ export function AssignChecklist({ items, value, onChange, disabled }: AssignChec
             value={item.id}
             disabled={disabled}
             label={
-              <Group gap={6} wrap="nowrap" component="span">
+              <Group gap="xxs" wrap="nowrap" component="span">
                 <Text span size="sm">
                   {item.title}
                 </Text>
