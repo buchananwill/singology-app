@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 4173;
+import { PREVIEW_PORT as PORT } from "./previewPort";
 
 export default defineConfig({
   testDir: "./e2e",

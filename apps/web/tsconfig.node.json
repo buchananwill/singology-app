@@ -5,6 +5,7 @@
     "vitest.config.ts",
     "react-router.config.ts",
     "playwright.config.ts",
+    "previewPort.ts",
     "e2e/**/*",
     "test/**/*"
   ],
