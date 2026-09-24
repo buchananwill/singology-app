@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-import { PREVIEW_PORT as PORT } from "./previewPort";
+import { PREVIEW_PORT } from "./previewPort";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -9,7 +9,7 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   reporter: "list",
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL: `http://localhost:${PREVIEW_PORT}`,
     trace: "retain-on-failure",
   },
   projects: [
@@ -18,8 +18,8 @@ export default defineConfig({
   ],
   webServer: {
     // `wrangler dev`, not `vite preview`: its proxy exhausts Windows ephemeral ports.
-    command: `pnpm run build && pnpm exec wrangler dev --config build/server/wrangler.json --port ${PORT} --ip 127.0.0.1`,
-    url: `http://localhost:${PORT}`,
+    command: `pnpm run build && pnpm exec wrangler dev --config build/server/wrangler.json --port ${PREVIEW_PORT} --ip 127.0.0.1`,
+    url: `http://localhost:${PREVIEW_PORT}`,
     reuseExistingServer: false,
     timeout: 180_000,
   },
