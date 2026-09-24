@@ -12,6 +12,7 @@ import {
 import type WaveSurfer from "wavesurfer.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 
+import { formatTimestamp } from "../../lib/format";
 import { attachMediaSource, type SourceMode } from "./attachMediaSource";
 import { type PlayerHandle, usePlayer } from "./PlayerProvider";
 import { PLAYBACK_RATES, type PlaybackRate, shouldReportMediaTime } from "./playerReducer";
@@ -42,12 +43,6 @@ export interface WaveformPlayerProps {
   ref?: Ref<PlayerHandle>;
 }
 
-function formatTime(seconds: number): string {
-  const whole = Math.max(0, Math.floor(seconds));
-  const minutes = Math.floor(whole / 60);
-  return `${minutes}:${String(whole % 60).padStart(2, "0")}`;
-}
-
 function toPlaybackRate(value: string): PlaybackRate | undefined {
   return PLAYBACK_RATES.find((rate) => String(rate) === value);
 }
@@ -57,7 +52,7 @@ function commentMarker(index: number, comment: FeedbackComment): HTMLElement {
   marker.textContent = String(index + 1);
   marker.title = comment.body;
   marker.setAttribute("role", "button");
-  marker.setAttribute("aria-label", `Comment ${index + 1} at ${formatTime(comment.tSeconds)}`);
+  marker.setAttribute("aria-label", `Comment ${index + 1} at ${formatTimestamp(comment.tSeconds)}`);
   marker.dataset.testid = "comment-marker";
   marker.dataset.commentId = comment.id;
   Object.assign(marker.style, {
@@ -318,7 +313,7 @@ export function WaveformPlayer({
           {state.isPlaying ? "Pause" : "Play"}
         </Button>
         <Text size="sm" ff="monospace" data-testid="player-time">
-          {formatTime(state.currentTime)} / {formatTime(durationSec)}
+          {formatTimestamp(state.currentTime)} / {formatTimestamp(durationSec)}
         </Text>
         <SegmentedControl
           size="xs"
