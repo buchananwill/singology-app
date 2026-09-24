@@ -14,7 +14,7 @@ import { initialReviewState, reviewReducer } from "../components/review/reviewRe
 import { SendFeedbackCard } from "../components/review/SendFeedbackCard";
 import { UploadPanel } from "../components/upload/UploadPanel";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
-import { type MessageResult, parseInput } from "../lib/actionResult";
+import { type MessageResult, parseInput, readJson } from "../lib/actionResult";
 import { CATEGORY_LABEL, formatDate, formatElapsed } from "../lib/format";
 import type { Route } from "./+types/coach.review";
 
@@ -94,7 +94,7 @@ export async function action({ context, params, request }: Route.ActionArgs) {
       durationSec: take?.durationSec ?? 0,
       libraryItemIds: new Set(library.map((item) => item.id)),
     }),
-    await request.json().catch(() => null),
+    await readJson(request),
     "The request was not valid.",
   );
   if (!parsed.ok) {

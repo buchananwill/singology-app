@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { parseInput } from "./actionResult";
+import { parseInput, readJson } from "./actionResult";
 
 const FALLBACK = "The request was not valid.";
 
@@ -37,5 +37,17 @@ describe("parseInput", () => {
 
   it("fails on input that is not an object", () => {
     expect(parseInput(Schema, null, FALLBACK).ok).toBe(false);
+  });
+});
+
+describe("readJson", () => {
+  const post = (body: string) => new Request("http://localhost/", { method: "POST", body });
+
+  it("returns the parsed body", async () => {
+    expect(await readJson(post('{"count":2}'))).toEqual({ count: 2 });
+  });
+
+  it("returns null for a body that is not JSON", async () => {
+    expect(await readJson(post("count=2"))).toBeNull();
   });
 });
