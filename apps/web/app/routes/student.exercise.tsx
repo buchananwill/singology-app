@@ -1,5 +1,5 @@
 import { Anchor, Badge, Container, Group, List, Stack, Text, Title } from "@mantine/core";
-import { RecordingUploadSchema } from "@singology/shared";
+import { type Assignment, RecordingUploadSchema } from "@singology/shared";
 import { data, Link } from "react-router";
 
 import { StandalonePlayer } from "../components/player/StandalonePlayer";
@@ -19,6 +19,18 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
   { title: `${loaderData?.item.title ?? "Exercise"} | Singology` },
 ];
 
+function latestAssignmentFor(
+  assignments: readonly Assignment[],
+  libraryItemId: string,
+): Assignment | undefined {
+  return assignments
+    .filter((a) => a.libraryItemId === libraryItemId)
+    .reduce<Assignment | undefined>(
+      (latest, a) => (latest === undefined || a.assignedAt > latest.assignedAt ? a : latest),
+      undefined,
+    );
+}
+
 export async function loader({ context, params }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const studentId = context.get(studentIdContext);
@@ -35,9 +47,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   if (!demo) {
     throw data("Exercise media not found", { status: 404 });
   }
-  const assignment = assignments
-    .filter((a) => a.libraryItemId === item.id)
-    .sort((a, b) => b.assignedAt.localeCompare(a.assignedAt))[0];
+  const assignment = latestAssignmentFor(assignments, item.id);
   const previousTakes = submissions
     .filter((s) => s.libraryItemId === item.id)
     .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
