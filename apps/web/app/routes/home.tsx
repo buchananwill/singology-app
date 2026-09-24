@@ -14,7 +14,7 @@ import { href, Link } from "react-router";
 
 import { CoachCard } from "../components/CoachCard";
 import { repositoriesContext } from "../context";
-import { formatPence } from "../lib/format";
+import { formatCount, formatPence } from "../lib/format";
 import type { Route } from "./+types/home";
 
 export const meta: Route.MetaFunction = () => [
@@ -39,8 +39,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 function formatMonthlyOffer({ pricePence, submissionsPerPeriod }: CoachOffer): string {
-  const reviews = submissionsPerPeriod === 1 ? "review" : "reviews";
-  return `${formatPence(pricePence)} a month for ${submissionsPerPeriod} ${reviews}`;
+  return `${formatPence(pricePence)} a month for ${formatCount(submissionsPerPeriod, "review", "reviews")}`;
 }
 
 const STEPS = [

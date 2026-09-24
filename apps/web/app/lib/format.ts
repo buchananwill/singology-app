@@ -48,7 +48,7 @@ export function formatElapsed(ms: number, hoursUntilDays: number): string {
   }
   const hours = Math.floor(minutes / 60);
   if (hours < hoursUntilDays) {
-    return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+    return `${formatCount(hours, "hour", "hours")} ago`;
   }
   return `${Math.floor(hours / 24)} days ago`;
 }
@@ -67,10 +67,9 @@ export function firstName(displayName: string): string {
 
 export function formatTurnaround(hours: number): string {
   if (hours % 24 === 0) {
-    const days = hours / 24;
-    return days === 1 ? "1 day" : `${days} days`;
+    return formatCount(hours / 24, "day", "days");
   }
-  return hours === 1 ? "1 hour" : `${hours} hours`;
+  return formatCount(hours, "hour", "hours");
 }
 
 /** Time left before a deadline: `46h 05m left`, `9m left`; `overdue` once it has passed. */
