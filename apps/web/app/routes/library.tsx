@@ -1,7 +1,6 @@
 import {
   Anchor,
   Badge,
-  Button,
   Card,
   Container,
   Group,
@@ -18,6 +17,7 @@ import {
 } from "@singology/shared";
 import { href, Link } from "react-router";
 
+import { FilterRow } from "../components/library/FilterRow";
 import { demoRoleContext, repositoriesContext } from "../context";
 import { CATEGORY_LABEL, formatCount, VOICE_TYPE_LABEL } from "../lib/format";
 import type { Route } from "./+types/library";
@@ -54,53 +54,6 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     // Only the student view has exercise pages.
     linkToExercises: context.get(demoRoleContext) === "student",
   };
-}
-
-export interface FilterRowProps<FilterValue extends string> {
-  label: string;
-  values: readonly FilterValue[];
-  labels: Record<FilterValue, string>;
-  current: FilterValue | undefined;
-  hrefFor(value: FilterValue | undefined): string;
-}
-
-function FilterRow<FilterValue extends string>({
-  label,
-  values,
-  labels,
-  current,
-  hrefFor,
-}: FilterRowProps<FilterValue>) {
-  const options: { value: FilterValue | undefined; text: string }[] = [
-    { value: undefined, text: "All" },
-    ...values.map((value) => ({ value, text: labels[value] })),
-  ];
-  return (
-    <Stack gap="xxs" role="group" aria-label={label}>
-      <Text size="sm" fw={600}>
-        {label}
-      </Text>
-      <Group gap="xxs">
-        {options.map(({ value, text }) => {
-          const selected = value === current;
-          return (
-            <Button
-              key={text}
-              component={Link}
-              to={hrefFor(value)}
-              size="compact-sm"
-              radius="xl"
-              variant={selected ? "filled" : "default"}
-              aria-current={selected ? "true" : undefined}
-              preventScrollReset
-            >
-              {text}
-            </Button>
-          );
-        })}
-      </Group>
-    </Stack>
-  );
 }
 
 export default function Library({ loaderData }: Route.ComponentProps) {

@@ -1,21 +1,11 @@
-import { Anchor, Badge, Card, Container, Grid, Group, Stack, Text, Title } from "@mantine/core";
 import type { Repositories } from "@singology/db";
-import { type RecordingUpload, reviewActionSchemaFor, type SendFeedback } from "@singology/shared";
-import { useReducer } from "react";
-import { data, href, Link, useFetcher } from "react-router";
+import { reviewActionSchemaFor, type SendFeedback } from "@singology/shared";
+import { data } from "react-router";
 
-import { CommentList } from "../components/player/CommentList";
-import { StandalonePlayer } from "../components/player/StandalonePlayer";
-import { AddComment } from "../components/review/AddComment";
-import { AssignChecklist } from "../components/review/AssignChecklist";
-import { PreviousTake } from "../components/review/PreviousTake";
-import { initialReviewState, reviewReducer } from "../components/review/reviewReducer";
-import { SendFeedbackCard } from "../components/review/SendFeedbackCard";
-import { UploadPanel } from "../components/upload/UploadPanel";
+import { type ReviewActionResult, ReviewWorkspace } from "../components/review/ReviewWorkspace";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
-import { type MessageResult, parseInput, readJson } from "../lib/actionResult";
-import { CATEGORY_LABEL, firstName, formatCount, formatDate, formatSince } from "../lib/format";
-import { useNow } from "../lib/useNow";
+import { parseInput, readJson } from "../lib/actionResult";
+import { formatCount } from "../lib/format";
 import type { Route } from "./+types/coach.review";
 
 export const meta: Route.MetaFunction = ({ loaderData }) => [
@@ -25,14 +15,6 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
       : "Review | Singology",
   },
 ];
-
-/** A reply upload echoes its metadata back. */
-type ReviewActionResult = MessageResult & { upload?: RecordingUpload };
-
-/** The fetcher key the reply's upload panel shares with the page, one per submission. */
-function replyFetcherKey(submissionId: string): string {
-  return `coach-reply-${submissionId}`;
-}
 
 export async function loader({ context, params }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
@@ -152,134 +134,4 @@ async function loadPreviousTake(repositories: Repositories, submissionId: string
 export default function CoachReview({ loaderData }: Route.ComponentProps) {
   // A new submission gets fresh page-local review state.
   return <ReviewWorkspace key={loaderData.submission.id} {...loaderData} />;
-}
-
-export interface SubmittedAgoProps {
-  serverNow: number;
-  submittedAt: string;
-  turnaroundHours: number;
-}
-
-// Its own component, so the live clock re-renders only this text.
-function SubmittedAgo({ serverNow, submittedAt, turnaroundHours }: SubmittedAgoProps) {
-  const now = useNow(serverNow);
-  return formatSince(submittedAt, now, turnaroundHours);
-}
-
-export type ReviewWorkspaceProps = Route.ComponentProps["loaderData"];
-
-function ReviewWorkspace({
-  now,
-  turnaroundHours,
-  submission,
-  student,
-  item,
-  take,
-  feedbackId,
-  comments,
-  summary,
-  previous,
-  library,
-}: ReviewWorkspaceProps) {
-  const [review, dispatch] = useReducer(reviewReducer, null, () =>
-    initialReviewState(feedbackId, comments, summary),
-  );
-  const replyFetcher = useFetcher<ReviewActionResult>({ key: replyFetcherKey(submission.id) });
-  const reply = replyFetcher.data?.ok === true ? (replyFetcher.data.upload ?? null) : null;
-  const studentFirstName = firstName(student.displayName);
-  return (
-    <Container size="lg">
-      <Stack gap="lg">
-        <div>
-          <Anchor component={Link} to={href("/coach")} size="sm">
-            ← Review queue
-          </Anchor>
-          <Title order={1}>Review: {student.displayName}</Title>
-          <Group gap="xs">
-            <Text c="dimmed">{item.title}</Text>
-            <Badge variant="light">{CATEGORY_LABEL[item.category]}</Badge>
-          </Group>
-          <Text size="sm" c="dimmed">
-            Submitted {formatDate(submission.submittedAt)} (
-            <SubmittedAgo
-              serverNow={now}
-              submittedAt={submission.submittedAt}
-              turnaroundHours={turnaroundHours}
-            />
-            )
-          </Text>
-        </div>
-
-        <Grid gap="lg">
-          <Grid.Col span={{ base: 12, md: 7 }}>
-            <Stack gap="md">
-              {submission.note !== "" && (
-                <Text data-testid="review-note">
-                  <strong>{studentFirstName}'s note:</strong> {submission.note}
-                </Text>
-              )}
-              <Stack
-                component="section"
-                gap="sm"
-                aria-labelledby="take-title"
-                data-testid="review-take"
-              >
-                <Title id="take-title" order={2} size="h3">
-                  The take
-                </Title>
-                <StandalonePlayer
-                  asset={take}
-                  comments={review.comments}
-                  label={`${student.displayName}'s take`}
-                >
-                  <AddComment draft={review.draft} dispatch={dispatch} />
-                  <Title order={3} size="h4">
-                    Comments ({review.comments.length})
-                  </Title>
-                  {review.comments.length > 0 ? (
-                    <CommentList comments={review.comments} />
-                  ) : (
-                    <Text size="sm" c="dimmed">
-                      No comments yet. Pause where you hear something and add one.
-                    </Text>
-                  )}
-                </StandalonePlayer>
-              </Stack>
-              {previous !== null ? (
-                <PreviousTake {...previous} />
-              ) : (
-                <Text size="sm" c="dimmed" data-testid="no-previous-take">
-                  This is {studentFirstName}'s first take of this exercise.
-                </Text>
-              )}
-            </Stack>
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 5 }}>
-            <Stack gap="md">
-              <UploadPanel
-                title="Reply (optional)"
-                submitLabel="Attach reply"
-                successTitle="Reply attached"
-                fields={{ intent: "reply" }}
-                fetcherKey={replyFetcherKey(submission.id)}
-              />
-              <Card withBorder padding="lg">
-                <AssignChecklist
-                  items={library}
-                  value={review.assigned}
-                  onChange={(libraryItemIds) => dispatch({ type: "setAssigned", libraryItemIds })}
-                />
-              </Card>
-              <SendFeedbackCard
-                review={review}
-                dispatch={dispatch}
-                reply={reply}
-                studentFirstName={studentFirstName}
-              />
-            </Stack>
-          </Grid.Col>
-        </Grid>
-      </Stack>
-    </Container>
-  );
 }
