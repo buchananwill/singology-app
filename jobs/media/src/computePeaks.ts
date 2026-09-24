@@ -1,3 +1,5 @@
+import { clamp } from "./clamp.ts";
+
 /** Default waveform resolution (spec decision 23). */
 export const PEAKS_PER_SECOND = 100;
 
@@ -20,10 +22,6 @@ function round(value: number, precision: number): number {
   const factor = 10 ** precision;
   // `+ 0` turns a rounded -0 into 0 so the JSON never contains "-0".
   return Math.round(value * factor) / factor + 0;
-}
-
-function clampUnit(value: number): number {
-  return Math.min(1, Math.max(-1, value));
 }
 
 /**
@@ -56,8 +54,8 @@ export function computePeaks(samples: Float32Array, options: ComputePeaksOptions
       hi = 0;
       lo = 0;
     }
-    max[bin] = round(clampUnit(hi), precision);
-    min[bin] = round(clampUnit(lo), precision);
+    max[bin] = round(clamp(hi, -1, 1), precision);
+    min[bin] = round(clamp(lo, -1, 1), precision);
   }
   return { max, min };
 }

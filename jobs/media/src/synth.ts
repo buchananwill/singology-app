@@ -3,6 +3,7 @@
  * here is generated from maths: no recordings, no samples, no human voices.
  * ffmpeg only encodes the result (see generate.ts).
  */
+import { clamp } from "./clamp.ts";
 
 export const SAMPLE_RATE = 48_000;
 
@@ -38,7 +39,7 @@ export function detune(freqHz: number, cents: number): number {
 }
 
 function smoothstep(x: number): number {
-  const t = Math.min(1, Math.max(0, x));
+  const t = clamp(x, 0, 1);
   return t * t * (3 - 2 * t);
 }
 
@@ -146,7 +147,7 @@ export function applySwell(samples: Float32Array, periodSec: number, depth: numb
 export function toPcm16(samples: Float32Array): Buffer {
   const buffer = Buffer.alloc(samples.length * 2);
   for (let i = 0; i < samples.length; i++) {
-    const clamped = Math.max(-1, Math.min(1, samples[i] ?? 0));
+    const clamped = clamp(samples[i] ?? 0, -1, 1);
     buffer.writeInt16LE(Math.round(clamped * 32_767), i * 2);
   }
   return buffer;
