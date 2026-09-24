@@ -10,17 +10,6 @@ import { createFixtureData, type FixtureData } from "./data";
 
 type EnrolmentOwner = "studentId" | "coachId";
 
-/**
- * Returns a deep copy so callers can never mutate the fixtures.
- * Fixture values are plain JSON data, so a JSON round trip is lossless.
- */
-function copy<T>(value: T): T {
-  if (value === undefined) {
-    return value;
-  }
-  return JSON.parse(JSON.stringify(value)) as T;
-}
-
 function pickByIds<T extends { id: string }>(rows: readonly T[], ids: readonly string[]): T[] {
   const byId = indexById(rows);
   return ids.flatMap((id) => byId.get(id) ?? []);
@@ -56,7 +45,7 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
     const submission = data.submissions.find((s) => s.id === submissionId);
     const enrolment = data.enrolments.find((e) => e.id === submission?.enrolmentId);
     return submission && enrolment?.[owner] === ownerId
-      ? copy({ submission, enrolment })
+      ? structuredClone({ submission, enrolment })
       : undefined;
   };
 
@@ -75,34 +64,35 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
   return {
     coaches: {
       listWithOffers: async () =>
-        copy(
+        structuredClone(
           data.coaches.map((coach) => ({
             coach,
             offers: data.coachOffers.filter((o) => o.coachId === coach.id),
           })),
         ),
-      get: async (id) => copy(data.coaches.find((c) => c.id === id)),
+      get: async (id) => structuredClone(data.coaches.find((c) => c.id === id)),
     },
     students: {
-      get: async (id) => copy(data.students.find((s) => s.id === id)),
+      get: async (id) => structuredClone(data.students.find((s) => s.id === id)),
     },
     enrolments: {
       forStudent: async (studentId) =>
-        copy(data.enrolments.filter((e) => e.studentId === studentId)),
+        structuredClone(data.enrolments.filter((e) => e.studentId === studentId)),
     },
     library: {
-      list: async (filter) => copy(data.libraryItems.filter((i) => matchesFilter(i, filter))),
-      get: async (id) => copy(data.libraryItems.find((i) => i.id === id)),
-      getMany: async (ids) => copy(pickByIds(data.libraryItems, ids)),
+      list: async (filter) =>
+        structuredClone(data.libraryItems.filter((i) => matchesFilter(i, filter))),
+      get: async (id) => structuredClone(data.libraryItems.find((i) => i.id === id)),
+      getMany: async (ids) => structuredClone(pickByIds(data.libraryItems, ids)),
     },
     media: {
-      get: async (id) => copy(data.mediaAssets.find((m) => m.id === id)),
-      getMany: async (ids) => copy(pickByIds(data.mediaAssets, ids)),
+      get: async (id) => structuredClone(data.mediaAssets.find((m) => m.id === id)),
+      getMany: async (ids) => structuredClone(pickByIds(data.mediaAssets, ids)),
     },
     assignments: {
       forStudent: async (studentId) => {
         const enrolmentIds = enrolmentIdsFor("studentId", studentId);
-        return copy(data.assignments.filter((a) => enrolmentIds.has(a.enrolmentId)));
+        return structuredClone(data.assignments.filter((a) => enrolmentIds.has(a.enrolmentId)));
       },
     },
     submissions: {
@@ -112,10 +102,10 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
         ownedSubmission("coachId", coachId, submissionId),
       forStudent: async (studentId) => {
         const enrolmentIds = enrolmentIdsFor("studentId", studentId);
-        return copy(data.submissions.filter((s) => enrolmentIds.has(s.enrolmentId)));
+        return structuredClone(data.submissions.filter((s) => enrolmentIds.has(s.enrolmentId)));
       },
       queueViewForCoach: async (coachId) =>
-        copy(
+        structuredClone(
           queueFor(coachId).flatMap((submission): CoachQueueItem[] => {
             const enrolment = data.enrolments.find((e) => e.id === submission.enrolmentId);
             const student = data.students.find((s) => s.id === enrolment?.studentId);
@@ -141,7 +131,7 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
               s.submittedAt < current.submittedAt,
           )
           .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
-        return copy(previous);
+        return structuredClone(previous);
       },
     },
     feedback: {
@@ -149,20 +139,20 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
         const feedback = data.feedback.find((f) => f.submissionId === submissionId);
         return feedback === undefined
           ? undefined
-          : copy({ feedback, comments: commentsFor(feedback.id) });
+          : structuredClone({ feedback, comments: commentsFor(feedback.id) });
       },
       forStudent: async (studentId) => {
         const enrolmentIds = enrolmentIdsFor("studentId", studentId);
         const submissionIds = new Set(
           data.submissions.filter((s) => enrolmentIds.has(s.enrolmentId)).map((s) => s.id),
         );
-        return copy(
+        return structuredClone(
           data.feedback
             .filter((f) => submissionIds.has(f.submissionId))
             .sort((a, b) => b.sentAt.localeCompare(a.sentAt)),
         );
       },
-      comments: async (feedbackId) => copy(commentsFor(feedbackId)),
+      comments: async (feedbackId) => structuredClone(commentsFor(feedbackId)),
     },
   };
 }
