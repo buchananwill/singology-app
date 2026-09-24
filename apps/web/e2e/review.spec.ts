@@ -36,7 +36,7 @@ test("the previous take of the same exercise opens with its own player", async (
 });
 
 test.describe("the coach review workspace", () => {
-  // The whole flow in Chromium; WebKit gets the smoke test (pitfall 8 blocks its reply upload).
+  // The whole flow in Chromium; WebKit gets the smoke test (it cannot play the reply's blob URL).
   test.skip(({ browserName }) => browserName !== "chromium", "Chromium only");
 
   test("adds a comment at the current time, attaches a reply, assigns and sends", async ({

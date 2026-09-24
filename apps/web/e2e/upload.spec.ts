@@ -22,7 +22,7 @@ test("uploading a take shows its details, then the success state", async ({
   await expect(panel.getByTestId("upload-file-size")).toContainText("596.9 KB");
 
   if (browserName === "webkit") {
-    // Pitfall 8: Playwright's WebKit on Windows cannot play any media from a `blob:` URL
+    // Playwright's WebKit on Windows cannot play any media from a `blob:` URL
     // (MEDIA_ERR_SRC_NOT_SUPPORTED), so `loadedmetadata` never fires and the duration is
     // unknown. The panel says so and keeps Submit disabled. Real Safari needs a device check.
     await expect(panel.getByTestId("upload-file-duration")).toContainText("unknown");

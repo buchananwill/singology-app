@@ -46,7 +46,6 @@ function watchManifestRequests(page: Page): Set<Request> {
   return pending;
 }
 
-/** Collects console errors and uncaught page errors for the whole test. */
 export function trackErrors(page: Page): string[] {
   watchManifestRequests(page);
   const errors: string[] = [];
@@ -61,11 +60,7 @@ export function trackErrors(page: Page): string[] {
   return errors;
 }
 
-/**
- * Lets React Router's lazy route discovery finish before the test leaves a page with
- * `page.goto`. Discovery fetches `/__manifest` 100 ms (debounced) after links render, and
- * WebKit logs a console error when a document navigation aborts that fetch (pitfall 10).
- */
+/** WebKit logs a console error when a navigation aborts route discovery's `/__manifest` fetch. */
 export async function settle(page: Page): Promise<void> {
   const pending = watchManifestRequests(page);
   // Longer than discovery's 100 ms debounce, so a pending fetch has started.

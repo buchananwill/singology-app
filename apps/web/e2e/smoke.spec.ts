@@ -2,7 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { chooseRole, currentTime, readyWaveforms, settle, trackErrors } from "./helpers";
 
-/** Screenshot widths (spec decision 25): desktop and a small phone. */
+/** Desktop and a small phone. */
 const WIDTHS = [1280, 375] as const;
 
 interface RouteCase {
@@ -91,7 +91,7 @@ for (const route of ROUTES) {
         );
       }
       await expectWaveformsReady(page, route.waveforms);
-      // Nothing may overflow the viewport sideways at phone width (decision 18).
+      // Nothing may overflow the viewport sideways at phone width.
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
       );
@@ -167,7 +167,7 @@ test("the review queue is oldest first, with no item overdue", async ({ page }) 
   const items = page.getByTestId("queue-item");
   await expect(items).toHaveCount(2);
   await expect(items.getByTestId("queue-student")).toHaveText(["Ben Sample", "Ada Example"]);
-  // Fixture times are offsets from the request time (journal decision 32): never overdue.
+  // Fixture times are offsets from the request time, so nothing is ever overdue.
   for (const item of await items.all()) {
     await expect(item).not.toHaveAttribute("data-sla", "overdue");
     await expect(item).not.toContainText(/overdue/i);

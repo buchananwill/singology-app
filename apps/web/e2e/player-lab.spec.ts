@@ -100,7 +100,7 @@ test.describe("/lab/player", () => {
       .poll(() => audioMedia.evaluate((el: HTMLMediaElement) => el.readyState))
       .toBeGreaterThanOrEqual(1);
 
-    // Pitfall 6 / decision 31: the seek must land in media that is not yet buffered, which only
+    // The seek must land in media that is not yet buffered, which only
     // works when `/media/*` answers HTTP Range with 206. With the throttle above, Chromium has only
     // the start of the file, so the comment's time must still be outside every buffered range.
     if (browserName === "chromium") {
