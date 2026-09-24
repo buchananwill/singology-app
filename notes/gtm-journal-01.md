@@ -362,7 +362,10 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
   - new spacing tokens `xxs` (4 px) and `xxl` (48 px); 6 px gaps become 4 px;
   - `mah={320}` stays on the video preview;
   - `student.home` keeps a `flatMap` over assignments, **because two assignments can share one library item, so mapping over items would change the rows**. The fix-list wording was wrong here, and the implementer correctly preserved behaviour.
-- **Fix-cycle reviews (style and React) on `354b449..HEAD` are running.**
+- **Fix-cycle reviews on `354b449..31968d2`:**
+  - **Style:** 13 of 14 items are CLOSED by shape change; S-N5 is closed at the listed sites, with one hand-built wrap left. 7 new BLOCKING, all small follow-ons (a test-local copy of `indexById`, JSDoc stranded by the props renames, derived "72" literals). All four implementer interpretations were judged sound.
+  - **React:** R-B1 to R-B4, R-N1, R-N4 and R-N5 are CLOSED. R-N2 is partial (`UploadPanel.tsx` is still 207 lines, because the markup was never split). R-N3 is partial (three props types still unexported). All four new hooks pass the finger rule and the hooks/components split.
+  - **The lead accepted all of it as Wave 2b.** The 6 px to 4 px spacing change (three gaps and one margin absorbed by `xxs`) is accepted as imperceptible.
 
 **F17. The facade is deployed (2026-09-24), by the user, at `https://singology-facade.resort-reference-gallery.workers.dev`** (Worker `singology-facade`, version `d176313f-cfc4-448e-a052-070224027569`). Built from `facade` at the reviewed code; the commits since are notes only.
 - **Account facts** (read-only API inspection by the lead, token never printed):

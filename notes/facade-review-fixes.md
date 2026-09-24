@@ -79,6 +79,25 @@ Raised by the fix-cycle review of `cfc4eb5..356d201` (IDs **FC-B**n / **FC-N**n)
 9. **R-B2, R-B3, R-N3 props.** Name and export the props types for `CommentList`, `RoleNav`, `CoachCard`, `AppHeader`, `AbCompare` and `demo.tsx`'s `RoleCard`.
 10. **R-B4.** Rename the generic `T` in `library.tsx` `FilterRow` and `FilterRowProps` to `FilterValue`.
 
+## Wave 2b: fix-cycle findings on Waves 1b and 2
+
+These come from the fix-cycle reviews of `354b449..31968d2`: style (**FC2-B**n / **FC2-N**n) and React (**FC2R-**…). Every Wave 1b and Wave 2 item is closed, except R-N2 and R-N3, which are only partly closed and are completed here.
+
+1. **FC2-B1.** Delete the test-local `byId` in `packages/db/src/fixtures/fixtures.test.ts:33` and use `indexById` from `@singology/shared`.
+2. **FC2-B2.** Put the error message on `DemoRoleSchema` itself. Define `DemoRoleChoiceSchema = z.object({ role: DemoRoleSchema })`. `demo.tsx` drops `PICK_A_VIEW` and passes a generic fallback (or imports one exported message constant).
+3. **FC2-B3.** Move the JSDoc at `CommentList.tsx:8-12` and `RoleNav.tsx:36-37` back to the component functions, cut to their contracts: "Render inside the same `PlayerProvider`." and "Short labels so all fit in one row at 375px."
+4. **FC2-B4.** Delete the doc on `SuccessState.tsx:8`. Cut `ReviewActionResult`'s doc to "A reply upload echoes its metadata back." Delete the duplicate comment at `useAbTransport.ts:33`.
+5. **FC2-B5.** `coach.review.tsx:231-248` uses `StandalonePlayer`, with `AddComment`, the heading and the comment list as children. Reword `components/player/README.md:32` to "Use it wherever only its own children need the player's context."
+6. **FC2-B6.** `sla.test.ts` writes derived values as `(TURNAROUND_HOURS - 26) * HOUR_MS` and `(TURNAROUND_HOURS + 8) * HOUR_MS`.
+7. **FC2-B7.** In `fixtures.test.ts`, every missing-fixture guard uses `assert(x, "…")`, with no `?.`, `??` or `if` fallbacks (`:231-232`, `:244-245`, `:311-312`).
+8. **FC2R-B1 (completes R-N2).** Extract the picked-file section of `UploadPanel.tsx` (name, size, duration, preview, note, progress, submit) into `PickedFilePanel`, and the recorder tips into their own small component. `UploadPanel.tsx` ends up under 150 lines.
+9. **FC2R-N1 (completes R-N3).** Export `SubmittedAgoProps` and `ReviewWorkspaceProps` (`coach.review.tsx`) and `FilterRowProps` (`library.tsx`).
+10. **FC2R-N2.** Move the pure `commentMarker` and `fetchPeaks` out of `useWaveformInstance.ts` into a sibling module (e.g. `waveformDom.ts`), leaving the hook to orchestrate.
+11. **FC2-N1.** Add a small `PlainOrderedList` component (takes `spacing`) to replace `FULL_WIDTH_LIST_ITEMS` and the repeated `type="ordered" listStyleType="none"` props.
+12. **FC2-N2.** `waveformTheme.ts` reads `theme.colors.brand` directly, with no silent fallback to blue.
+13. **FC2-N3.** Style media elements consistently with props: `Box component="audio" w="100%"`, and `display` as a prop in `WaveformPlayer`. `aspectRatio` stays in `style`.
+14. **FC2-N4.** The "lists coaches with their offers" test asserts against fixed offer ids and drops the redundant display-name assertion.
+
 ## Wave 3: consistency and hygiene
 
 1. **S-B4.** Add `MINUTE_MS` and `HOUR_MS` to shared, and use them everywhere, tests included (`sla.ts:3`, `data.ts:37-38`, `sla.test.ts:5`, `format.ts:41`, `fixtures.test.ts:64`, `:322`, `format.test.ts:31`, `:40`).
