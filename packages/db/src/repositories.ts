@@ -20,10 +20,8 @@ export interface CoachWithOffers {
 }
 
 export interface CoachRepository {
-  list(): Promise<Coach[]>;
   listWithOffers(): Promise<CoachWithOffers[]>;
   get(id: string): Promise<Coach | undefined>;
-  offers(coachId: string): Promise<CoachOffer[]>;
 }
 
 export interface StudentRepository {
@@ -31,7 +29,6 @@ export interface StudentRepository {
 }
 
 export interface EnrolmentRepository {
-  get(id: string): Promise<Enrolment | undefined>;
   forStudent(studentId: string): Promise<Enrolment[]>;
 }
 
@@ -67,14 +64,11 @@ export interface CoachQueueItem {
 }
 
 export interface SubmissionRepository {
-  get(id: string): Promise<Submission | undefined>;
   /** The submission, when it belongs to this student; otherwise `undefined`. */
   getForStudent(studentId: string, submissionId: string): Promise<OwnedSubmission | undefined>;
   /** The submission, when it belongs to one of this coach's students; otherwise `undefined`. */
   getForCoach(coachId: string, submissionId: string): Promise<OwnedSubmission | undefined>;
   forStudent(studentId: string): Promise<Submission[]>;
-  /** Submissions awaiting review for this coach, oldest first. */
-  queueForCoach(coachId: string): Promise<Submission[]>;
   /** The same queue, each item joined with its student, exercise and media kind. */
   queueViewForCoach(coachId: string): Promise<CoachQueueItem[]>;
   /**
@@ -91,7 +85,6 @@ export interface FeedbackWithComments {
 }
 
 export interface FeedbackRepository {
-  forSubmission(submissionId: string): Promise<Feedback | undefined>;
   forSubmissionWithComments(submissionId: string): Promise<FeedbackWithComments | undefined>;
   /** Every feedback item on this student's submissions, newest first. */
   forStudent(studentId: string): Promise<Feedback[]>;

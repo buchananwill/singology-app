@@ -261,9 +261,9 @@ describe("review queue against the turnaround promise (journal decision 32)", ()
     const states = (
       await Promise.all(
         fixtureData.coaches.map(async (coach) => {
-          const queue = await repos.submissions.queueForCoach(coach.id);
+          const queue = await repos.submissions.queueViewForCoach(coach.id);
           return queue.map(
-            (submission) =>
+            ({ submission }) =>
               reviewSla(submission.submittedAt, now.getTime(), coach.turnaroundHours).state,
           );
         }),
@@ -276,41 +276,44 @@ describe("review queue against the turnaround promise (journal decision 32)", ()
 
   it("puts the due-soon item in the demo coach's queue", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
-    const queue = await repos.submissions.queueForCoach(DEMO_COACH_ID);
+    const queue = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
     const turnaroundHours = coaches.get(DEMO_COACH_ID)?.turnaroundHours;
     expect(turnaroundHours).toBeDefined();
     expect(
-      queue.map((s) => reviewSla(s.submittedAt, TEST_NOW.getTime(), turnaroundHours ?? 0).state),
+      queue.map(
+        ({ submission }) =>
+          reviewSla(submission.submittedAt, TEST_NOW.getTime(), turnaroundHours ?? 0).state,
+      ),
     ).toContain("due_soon");
   });
 });
 
 describe("createFixtureRepositories", () => {
-  it("lists coaches", async () => {
-    const repos = createFixtureRepositories({ now: TEST_NOW });
-    const coaches = await repos.coaches.list();
-    expect(coaches.map((c) => c.displayName)).toEqual(["Singology founder", "Standard coach"]);
-  });
-
   it("lists coaches with their offers", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const rows = await repos.coaches.listWithOffers();
-    expect(rows.map((row) => row.coach)).toEqual(await repos.coaches.list());
+    expect(rows.map((row) => row.coach.displayName)).toEqual([
+      "Singology founder",
+      "Standard coach",
+    ]);
+    expect(rows.map((row) => row.coach)).toEqual(fixtureData.coaches);
     for (const row of rows) {
-      expect(row.offers).toEqual(await repos.coaches.offers(row.coach.id));
+      expect(row.offers).toEqual(
+        fixtureData.coachOffers.filter((offer) => offer.coachId === row.coach.id),
+      );
       expect(row.offers.length).toBeGreaterThan(0);
     }
   });
 
   it("returns copies that cannot mutate the fixtures", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
-    const [coach] = await repos.coaches.list();
-    expect(coach).toBeDefined();
-    if (coach) {
-      coach.displayName = "Mutated";
+    const [row] = await repos.coaches.listWithOffers();
+    expect(row).toBeDefined();
+    if (row) {
+      row.coach.displayName = "Mutated";
     }
-    const [again] = await repos.coaches.list();
-    expect(again?.displayName).toBe("Singology founder");
+    const [again] = await repos.coaches.listWithOffers();
+    expect(again?.coach.displayName).toBe("Singology founder");
   });
 
   it("filters the library by category and voice type", async () => {
@@ -331,8 +334,10 @@ describe("createFixtureRepositories", () => {
   it("resolves fixture times against the now it is given", async () => {
     const now = new Date("2031-01-15T08:00:00.000Z");
     const repos = createFixtureRepositories({ now });
-    const [oldest] = await repos.submissions.queueForCoach(DEMO_COACH_ID);
-    expect(oldest?.submittedAt).toBe(new Date(now.getTime() - 62 * 60 * 60 * 1000).toISOString());
+    const [oldest] = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
+    expect(oldest?.submission.submittedAt).toBe(
+      new Date(now.getTime() - 62 * 60 * 60 * 1000).toISOString(),
+    );
   });
 
   it("gets many library items and media assets in the order asked, omitting unknown ids", async () => {
@@ -351,8 +356,9 @@ describe("createFixtureRepositories", () => {
   it("joins each queue item with its student, exercise and media kind", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const view = await repos.submissions.queueViewForCoach("coach-founder");
-    const queue = await repos.submissions.queueForCoach("coach-founder");
-    expect(view.map((row) => row.submission)).toEqual(queue);
+    expect(view.map((row) => row.submission)).toEqual(
+      ["sub-ben-hiss", "sub-ada-onset"].map((id) => submissions.get(id)),
+    );
     for (const row of view) {
       expect(row.student.id).toBe(enrolments.get(row.submission.enrolmentId)?.studentId);
       expect(row.item.id).toBe(row.submission.libraryItemId);
@@ -415,14 +421,16 @@ describe("createFixtureRepositories", () => {
 
   it("gives at least one item in the demo coach's queue a previous take", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
-    const queue = await repos.submissions.queueForCoach(DEMO_COACH_ID);
-    const previous = await Promise.all(queue.map((s) => repos.submissions.previousFor(s.id)));
+    const queue = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
+    const previous = await Promise.all(
+      queue.map(({ submission }) => repos.submissions.previousFor(submission.id)),
+    );
     expect(previous.some((p) => p !== undefined)).toBe(true);
   });
 
   it("queues a coach's unreviewed submissions oldest first", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
-    const queue = await repos.submissions.queueForCoach("coach-founder");
-    expect(queue.map((s) => s.id)).toEqual(["sub-ben-hiss", "sub-ada-onset"]);
+    const queue = await repos.submissions.queueViewForCoach("coach-founder");
+    expect(queue.map((row) => row.submission.id)).toEqual(["sub-ben-hiss", "sub-ada-onset"]);
   });
 });

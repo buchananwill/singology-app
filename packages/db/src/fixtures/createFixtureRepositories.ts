@@ -76,7 +76,6 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
 
   return {
     coaches: {
-      list: async () => copy(data.coaches),
       listWithOffers: async () =>
         copy(
           data.coaches.map((coach) => ({
@@ -85,13 +84,11 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
           })),
         ),
       get: async (id) => copy(data.coaches.find((c) => c.id === id)),
-      offers: async (coachId) => copy(data.coachOffers.filter((o) => o.coachId === coachId)),
     },
     students: {
       get: async (id) => copy(data.students.find((s) => s.id === id)),
     },
     enrolments: {
-      get: async (id) => copy(data.enrolments.find((e) => e.id === id)),
       forStudent: async (studentId) =>
         copy(data.enrolments.filter((e) => e.studentId === studentId)),
     },
@@ -111,7 +108,6 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
       },
     },
     submissions: {
-      get: async (id) => copy(data.submissions.find((s) => s.id === id)),
       getForStudent: async (studentId, submissionId) =>
         ownedSubmission("studentId", studentId, submissionId),
       getForCoach: async (coachId, submissionId) =>
@@ -120,7 +116,6 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
         const enrolmentIds = enrolmentIdsFor("studentId", studentId);
         return copy(data.submissions.filter((s) => enrolmentIds.has(s.enrolmentId)));
       },
-      queueForCoach: async (coachId) => copy(queueFor(coachId)),
       queueViewForCoach: async (coachId) =>
         copy(
           queueFor(coachId).flatMap((submission): CoachQueueItem[] => {
@@ -152,8 +147,6 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
       },
     },
     feedback: {
-      forSubmission: async (submissionId) =>
-        copy(data.feedback.find((f) => f.submissionId === submissionId)),
       forSubmissionWithComments: async (submissionId) => {
         const feedback = data.feedback.find((f) => f.submissionId === submissionId);
         return feedback === undefined
