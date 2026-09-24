@@ -5,20 +5,12 @@ import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import { formatTimestamp } from "../../lib/format";
 import { attachMediaSource, type SourceMode } from "./attachMediaSource";
 import type { LoopState, PlayerEvent } from "./playerReducer";
+import type { WaveformTheme } from "./waveformTheme";
 
 type Regions = InstanceType<typeof RegionsPlugin>;
 
 const LOOP_REGION_ID = "loop";
 const COMMENT_REGION_PREFIX = "comment-";
-
-export interface WaveformColors {
-  wave: string;
-  progress: string;
-  cursor: string;
-  loop: string;
-  comment: string;
-  commentText: string;
-}
 
 export interface WaveformInstanceOptions {
   containerRef: RefObject<HTMLElement | null>;
@@ -29,7 +21,7 @@ export interface WaveformInstanceOptions {
   dispatch: Dispatch<PlayerEvent>;
   height: number;
   /** Must keep its identity between renders: a new object rebuilds the waveform. */
-  colors: WaveformColors;
+  theme: WaveformTheme;
 }
 
 export interface WaveformInstance {
@@ -39,11 +31,7 @@ export interface WaveformInstance {
   clearLoop(): void;
 }
 
-function commentMarker(
-  index: number,
-  comment: FeedbackComment,
-  colors: WaveformColors,
-): HTMLElement {
+function commentMarker(index: number, comment: FeedbackComment, theme: WaveformTheme): HTMLElement {
   const marker = document.createElement("span");
   marker.textContent = String(index + 1);
   marker.title = comment.body;
@@ -55,12 +43,9 @@ function commentMarker(
     display: "inline-block",
     minWidth: "1.4em",
     padding: "0 0.3em",
-    borderRadius: "0.7em",
-    background: colors.comment,
-    color: colors.commentText,
-    font: "600 11px/1.4em system-ui, sans-serif",
     textAlign: "center",
     cursor: "pointer",
+    ...theme.commentMarker,
   });
   return marker;
 }
@@ -81,7 +66,7 @@ export function useWaveformInstance({
   loop,
   dispatch,
   height,
-  colors,
+  theme,
 }: WaveformInstanceOptions): WaveformInstance {
   const { src, hlsSrc, peaksSrc } = asset;
   const regionsRef = useRef<Regions | null>(null);
@@ -121,9 +106,9 @@ export function useWaveformInstance({
         container: containerEl,
         media: mediaEl,
         height,
-        waveColor: colors.wave,
-        progressColor: colors.progress,
-        cursorColor: colors.cursor,
+        waveColor: theme.wave,
+        progressColor: theme.progress,
+        cursorColor: theme.cursor,
         cursorWidth: 2,
         barWidth: 2,
         barGap: 1,
@@ -138,7 +123,7 @@ export function useWaveformInstance({
         return;
       }
 
-      regions.enableDragSelection({ id: LOOP_REGION_ID, color: colors.loop });
+      regions.enableDragSelection({ id: LOOP_REGION_ID, color: theme.loop });
       regions.on("region-created", (region) => {
         if (region.id !== LOOP_REGION_ID) {
           return;
@@ -197,7 +182,7 @@ export function useWaveformInstance({
       destroyWaveform?.();
       detachSource?.();
     };
-  }, [containerRef, mediaRef, dispatch, src, hlsSrc, peaksSrc, height, colors]);
+  }, [containerRef, mediaRef, dispatch, src, hlsSrc, peaksSrc, height, theme]);
 
   const ready = readyFor === peaksSrc;
   useEffect(() => {
@@ -209,10 +194,10 @@ export function useWaveformInstance({
       regions.addRegion({
         id: `${COMMENT_REGION_PREFIX}${comment.id}`,
         start: comment.tSeconds,
-        color: colors.comment,
+        color: theme.comment,
         drag: false,
         resize: false,
-        content: commentMarker(index, comment, colors),
+        content: commentMarker(index, comment, theme),
       }),
     );
     return () => {
@@ -220,7 +205,7 @@ export function useWaveformInstance({
         region.remove();
       }
     };
-  }, [ready, comments, colors]);
+  }, [ready, comments, theme]);
 
   const clearLoop = useCallback(() => {
     for (const region of regionsRef.current?.getRegions() ?? []) {

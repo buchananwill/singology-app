@@ -1,4 +1,4 @@
-import { Box, Stack, Text } from "@mantine/core";
+import { Box, Stack, Text, useMantineTheme } from "@mantine/core";
 import type { FeedbackComment, MediaAsset } from "@singology/shared";
 import {
   type Ref,
@@ -6,24 +6,17 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from "react";
 
 import { PlayerControls } from "./PlayerControls";
 import { type PlayerHandle, usePlayer } from "./PlayerProvider";
 import { shouldReportMediaTime } from "./playerReducer";
-import { useWaveformInstance, type WaveformColors } from "./useWaveformInstance";
+import { useWaveformInstance } from "./useWaveformInstance";
+import { waveformTheme } from "./waveformTheme";
 
 const NO_COMMENTS: readonly FeedbackComment[] = [];
-
-const COLORS: WaveformColors = {
-  wave: "#a5b4c8",
-  progress: "#1c7ed6",
-  cursor: "#0b3d91",
-  loop: "rgba(28, 126, 214, 0.18)",
-  comment: "#e8590c",
-  commentText: "#fff",
-};
 
 export interface WaveformPlayerProps {
   asset: MediaAsset;
@@ -48,6 +41,8 @@ export function WaveformPlayer({
   const { state, dispatch, handle, mediaRef } = usePlayer();
   useImperativeHandle(ref, () => handle, [handle]);
 
+  const mantineTheme = useMantineTheme();
+  const theme = useMemo(() => waveformTheme(mantineTheme), [mantineTheme]);
   const { kind, durationSec } = asset;
   const waveformRef = useRef<HTMLDivElement>(null);
   const lastTimeReportRef = useRef<number | null>(null);
@@ -59,7 +54,7 @@ export function WaveformPlayer({
     loop: state.loop,
     dispatch,
     height,
-    colors: COLORS,
+    theme,
   });
 
   // Rate: applied to the media element with pitch preserved (defaultPlaybackRate survives a source reload).
