@@ -36,7 +36,23 @@ Produce a GTM proposal for an asynchronous singing-coaching platform (PT-style: 
 ## 4. Next work
 
 - **The draft proposal is complete:** [gtm-proposal.md](./gtm-proposal.md), written 2026-09-23 from all five briefs (F1 to F9). It awaits the user's review.
-- **Overnight facade build (D29) in progress on branch `facade`.** The contract is [facade-spec.md](./facade-spec.md). The stages run in sequence:
+- **MORNING SUMMARY (2026-09-24): the facade is complete on branch `facade`; not merged, not deployed.**
+  - **Lead's verification on the final tree:**
+    - `pnpm install --force --frozen-lockfile`, to undo any `node_modules` probe from the pitfall-11 diagnosis;
+    - `pnpm test`: 105 pass;
+    - `pnpm test:e2e`: 47 pass, 3 skipped by design, Chromium and WebKit, running under `wrangler dev` (D33);
+    - screenshots of every route at 1280 and 375 px in `apps/web/test-results/screenshots/`, untracked; the lead reviewed the landing, student feedback and coach review screens;
+    - nothing left running.
+  - **For the founder reply (imminent pitfalls):** **none found that changes the product design or the stack.** Every pitfall was local tooling, a test-harness issue, or a small code fix. The one product-level lesson, that media needs Range-capable serving, is already satisfied by the chosen host (D21, D31).
+  - **Still unproven, needing a real device:** native HLS playback, the upload panel's local preview (`blob:` playback) and the upload flow on **real iPhone Safari** (pitfalls 7 and 8). Deploy the facade behind Cloudflare Access and test on the used iPhone.
+  - **Carried into the slice:**
+    - TypeScript stays on 6 (D30);
+    - e2e runs under `wrangler dev`, not `vite preview` (D33);
+    - bundle chunks over 500 kB need code-splitting of the player before the beta (pitfall 13);
+    - hydration discipline for dates and live clocks (D32, pitfalls 9 and 12).
+  - **Deliberately not yet exercised:** Drizzle over Hyperdrive with RLS transactions, Bunny tus signatures and tokens, the Container job and Stripe Connect. The slice's first spikes should target these, in that order of risk.
+  - **To show the founder:** (1) deploy (`wrangler deploy` from `apps/web`) and put the workers.dev route behind Cloudflare Access with an email PIN allow-list *before* sharing the URL; (2) consider asking the founder to record 2 or 3 of his own warm-ups to replace the synthetic tones. That's his own material, so copyright-clean, and far more convincing than test tones.
+- **Overnight facade build (D29), done; see the summary above.** The contract is [facade-spec.md](./facade-spec.md). The stages run in sequence:
   - (1) scaffold and toolchain proof;
   - (2) media fixtures, peaks script and player component;
   - (3) fixtures and all surfaces;
@@ -216,6 +232,8 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Dates keep 3a's hand-rolled UTC formatting** (hydration-safe).
 *Reason:* a demo that reads "overdue" everywhere undermines the product story the facade exists to show.
 
+**33. e2e runs against `wrangler dev` on the built output, not `vite preview`.** Facade pitfall 11 was diagnosed as a local tooling fault (classification B), not our code. `vite preview`'s Node proxy opens a fresh socket to workerd for every request and leaves it in TIME_WAIT: 200 of 200 sequential requests did so, whether static assets, SSR or media, while `wrangler dev` left 0. One stressed run leaves about 5,800 such sockets against Windows' 16,384 ephemeral ports, so back-to-back runs fail with `connect EADDRINUSE`, which surfaces as `fetch failed`. The failing URLs were mostly `/assets/*.js`, which never reach our Worker, and a 256-way concurrency load test had 0 failures. With the webServer on `wrangler dev`, 7 of 7 back-to-back stressed runs passed 94/94 (commits `b40f0be`, `5f252e2`). This still exercises the Workers runtime, which is the intent of spec decision 25, amended in place. **It does not affect production, the demo or the slice.** Its only lesson for the slice's CI is to use `wrangler dev`, not `vite preview`, for e2e. *Unproven and accepted:* why the proxy doesn't pool connections.
+
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
 - **Mock-up stage (about £0):** Workers Free, Supabase Free (projects pause after about a week of inactivity; no Branching), Bunny's $1 monthly minimum, and Stripe (no fixed fee).
 - **Pilot-ready (about $30/month plus a domain):** Workers Paid ($5) and Supabase Pro ($25, needed for Branching, no pausing, backups and London hosting), plus usage-based Bunny.
@@ -284,6 +302,8 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Delegate evidence:** plain `test:e2e` passed 47 of 47 (3 skipped); **`--repeat-each=2` failed on all 4 runs** with miniflare `fetch failed`, then 500s or connection refused, across unrelated specs.
 - **Pitfall 12:** a floor-rounded client clock ran behind server time (fixed).
 - **Accepted interpretations:** an added earlier take for one student so "previous take" has data; an optional feedback summary field; the upload panel's `fetcherKey` prop for reuse.
-- **Pitfall 11 is under bisection by a diagnostic delegate** (2026-09-24). The question: is it our code (the media handler, leaks) or the local Vite-plugin/miniflare proxy?
+- **Pitfall 11 is under bisection by a diagnostic delegate** (2026-09-24). The question: is it our code (the media handler, leaks) or the local Vite-plugin/miniflare proxy? *Resolved in D33: the local proxy (classification B).*
+
+**F15. Final facade verification by the lead (2026-09-24).** After a forced reinstall from the lockfile, the lead ran `pnpm test` (105 pass) and `pnpm test:e2e` (47 pass, 3 skipped by design) on the final tree. The lead reviewed screenshots of the landing page (375 px), the student feedback view (375 px) and the coach review workspace (1280 px): they are coherent, readable and on-message. The one new pitfall is chunks over 500 kB (pitfall 13), a slice concern.
 
 **F5. WP4 and WP5 differ slightly on CoachNow.** WP4 says there's no multi-coach payout from one sale. WP5 found that CoachNow Academy has Stripe Connect and multi-coach roles, but per-coach pricing is unverified. The lead's re-fetch confirms Academy includes "Invoicing and Billing through Stripe Connect" and "Flexible Multi-Coach Pricing Available". **The difference doesn't affect the plan:** the pilot takes payment through Stripe Payment Links outside the tool, and the build owns its DB either way.
