@@ -57,7 +57,7 @@ export async function action({ context, params, request }: Route.ActionArgs) {
   const item = await context.get(repositoriesContext).library.get(params.id);
   const parsed = parseInput(
     RecordingUploadSchema,
-    Object.fromEntries(await request.formData()),
+    await request.json().catch(() => null),
     "The upload details were not valid.",
   );
   if (!item) {

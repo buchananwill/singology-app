@@ -45,6 +45,7 @@ export function SendFeedbackCard({
   function onSend() {
     // Typed as the parsed shape: JSON-safe (the schema's input type has `unknown` coerced numbers).
     const payload: SendFeedback = {
+      intent: "send",
       summary: review.summary,
       comments: review.comments.map(({ tSeconds, body }) => ({ tSeconds, body })),
       reply,

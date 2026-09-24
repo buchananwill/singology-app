@@ -25,6 +25,9 @@ import { useHydrated } from "../../lib/useHydrated";
 const PROGRESS_STEP = 8;
 const PROGRESS_TICK_MS = 80;
 
+/** What the panel posts as JSON: the picked file's metadata plus the page's extra fields. */
+type UploadPayload = Readonly<Record<string, string | number>>;
+
 interface PickedFile {
   file: File;
   /** Object URL for local playback; revoked when the pick changes or the panel unmounts. */
@@ -41,7 +44,7 @@ export interface UploadPanelProps {
   successTitle: string;
   /** Label of the optional note field; omit to hide the field. */
   noteLabel?: string;
-  /** Extra form fields posted with the metadata, e.g. `{ libraryItemId }`. */
+  /** Extra fields posted with the metadata, e.g. `{ libraryItemId }`. */
   fields?: Readonly<Record<string, string>>;
   /** Route to post to; defaults to the current route's action. */
   action?: string;
@@ -79,8 +82,8 @@ export function UploadPanel({
   const [durationSec, setDurationSec] = useState<number | null>(null);
   const [playable, setPlayable] = useState(true);
   const [note, setNote] = useState("");
-  /** The form data being "uploaded"; non-null while the simulated progress runs. */
-  const [pending, setPending] = useState<FormData | null>(null);
+  /** The metadata being "uploaded"; non-null while the simulated progress runs. */
+  const [pending, setPending] = useState<UploadPayload | null>(null);
   const [progress, setProgress] = useState(0);
 
   const result = fetcher.state === "idle" ? fetcher.data : undefined;
@@ -107,7 +110,7 @@ export function UploadPanel({
       if (value === 100) {
         window.clearInterval(timer);
         setPending(null);
-        void submit(pending, { method: "post", action });
+        void submit(pending, { method: "post", action, encType: "application/json" });
       }
     }, PROGRESS_TICK_MS);
     return () => window.clearInterval(timer);
@@ -144,17 +147,15 @@ export function UploadPanel({
     if (picked === null || durationSec === null) {
       return;
     }
-    const formData = new FormData();
-    for (const [name, value] of Object.entries(fields ?? {})) {
-      formData.set(name, value);
-    }
-    formData.set("fileName", picked.file.name);
-    formData.set("sizeBytes", String(picked.file.size));
-    formData.set("durationSec", String(durationSec));
-    formData.set("mimeType", picked.file.type);
-    formData.set("note", note);
     setProgress(0);
-    setPending(formData);
+    setPending({
+      ...fields,
+      fileName: picked.file.name,
+      sizeBytes: picked.file.size,
+      durationSec,
+      mimeType: picked.file.type,
+      note,
+    });
   }
 
   function onReset() {

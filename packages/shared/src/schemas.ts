@@ -181,6 +181,10 @@ export const RecordingUploadSchema = z.object({
 });
 export type RecordingUpload = z.infer<typeof RecordingUploadSchema>;
 
+/** The coach's reply upload on the review page: a recording upload tagged `intent: "reply"`. */
+export const ReplyUploadSchema = RecordingUploadSchema.extend({ intent: z.literal("reply") });
+export type ReplyUpload = z.infer<typeof ReplyUploadSchema>;
+
 export const FeedbackCommentSchema = z.object({
   id: IdSchema,
   feedbackId: IdSchema,
@@ -205,6 +209,7 @@ export type DraftFeedbackComment = z.infer<typeof DraftFeedbackCommentSchema>;
  */
 export const SendFeedbackSchema = z
   .object({
+    intent: z.literal("send"),
     summary: z.string().trim().max(2000).default(""),
     comments: z.array(DraftFeedbackCommentSchema).max(100),
     reply: RecordingUploadSchema.nullable(),
@@ -249,4 +254,9 @@ export function sendFeedbackSchemaFor(limits: SendFeedbackLimits) {
       });
     }
   });
+}
+
+/** Everything the review page posts to its action, told apart by `intent`. */
+export function reviewActionSchemaFor(limits: SendFeedbackLimits) {
+  return z.discriminatedUnion("intent", [ReplyUploadSchema, sendFeedbackSchemaFor(limits)]);
 }

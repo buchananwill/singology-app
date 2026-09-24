@@ -1,10 +1,6 @@
 import { Anchor, Badge, Card, Container, Grid, Group, Stack, Text, Title } from "@mantine/core";
-import type { OwnedSubmission, Repositories } from "@singology/db";
-import {
-  type RecordingUpload,
-  RecordingUploadSchema,
-  sendFeedbackSchemaFor,
-} from "@singology/shared";
+import type { Repositories } from "@singology/db";
+import { type RecordingUpload, reviewActionSchemaFor, type SendFeedback } from "@singology/shared";
 import { useReducer } from "react";
 import { data, Link, useFetcher } from "react-router";
 
@@ -76,14 +72,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   };
 }
 
-/**
- * Two requests, neither of which saves anything (decision 11):
- * - "Send feedback" posts the whole review as JSON; it is validated with
- *   `SendFeedbackSchema` plus the take's length and the library.
- * - The reply upload (the shared upload panel, posting `intent=reply`)
- *   validates the reply's metadata and echoes it back, so the page can send
- *   it with the feedback.
- */
 export async function action({ context, params, request }: Route.ActionArgs) {
   const repositories = context.get(repositoriesContext);
   const found = await repositories.submissions.getForCoach(
@@ -93,47 +81,42 @@ export async function action({ context, params, request }: Route.ActionArgs) {
   if (!found) {
     return data<ReviewActionResult>({ ok: false, error: "Submission not found." }, { status: 404 });
   }
-  if (request.headers.get("Content-Type")?.startsWith("application/json")) {
-    return sendFeedback(repositories, found, await request.json().catch(() => null));
-  }
-  const formData = await request.formData();
-  if (formData.get("intent") !== "reply") {
-    return data<ReviewActionResult>({ ok: false, error: "Unknown request." }, { status: 400 });
-  }
-  const parsed = parseInput(
-    RecordingUploadSchema,
-    Object.fromEntries(formData),
-    "The upload details were not valid.",
-  );
-  if (!parsed.ok) {
-    return data<ReviewActionResult>({ ok: false, error: parsed.error }, { status: 400 });
-  }
-  return data<ReviewActionResult>({
-    ok: true,
-    message: `"${parsed.data.fileName}" is attached. It goes to the student when you send your feedback.`,
-    upload: parsed.data,
-  });
-}
-
-async function sendFeedback(
-  repositories: Repositories,
-  { submission, enrolment }: OwnedSubmission,
-  body: unknown,
-) {
+  const { submission, enrolment } = found;
   const [take, library, student] = await Promise.all([
     repositories.media.get(submission.mediaId),
     repositories.library.list(),
     repositories.students.get(enrolment.studentId),
   ]);
-  const schema = sendFeedbackSchemaFor({
-    durationSec: take?.durationSec ?? 0,
-    libraryItemIds: new Set(library.map((item) => item.id)),
-  });
-  const parsed = parseInput(schema, body, "The feedback was not valid.");
+  const parsed = parseInput(
+    reviewActionSchemaFor({
+      durationSec: take?.durationSec ?? 0,
+      libraryItemIds: new Set(library.map((item) => item.id)),
+    }),
+    await request.json().catch(() => null),
+    "The request was not valid.",
+  );
   if (!parsed.ok) {
     return data<ReviewActionResult>({ ok: false, error: parsed.error }, { status: 400 });
   }
-  const { comments, reply, assignLibraryItemIds } = parsed.data;
+  const input = parsed.data;
+  if (input.intent === "reply") {
+    return data<ReviewActionResult>({
+      ok: true,
+      message: `"${input.fileName}" is attached. It goes to the student when you send your feedback.`,
+      upload: input,
+    });
+  }
+  return data<ReviewActionResult>({
+    ok: true,
+    message: feedbackSentMessage(student?.displayName ?? "The student", input),
+  });
+}
+
+/** What the coach sees once "Send feedback" succeeds. */
+function feedbackSentMessage(
+  studentName: string,
+  { comments, reply, assignLibraryItemIds }: SendFeedback,
+): string {
   const parts = [
     `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`,
     reply ? "your reply" : null,
@@ -141,10 +124,7 @@ async function sendFeedback(
       ? `${assignLibraryItemIds.length} new ${assignLibraryItemIds.length === 1 ? "exercise" : "exercises"}`
       : null,
   ].filter((part) => part !== null);
-  return data<ReviewActionResult>({
-    ok: true,
-    message: `${student?.displayName ?? "The student"} gets ${parts.join(", ")}. This is a demo, so nothing was saved.`,
-  });
+  return `${studentName} gets ${parts.join(", ")}. This is a demo, so nothing was saved.`;
 }
 
 /** The student's previous take of the same exercise, with its media and any comments. */
