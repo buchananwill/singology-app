@@ -1,13 +1,12 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { expect, type Locator, type Page, type Request } from "@playwright/test";
 import type { DemoRole } from "@singology/shared";
 
-const MEDIA_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public/media");
+import { PUBLIC_DIR } from "../publicDir";
 
 export function mediaFixture(name: string): string {
-  return path.join(MEDIA_DIR, name);
+  return path.join(PUBLIC_DIR, "media", name);
 }
 
 export function currentTime(media: Locator): Promise<number> {

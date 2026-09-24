@@ -6,6 +6,7 @@
     "react-router.config.ts",
     "playwright.config.ts",
     "previewPort.ts",
+    "publicDir.ts",
     "e2e/**/*",
     "test/**/*"
   ],

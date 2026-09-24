@@ -1,12 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { createFixtureData } from "@singology/db";
 import { WaveformPeaksSchema } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
-const PUBLIC_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public");
+import { PUBLIC_DIR } from "../publicDir";
 
 const TOLERANCE_SEC = 0.05;
 
