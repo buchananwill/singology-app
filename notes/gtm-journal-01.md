@@ -264,6 +264,7 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
   - React B2, B3, B4 and N3 (named and exported props, informative generic names).
 - **Wave 3, consistency and hygiene:** style B4, B5, B6, B11 (under D35), B12 (`href()` if React Router v8 exports it; verify), B13, B14, B16, B17, B18 and B19 (comments: remove spec and decision numbers from source), N6 and N7; type B2 (`DemoRole` in the e2e helpers).
 - **Not taken:** style N8, which is superseded by B9. React N6: keep React Router's scaffolded `Layout` signature.
+- **The contract for the waves is [facade-review-fixes.md](./facade-review-fixes.md),** on branch `facade-review-fixes` (off `facade`, so the deployed version stays the reviewed one). It names the shared primitives up front, applying the F16 lesson. The one deliberate visible change: the turnaround is shown in days everywhere, and the review count is rendered from data.
 - **Behaviour must not change.** After each wave: `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm test:e2e` all pass, and the lead re-runs the style reviewer on the fix range (fix-cycle verification).
 
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
@@ -347,7 +348,7 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
   - the `workers.dev` subdomain is `resort-reference-gallery`, shared with the user's other Worker `resort-reference`;
   - the Zero Trust team domain is `aged-firefly-81d4.cloudflareaccess.com`;
   - wrangler's OAuth token has no Access scope, so **Access must be configured in the dashboard**.
-- **Gating check right after deploy:** the facade returned `200` (public), so the existing Access policy is per-Worker, not account-wide. `resort-reference` still returned `302` to its Access login (unaffected). **The user is gating the facade with an email allow-list (the user plus the founder).** The subdomain separation is to be cleaned up later, by user decision.
+- **Gating check right after deploy:** the facade returned `200` (public), so the existing Access policy is per-Worker, not account-wide. `resort-reference` still returned `302` to its Access login (unaffected). **The user is gating the facade with an email allow-list (the user plus the founder).** The subdomain separation is to be cleaned up later, by user decision. *UPDATE 2026-09-24:* the user enabled Access. The lead re-checked from outside: `/` and `/media/student-take-a.m4a` both return `302` to `aged-firefly-81d4.cloudflareaccess.com`. **The facade is gated.**
 - **Bundle finding (updates pitfall 13):** the chunk over 500 kB is `hls.js` (575 kB minified, 179 kB gzip). It is already dynamically imported only when an HLS source plays, so it doesn't weigh on the audio-first student pages.
 - **Operational:** the agent auto-mode classifier refuses `wrangler deploy` from the lead, so **deploys are run by the user** (`! pnpm --filter @singology/web exec wrangler deploy` after `pnpm --filter @singology/web run build`). The "No projects matched the filters" warning is pitfall 5 (path case); the deploy still resolves the right build.
 
