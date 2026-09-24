@@ -41,15 +41,13 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   if (!take || !item || !coach) {
     throw data("Submission data not found", { status: 404 });
   }
-  const [comments, reply] = await Promise.all([
+  const [comments, reply, next] = await Promise.all([
     feedback ? repositories.feedback.comments(feedback.id) : [],
     feedback?.replyMediaId ? repositories.media.get(feedback.replyMediaId) : undefined,
+    repositories.library.getMany(
+      assignments.filter((a) => a.status === "todo").map((a) => a.libraryItemId),
+    ),
   ]);
-  const nextAssignments = await Promise.all(
-    assignments
-      .filter((a) => a.status === "todo")
-      .map(async (a) => repositories.library.get(a.libraryItemId)),
-  );
   return {
     submission,
     take,
@@ -58,7 +56,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     feedback: feedback ?? null,
     comments,
     reply: reply ?? null,
-    next: nextAssignments.flatMap((next) => (next ? [{ id: next.id, title: next.title }] : [])),
+    next: next.map(({ id, title }) => ({ id, title })),
   };
 }
 

@@ -1,4 +1,5 @@
 import { Anchor, Badge, Button, Card, Container, Group, Stack, Text, Title } from "@mantine/core";
+import type { Assignment, LibraryItem } from "@singology/shared";
 import { data, Link } from "react-router";
 
 import { repositoriesContext, studentIdContext } from "../context";
@@ -14,6 +15,13 @@ export const meta: Route.MetaFunction = () => [{ title: "This week | Singology" 
 
 /** "This week" shows the most recent assignments, up to this many. */
 const THIS_WEEK_LIMIT = 4;
+
+/** One assigned exercise on "This week", with the submission that answered it, if any. */
+interface ThisWeekRow {
+  assignment: Assignment;
+  item: LibraryItem;
+  submissionId: string | undefined;
+}
 
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
@@ -31,32 +39,28 @@ export async function loader({ context }: Route.LoaderArgs) {
     throw data("The demo student has no active coach", { status: 404 });
   }
 
-  const thisWeek = await Promise.all(
-    [...assignments]
-      .sort((a, b) => b.assignedAt.localeCompare(a.assignedAt))
-      .slice(0, THIS_WEEK_LIMIT)
-      .map(async (assignment) => ({
-        assignment,
-        item: await repositories.library.get(assignment.libraryItemId),
-        submissionId: submissions.find((s) => s.assignmentId === assignment.id)?.id,
-      })),
-  );
-
+  const recent = [...assignments]
+    .sort((a, b) => b.assignedAt.localeCompare(a.assignedAt))
+    .slice(0, THIS_WEEK_LIMIT);
   const [latest] = feedback;
-  const latestSubmission = latest
-    ? await repositories.submissions.get(latest.submissionId)
-    : undefined;
-  const latestItem = latestSubmission
-    ? await repositories.library.get(latestSubmission.libraryItemId)
-    : undefined;
-  const latestComments = latest ? await repositories.feedback.comments(latest.id) : [];
+  const latestSubmission = submissions.find((s) => s.id === latest?.submissionId);
+  const [recentItems, latestItem, latestComments] = await Promise.all([
+    repositories.library.getMany(recent.map((assignment) => assignment.libraryItemId)),
+    latestSubmission ? repositories.library.get(latestSubmission.libraryItemId) : undefined,
+    latest ? repositories.feedback.comments(latest.id) : [],
+  ]);
+  const itemById = new Map(recentItems.map((item) => [item.id, item]));
 
   return {
     firstName: student.displayName.split(" ")[0] ?? student.displayName,
     coach: { name: coach.displayName, turnaroundHours: coach.turnaroundHours },
-    thisWeek: thisWeek.flatMap(({ assignment, item, submissionId }) =>
-      item ? [{ assignment, item, submissionId }] : [],
-    ),
+    thisWeek: recent
+      .map((assignment) => ({
+        assignment,
+        item: itemById.get(assignment.libraryItemId),
+        submissionId: submissions.find((s) => s.assignmentId === assignment.id)?.id,
+      }))
+      .filter((row): row is ThisWeekRow => row.item !== undefined),
     latestFeedback:
       latest && latestSubmission && latestItem
         ? {

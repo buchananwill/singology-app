@@ -322,6 +322,19 @@ describe("createFixtureRepositories", () => {
     expect(oldest?.submittedAt).toBe(new Date(now.getTime() - 62 * 60 * 60 * 1000).toISOString());
   });
 
+  it("gets many library items and media assets in the order asked, omitting unknown ids", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const items = await repos.library.getMany([
+      "lib-range-siren",
+      "no-such-item",
+      "lib-breath-hiss",
+    ]);
+    expect(items.map((i) => i.id)).toEqual(["lib-range-siren", "lib-breath-hiss"]);
+    const assets = await repos.media.getMany(["media-coach-reply", "media-student-take-a", "nope"]);
+    expect(assets.map((a) => a.id)).toEqual(["media-coach-reply", "media-student-take-a"]);
+    expect(await repos.library.getMany([])).toEqual([]);
+  });
+
   it("gets a submission with its enrolment for the student who owns it", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const owned = await repos.submissions.getForStudent("student-ada", "sub-ada-onset");

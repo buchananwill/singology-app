@@ -17,6 +17,12 @@ function copy<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+/** The rows with these ids, in the order given; unknown ids are omitted. */
+function pickByIds<T extends { id: string }>(rows: readonly T[], ids: readonly string[]): T[] {
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return ids.flatMap((id) => byId.get(id) ?? []);
+}
+
 function matchesFilter(
   item: FixtureData["libraryItems"][number],
   filter: LibraryFilter | undefined,
@@ -68,9 +74,11 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
     library: {
       list: async (filter) => copy(data.libraryItems.filter((i) => matchesFilter(i, filter))),
       get: async (id) => copy(data.libraryItems.find((i) => i.id === id)),
+      getMany: async (ids) => copy(pickByIds(data.libraryItems, ids)),
     },
     media: {
       get: async (id) => copy(data.mediaAssets.find((m) => m.id === id)),
+      getMany: async (ids) => copy(pickByIds(data.mediaAssets, ids)),
     },
     assignments: {
       forStudent: async (studentId) => {

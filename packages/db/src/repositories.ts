@@ -30,10 +30,14 @@ export interface EnrolmentRepository {
 export interface LibraryRepository {
   list(filter?: LibraryFilter): Promise<LibraryItem[]>;
   get(id: string): Promise<LibraryItem | undefined>;
+  /** The items with these ids, in the order given; unknown ids are omitted. */
+  getMany(ids: readonly string[]): Promise<LibraryItem[]>;
 }
 
 export interface MediaRepository {
   get(id: string): Promise<MediaAsset | undefined>;
+  /** The assets with these ids, in the order given; unknown ids are omitted. */
+  getMany(ids: readonly string[]): Promise<MediaAsset[]>;
 }
 
 export interface AssignmentRepository {

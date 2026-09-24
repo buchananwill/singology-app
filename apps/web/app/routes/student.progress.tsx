@@ -17,12 +17,14 @@ interface Take {
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const submissions = await repositories.submissions.forStudent(context.get(studentIdContext));
+  const assets = await repositories.media.getMany(submissions.map((s) => s.mediaId));
+  const assetById = new Map(assets.map((asset) => [asset.id, asset]));
 
   const byItem = new Map<string, Take[]>();
   for (const submission of [...submissions].sort((x, y) =>
     x.submittedAt.localeCompare(y.submittedAt),
   )) {
-    const asset = await repositories.media.get(submission.mediaId);
+    const asset = assetById.get(submission.mediaId);
     if (asset) {
       byItem.set(submission.libraryItemId, [
         ...(byItem.get(submission.libraryItemId) ?? []),
@@ -31,14 +33,8 @@ export async function loader({ context }: Route.LoaderArgs) {
     }
   }
 
-  const exercises = (
-    await Promise.all(
-      [...byItem].map(async ([itemId, takes]) => {
-        const item = await repositories.library.get(itemId);
-        return item ? [{ item, takes }] : [];
-      }),
-    )
-  ).flat();
+  const items = await repositories.library.getMany([...byItem.keys()]);
+  const exercises = items.map((item) => ({ item, takes: byItem.get(item.id) ?? [] }));
   // Most recently practised exercise first.
   exercises.sort((x, y) =>
     (y.takes.at(-1)?.submission.submittedAt ?? "").localeCompare(
