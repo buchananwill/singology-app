@@ -244,6 +244,28 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **The House Rules encode D18 to D27, D31 and D32** (React Router v8 imports; repositories-only data access; Zod-validated actions; no global store; hydration-safe time; Mantine conventions; Drizzle as the schema source with generated migrations; one form for user-scoped versus privileged DB access). It explicitly defers type-surface and hook-discipline findings to the sibling `typescript-type-reviewer` and `react-quality-reviewer`.
 - **Observed gap:** the repo has no formatter (Prettier or Biome) configured; the reviewer will raise that once as a NOTE.
 
+**35. Language target is ES2023, not ES2024.** Style review B11 proposes `Map.groupBy` and `toSorted` with `lib: ES2024`. `toSorted`, `toReversed`, `findLast` and friends are ES2023 and ship in iOS Safari 16 and later. `Map.groupBy` needs Safari 17.4, and choir members are likely to own older iPhones. **Rule: `lib: ES2023`; use `toSorted` and the other ES2023 array methods freely; grouping goes through one small `groupBy` helper in `packages/shared`,** a named facility and not a hand-rolled loop per call site. Revisit when analytics show the iOS version spread.
+
+**36. Adopt Prettier** (style review N2: there's no formatter, and layout already varies). Prettier with defaults, plus `eslint-config-prettier` so lint and format don't fight. It lands as **one format-only commit** before the review fixes, so every later diff is semantic. *Reason:* layout becomes machine-owned, which is exactly what the reviewer's "Formatting Is Not a Finding" rule assumes.
+
+**37. Review fixes: three reviewers ran over `main..facade` (2026-09-24); the fixes land in waves.** The lead spot-checked style B1 (forked `formatTime`), B9 (the ownership check duplicated in two forms) and B19 (the "spec decision 31" citation is wrong: the spec ends at 29). **All three were confirmed.**
+- **Wave 0, tooling:** D36 Prettier, then D35 `lib: ES2023`.
+- **Wave 1, the data seam** (it matters most for the slice):
+  - style B9: ownership-scoped getters `submissions.getForStudent` and `getForCoach`;
+  - style B10, trimmed: `library.getMany`, `media.getMany`, `feedback.forSubmissionWithComments`, `submissions.queueViewForCoach`, `coaches.listWithOffers`. **No further view methods without a loader that needs them;**
+  - style B7 and B8: `ActionResult<T>`, one `parseInput`, and one discriminated-union action on the review route;
+  - style B2 and B3 (one turnaround source; `submissionsPerPeriod` rendered, not hard-coded).
+- **Wave 2, player and components:**
+  - React B1: extract a `useWaveformInstance` hook from `WaveformPlayer`;
+  - style B1 (use `formatTimestamp`) and B15 (theme colours in the waveform);
+  - style N5 and React N4 / type B1: a shared `StandalonePlayer` replaces the five inline `PlayerProvider` + `WaveformPlayer` wraps;
+  - React N1 and N2 (`useAbTransport`, `useUploadPanel`) and style N3 (`useActionNotification`);
+  - style N4: the review page uses `useNow`;
+  - React B2, B3, B4 and N3 (named and exported props, informative generic names).
+- **Wave 3, consistency and hygiene:** style B4, B5, B6, B11 (under D35), B12 (`href()` if React Router v8 exports it; verify), B13, B14, B16, B17, B18 and B19 (comments: remove spec and decision numbers from source), N6 and N7; type B2 (`DemoRole` in the e2e helpers).
+- **Not taken:** style N8, which is superseded by B9. React N6: keep React Router's scaffolded `Layout` signature.
+- **Behaviour must not change.** After each wave: `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm test:e2e` all pass, and the lead re-runs the style reviewer on the fix range (fix-cycle verification).
+
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
 - **Mock-up stage (about £0):** Workers Free, Supabase Free (projects pause after about a week of inactivity; no Branching), Bunny's $1 monthly minimum, and Stripe (no fixed fee).
 - **Pilot-ready (about $30/month plus a domain):** Workers Paid ($5) and Supabase Pro ($25, needed for Branching, no pausing, backups and London hosting), plus usage-based Bunny.
@@ -313,6 +335,12 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Pitfall 12:** a floor-rounded client clock ran behind server time (fixed).
 - **Accepted interpretations:** an added earlier take for one student so "previous take" has data; an optional feedback summary field; the upload panel's `fetcherKey` prop for reuse.
 - **Pitfall 11 is under bisection by a diagnostic delegate** (2026-09-24). The question: is it our code (the media handler, leaks) or the local Vite-plugin/miniflare proxy? *Resolved in D33: the local proxy (classification B).*
+
+**F16. Code review of the facade: the behaviour is sound, the shape is not yet slice-ready.** The three reviewers returned:
+- **typescript-type-reviewer:** 2 BLOCKING, both trivial. No `any`, no suppressions, no floating promises; types consistently derive from the `packages/shared` Zod schemas.
+- **react-quality-reviewer:** 4 BLOCKING, 6 NOTE. The main one: `WaveformPlayer.tsx` is 347 lines, with a 97-line initialisation effect. It confirmed the D24 and D32 compliance, including the throttled media time and textbook `useSyncExternalStore` clocks.
+- **singology-style-decomposition-reviewer** (the D34 agent's first run): 19 BLOCKING, 8 NOTE. The pattern is **cross-stage duplication**, where separate delegates solved the same problem independently, plus loaders doing record assembly and ownership checks that belong behind `Repositories`.
+**Lesson for future briefs: name the shared helpers (formatters, result types, test helpers) in every stage brief.** The arc-lead skill's "name shared primitives" rule was under-applied across stages 2 to 3b.
 
 **F15. Final facade verification by the lead (2026-09-24).** After a forced reinstall from the lockfile, the lead ran `pnpm test` (105 pass) and `pnpm test:e2e` (47 pass, 3 skipped by design) on the final tree. The lead reviewed screenshots of the landing page (375 px), the student feedback view (375 px) and the coach review workspace (1280 px): they are coherent, readable and on-message. The one new pitfall is chunks over 500 kB (pitfall 13), a slice concern.
 
