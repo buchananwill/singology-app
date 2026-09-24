@@ -77,7 +77,7 @@ Source decisions live in [gtm-journal-01.md](./gtm-journal-01.md): D14, D16, D17
 ### Tests and verification
 
 24. **Vitest:** fixture-repository tests (e.g. every `Submission` references an existing `Enrolment`, `LibraryItem` and `MediaAsset`), a Zod parse of all fixtures, and pure-function tests for the peaks computation.
-25. **Playwright** (Chromium and WebKit): a smoke test that visits every route in decisions 12 to 16 against `pnpm preview`, asserts no console errors, and saves a screenshot per route at 1280px and 375px to `apps/web/test-results/screenshots/` (untracked).
+25. **Playwright** (Chromium and WebKit): a smoke test that visits every route in decisions 12 to 16 against the built Worker running under `wrangler dev --config build/server/wrangler.json` (*amended 2026-09-24, journal D33:* originally `pnpm preview`, whose Node proxy exhausts Windows ephemeral ports), asserts no console errors, and saves a screenshot per route at 1280px and 375px to `apps/web/test-results/screenshots/` (untracked).
 26. **Proof of the Workers runtime:** the built app runs under `pnpm preview` (the Workers runtime, not only Vite dev) with SSR responses for every route.
 
 ### Process
