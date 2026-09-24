@@ -1,7 +1,8 @@
-import { Badge, Button, Card, Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import { DemoRoleChoiceSchema, type DemoRole } from "@singology/shared";
-import { data, Form, redirect } from "react-router";
+import { Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { DemoRoleChoiceSchema } from "@singology/shared";
+import { data, redirect } from "react-router";
 
+import { RoleCard } from "../components/demo/RoleCard";
 import { HOME_FOR_ROLE } from "../components/shell/navItems";
 import { demoRoleContext } from "../context";
 import { serializeDemoRole } from "../demo/roleCookie.server";
@@ -27,39 +28,6 @@ export async function action({ request }: Route.ActionArgs) {
   return redirect(HOME_FOR_ROLE[role], {
     headers: { "Set-Cookie": await serializeDemoRole(role) },
   });
-}
-
-export interface RoleCardProps {
-  role: DemoRole;
-  title: string;
-  description: string;
-  current: boolean;
-}
-
-function RoleCard({ role, title, description, current }: RoleCardProps) {
-  return (
-    <Card withBorder padding="lg" data-testid={`role-card-${role}`}>
-      <Stack gap="sm" h="100%">
-        <Title order={2} size="h3">
-          {title}
-        </Title>
-        <Text c="dimmed" flex={1}>
-          {description}
-        </Text>
-        {current && (
-          <Badge variant="light" w="fit-content">
-            Current view
-          </Badge>
-        )}
-        <Form method="post">
-          <input type="hidden" name="role" value={role} />
-          <Button type="submit" fullWidth>
-            {title}
-          </Button>
-        </Form>
-      </Stack>
-    </Card>
-  );
 }
 
 export default function Demo({ loaderData, actionData }: Route.ComponentProps) {
