@@ -9,6 +9,7 @@ import {
   EnrolmentSchema,
   FeedbackCommentSchema,
   FeedbackSchema,
+  HOUR_MS,
   indexById,
   LibraryItemSchema,
   LIBRARY_CATEGORIES,
@@ -58,7 +59,7 @@ describe("fixture data", () => {
   });
 
   it("stores times as offsets from now, so every timestamp moves with now", () => {
-    const hundredDays = 1000 * 60 * 60 * 24 * 100;
+    const hundredDays = 100 * 24 * HOUR_MS;
     const later = createFixtureData(new Date(TEST_NOW.getTime() + hundredDays));
     const shift = (a: string, b: string) => new Date(b).getTime() - new Date(a).getTime();
     fixtureData.submissions.forEach((s, i) =>
@@ -331,7 +332,7 @@ describe("createFixtureRepositories", () => {
     const repos = createFixtureRepositories({ now });
     const [oldest] = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
     expect(oldest?.submission.submittedAt).toBe(
-      new Date(now.getTime() - 62 * 60 * 60 * 1000).toISOString(),
+      new Date(now.getTime() - 62 * HOUR_MS).toISOString(),
     );
   });
 

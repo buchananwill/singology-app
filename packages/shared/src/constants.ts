@@ -25,3 +25,6 @@ export const ENROLMENT_STATUSES = ["active", "paused", "ended"] as const;
 export const ASSIGNMENT_STATUSES = ["todo", "submitted", "feedback_ready"] as const;
 
 export const SUBMISSION_STATUSES = ["awaiting_review", "reviewed"] as const;
+
+export const MINUTE_MS = 60 * 1000;
+export const HOUR_MS = 60 * MINUTE_MS;

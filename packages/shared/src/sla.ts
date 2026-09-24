@@ -1,4 +1,4 @@
-const HOUR_MS = 60 * 60 * 1000;
+import { HOUR_MS } from "./constants";
 
 /** A queue item with less than this many hours left is "due soon". */
 export const DUE_SOON_HOURS = 12;

@@ -1,4 +1,10 @@
-import type { AssignmentStatus, CoachTier, LibraryCategory, VoiceType } from "@singology/shared";
+import {
+  type AssignmentStatus,
+  type CoachTier,
+  type LibraryCategory,
+  MINUTE_MS,
+  type VoiceType,
+} from "@singology/shared";
 
 /**
  * Display formatting shared by the routes. Dates are formatted by hand in UTC
@@ -32,8 +38,6 @@ export function formatDuration(seconds: number): string {
 export function formatTimestamp(seconds: number): string {
   return formatDuration(Math.floor(Math.max(0, seconds)));
 }
-
-const MINUTE_MS = 60 * 1000;
 
 /**
  * Time since an event: `just now`, `12 min ago`, `26 hours ago`, `3 days ago`.

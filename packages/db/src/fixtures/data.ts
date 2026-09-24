@@ -1,14 +1,15 @@
-import type {
-  Assignment,
-  Coach,
-  CoachOffer,
-  Enrolment,
-  Feedback,
-  FeedbackComment,
-  LibraryItem,
-  MediaAsset,
-  Student,
-  Submission,
+import {
+  type Assignment,
+  type Coach,
+  type CoachOffer,
+  type Enrolment,
+  type Feedback,
+  type FeedbackComment,
+  HOUR_MS,
+  type LibraryItem,
+  type MediaAsset,
+  type Student,
+  type Submission,
 } from "@singology/shared";
 
 import { mediaAssets } from "./media";
@@ -34,7 +35,6 @@ export interface FixtureData {
  */
 type At = (hoursFromNow: number) => string;
 
-const HOUR_MS = 60 * 60 * 1000;
 const DAY = 24;
 
 /** The student the facade's student view shows (there is no sign-in). */

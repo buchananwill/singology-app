@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { HOUR_MS } from "./constants";
 import { DUE_SOON_HOURS, reviewSla } from "./sla";
 
-const HOUR_MS = 60 * 60 * 1000;
 const SUBMITTED = "2026-09-20T12:00:00.000Z";
 const submittedMs = new Date(SUBMITTED).getTime();
 const TURNAROUND_HOURS = 72;

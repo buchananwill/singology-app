@@ -1,3 +1,4 @@
+import { HOUR_MS, MINUTE_MS } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -29,20 +30,18 @@ describe("format", () => {
   });
 
   it("formats time since an event", () => {
-    const minute = 60 * 1000;
     expect(formatElapsed(20 * 1000, 72)).toBe("just now");
-    expect(formatElapsed(12 * minute, 72)).toBe("12 min ago");
-    expect(formatElapsed(60 * minute, 72)).toBe("1 hour ago");
-    expect(formatElapsed(62 * 60 * minute, 72)).toBe("62 hours ago");
-    expect(formatElapsed(12.5 * 24 * 60 * minute, 72)).toBe("12 days ago");
+    expect(formatElapsed(12 * MINUTE_MS, 72)).toBe("12 min ago");
+    expect(formatElapsed(60 * MINUTE_MS, 72)).toBe("1 hour ago");
+    expect(formatElapsed(62 * HOUR_MS, 72)).toBe("62 hours ago");
+    expect(formatElapsed(12.5 * 24 * HOUR_MS, 72)).toBe("12 days ago");
   });
 
   it("switches from hours to days at the given threshold", () => {
-    const hour = 60 * 60 * 1000;
-    expect(formatElapsed(47 * hour, 48)).toBe("47 hours ago");
-    expect(formatElapsed(48 * hour, 48)).toBe("2 days ago");
-    expect(formatElapsed(71 * hour, 72)).toBe("71 hours ago");
-    expect(formatElapsed(72 * hour, 72)).toBe("3 days ago");
+    expect(formatElapsed(47 * HOUR_MS, 48)).toBe("47 hours ago");
+    expect(formatElapsed(48 * HOUR_MS, 48)).toBe("2 days ago");
+    expect(formatElapsed(71 * HOUR_MS, 72)).toBe("71 hours ago");
+    expect(formatElapsed(72 * HOUR_MS, 72)).toBe("3 days ago");
   });
 
   it("formats a turnaround in days when it is whole days, else in hours", () => {
@@ -53,11 +52,10 @@ describe("format", () => {
   });
 
   it("formats time left before a deadline", () => {
-    const minute = 60 * 1000;
-    expect(formatTimeLeft((46 * 60 + 5) * minute + 30 * 1000)).toBe("46h 05m left");
-    expect(formatTimeLeft(9 * minute + 59 * 1000)).toBe("9m left");
+    expect(formatTimeLeft(46 * HOUR_MS + 5 * MINUTE_MS + 30 * 1000)).toBe("46h 05m left");
+    expect(formatTimeLeft(9 * MINUTE_MS + 59 * 1000)).toBe("9m left");
     expect(formatTimeLeft(0)).toBe("overdue");
-    expect(formatTimeLeft(-5 * minute)).toBe("overdue");
+    expect(formatTimeLeft(-5 * MINUTE_MS)).toBe("overdue");
   });
 
   it("formats byte counts", () => {
