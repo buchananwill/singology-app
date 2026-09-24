@@ -1,0 +1,9 @@
+build/
+.react-router/
+.wrangler/
+worker-configuration.d.ts
+pnpm-lock.yaml
+apps/web/public/media/
+notes/
+test-results/
+playwright-report/
