@@ -37,29 +37,18 @@ export const MediaAssetSchema = z.object({
   kind: MediaKindSchema,
   /** Progressive file URL, e.g. `/media/student-take.m4a`. */
   src: z.string().min(1),
-  /** HLS playlist URL, when an HLS rendition exists. */
   hlsSrc: z.string().min(1).optional(),
-  /** Pre-computed wavesurfer peaks JSON URL. */
   peaksSrc: z.string().min(1),
   durationSec: z.number().positive(),
 });
 export type MediaAsset = z.infer<typeof MediaAssetSchema>;
 
-/**
- * The pre-computed waveform file at `MediaAsset.peaksSrc`, written by the
- * jobs/media peaks script. `peaks` and `duration` are passed straight to
- * wavesurfer.js 8's `peaks` and `duration` options. wavesurfer draws channel 0
- * above the centre line and channel 1 below it, taking the absolute value of
- * each, so the two channels hold the per-bin maxima and minima of the mono
- * signal: the true min/max envelope.
- */
+/** `peaks` is `[maxima, minima]` per bin, passed straight to wavesurfer. */
 export const WaveformPeaksSchema = z.object({
   version: z.literal(1),
-  /** Peaks per second of media (one min/max pair per bin). */
   peaksPerSecond: z.number().int().positive(),
-  /** Media duration in seconds, as measured by ffprobe. */
+  /** As measured by ffprobe. */
   duration: z.number().positive(),
-  /** `[maxima, minima]`, each value in [-1, 1], one entry per bin. */
   peaks: z.tuple([z.array(z.number().min(-1).max(1)), z.array(z.number().min(-1).max(1))]),
 });
 export type WaveformPeaks = z.infer<typeof WaveformPeaksSchema>;
@@ -166,11 +155,7 @@ export const FeedbackSchema = z.object({
 });
 export type Feedback = z.infer<typeof FeedbackSchema>;
 
-/**
- * What the upload panel posts to a route action: the picked file's metadata,
- * never the file itself (spec decision 19: nothing leaves the browser in the
- * facade). Form values arrive as strings, so numbers are coerced.
- */
+/** The picked file's metadata, never the file itself. */
 export const RecordingUploadSchema = z.object({
   fileName: z.string().min(1).max(255),
   sizeBytes: z.coerce.number().int().positive(),
@@ -199,12 +184,7 @@ export const DraftFeedbackCommentSchema = z.object({
 });
 export type DraftFeedbackComment = z.infer<typeof DraftFeedbackCommentSchema>;
 
-/**
- * Everything "Send feedback" posts from the coach's review workspace (spec
- * decision 16) as JSON: the comments, an optional written summary, the reply's
- * metadata (never the file, decision 19) and the exercises to assign next.
- * The submission comes from the URL, not the payload.
- */
+/** The submission comes from the URL, not the payload. */
 export const SendFeedbackSchema = z
   .object({
     intent: z.literal("send"),

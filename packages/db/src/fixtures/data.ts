@@ -15,7 +15,6 @@ import {
 
 import { mediaAssets } from "./media";
 
-/** Every fixture collection the fixture repositories read from. */
 export interface FixtureData {
   coaches: Coach[];
   coachOffers: CoachOffer[];
@@ -29,11 +28,7 @@ export interface FixtureData {
   feedbackComments: FeedbackComment[];
 }
 
-/**
- * Resolves a fixture's time offset to an ISO timestamp. Fixtures store every
- * time as hours from "now" (negative is in the past), so the demo never goes
- * stale (journal decision 32).
- */
+/** Fixtures store every time as hours from "now" (negative is past), so the demo never goes stale. */
 type At = (hoursFromNow: number) => string;
 
 const DAY = 24;
@@ -65,7 +60,7 @@ const coaches: Coach[] = [
   },
 ];
 
-/** Illustrative pricing (gtm-proposal pricing table): not a commitment. */
+/** Illustrative pricing, not a commitment. */
 const coachOffers: CoachOffer[] = [
   {
     id: "offer-founder-monthly",
@@ -498,10 +493,7 @@ const feedbackComments: FeedbackComment[] = [
   },
 ];
 
-/**
- * The full facade cast (spec decision 17), with every time offset resolved
- * against `now`. Names are fictional; there are no real people here.
- */
+/** Names are fictional; there are no real people here. */
 export function createFixtureData(now: Date): FixtureData {
   const nowMs = now.getTime();
   const at: At = (hoursFromNow) => new Date(nowMs + hoursFromNow * HOUR_MS).toISOString();

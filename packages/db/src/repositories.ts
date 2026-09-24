@@ -66,10 +66,7 @@ export interface SubmissionRepository {
   getForCoach(coachId: string, submissionId: string): Promise<OwnedSubmission | undefined>;
   forStudent(studentId: string): Promise<Submission[]>;
   queueViewForCoach(coachId: string): Promise<CoachQueueItem[]>;
-  /**
-   * The same student's most recent earlier submission of the same exercise,
-   * or `undefined` when this is their first take (or the id is unknown).
-   */
+  /** The same student's most recent earlier submission of the same exercise. */
   previousFor(submissionId: string): Promise<Submission | undefined>;
 }
 
@@ -86,19 +83,12 @@ export interface FeedbackRepository {
   comments(feedbackId: string): Promise<FeedbackComment[]>;
 }
 
-/**
- * What every repository factory takes. `now` is the request time: the fixture
- * repositories resolve their time offsets against it (journal decision 32);
- * the slice's Drizzle repositories take the same shape and ignore it.
- */
+/** `now` is the request time, which the fixture repositories resolve their time offsets against. */
 export interface RepositoryOptions {
   now: Date;
 }
 
-/**
- * The data seam. The facade implements it over fixtures; the slice adds a
- * Drizzle implementation behind the same interface.
- */
+/** The data seam: fixtures in the facade, Drizzle in the slice. */
 export interface Repositories {
   coaches: CoachRepository;
   students: StudentRepository;

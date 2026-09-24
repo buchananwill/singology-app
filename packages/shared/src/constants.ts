@@ -1,16 +1,12 @@
-/** Coach pricing tiers. The founder coaches on the premium tier. */
+/** The founder coaches on the premium tier. */
 export const COACH_TIERS = ["premium", "standard"] as const;
 
-/**
- * How a coach offer is billed: a monthly plan with a set number of reviews,
- * or one single review (05-product-landscape §MVP flows, step 4).
- */
+/** A monthly plan with a set number of reviews, or one single review. */
 export const OFFER_BILLING = ["monthly", "single"] as const;
 
 /** The roles a visitor can pick on the facade's role switcher. */
 export const DEMO_ROLES = ["student", "coach"] as const;
 
-/** Exercise library categories. */
 export const LIBRARY_CATEGORIES = ["breath", "onset", "range", "agility"] as const;
 
 export const VOICE_TYPES = ["soprano", "mezzo", "alto", "tenor", "baritone", "bass"] as const;

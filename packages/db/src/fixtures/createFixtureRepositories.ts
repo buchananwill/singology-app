@@ -28,10 +28,7 @@ function matchesFilter(
   return true;
 }
 
-/**
- * Implements the repository interface over in-module fixture data, with the
- * fixtures' time offsets resolved against `now` (the request time). Nothing persists.
- */
+/** Nothing persists: every call reads a fresh copy of the fixtures. */
 export function createFixtureRepositories({ now }: RepositoryOptions): Repositories {
   const data = createFixtureData(now);
   const enrolmentIdsFor = (owner: EnrolmentOwner, ownerId: string): Set<string> =>

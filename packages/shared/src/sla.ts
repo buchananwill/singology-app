@@ -14,10 +14,7 @@ export interface ReviewSla {
   state: ReviewSlaState;
 }
 
-/**
- * Where a submission stands against the coach's turnaround promise at `nowMs`.
- * Pure, so the server and the browser compute the same result from the same inputs.
- */
+/** Pure, so the server and the browser compute the same result from the same inputs. */
 export function reviewSla(submittedAt: string, nowMs: number, turnaroundHours: number): ReviewSla {
   const dueAtMs = new Date(submittedAt).getTime() + turnaroundHours * HOUR_MS;
   const remainingMs = dueAtMs - nowMs;

@@ -91,7 +91,7 @@ describe("fixture data", () => {
     }
   });
 
-  it("has the decision 17 cast", () => {
+  it("has the facade cast", () => {
     expect(fixtureData.coaches.map((c) => [c.displayName, c.tier])).toEqual([
       ["Singology founder", "premium"],
       ["Standard coach", "standard"],
@@ -233,7 +233,7 @@ describe("fixture data", () => {
   });
 });
 
-describe("review queue against the turnaround promise (journal decision 32)", () => {
+describe("review queue against the turnaround promise", () => {
   // Any now: fixture times are offsets from it, so the queue never goes stale.
   const NOWS = [
     TEST_NOW,
