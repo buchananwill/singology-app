@@ -30,7 +30,6 @@ export function useAbTransport(): AbTransport {
     handles.current.b = handle;
   }, []);
 
-  // Follow the media elements, so the shared control stays right when a player's own controls are used.
   useEffect(() => {
     const elements = {
       a: handles.current.a?.getMediaElement() ?? null,

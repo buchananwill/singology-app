@@ -5,7 +5,6 @@ export interface SuccessStateProps {
   title: string;
   message: string;
   testId: string;
-  /** The follow-up action under the alert, e.g. a button. */
   children: ReactNode;
 }
 

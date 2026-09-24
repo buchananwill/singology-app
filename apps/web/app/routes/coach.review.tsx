@@ -27,7 +27,7 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
   },
 ];
 
-/** What the review action returns: a reply upload echoes its metadata back. */
+/** A reply upload echoes its metadata back. */
 type ReviewActionResult = MessageResult & { upload?: RecordingUpload };
 
 /** The fetcher key the reply's upload panel shares with the page, one per submission. */
