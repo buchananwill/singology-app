@@ -9,6 +9,7 @@ import {
   EnrolmentSchema,
   FeedbackCommentSchema,
   FeedbackSchema,
+  indexById,
   LibraryItemSchema,
   LIBRARY_CATEGORIES,
   MediaAssetSchema,
@@ -30,19 +31,15 @@ const PUBLIC_DIR = path.resolve(
   "../../../../apps/web/public",
 );
 
-function byId<T extends { id: string }>(items: readonly T[]): Map<string, T> {
-  return new Map(items.map((item) => [item.id, item]));
-}
-
-const coaches = byId(fixtureData.coaches);
-const offers = byId(fixtureData.coachOffers);
-const students = byId(fixtureData.students);
-const enrolments = byId(fixtureData.enrolments);
-const library = byId(fixtureData.libraryItems);
-const media = byId(fixtureData.mediaAssets);
-const assignments = byId(fixtureData.assignments);
-const submissions = byId(fixtureData.submissions);
-const feedback = byId(fixtureData.feedback);
+const coaches = indexById(fixtureData.coaches);
+const offers = indexById(fixtureData.coachOffers);
+const students = indexById(fixtureData.students);
+const enrolments = indexById(fixtureData.enrolments);
+const library = indexById(fixtureData.libraryItems);
+const media = indexById(fixtureData.mediaAssets);
+const assignments = indexById(fixtureData.assignments);
+const submissions = indexById(fixtureData.submissions);
+const feedback = indexById(fixtureData.feedback);
 
 describe("fixture data", () => {
   it("parses against the shared Zod schemas", () => {
