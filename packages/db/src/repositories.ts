@@ -13,8 +13,15 @@ import type {
   Submission,
 } from "@singology/shared";
 
+/** A coach with every offer they sell. */
+export interface CoachWithOffers {
+  coach: Coach;
+  offers: CoachOffer[];
+}
+
 export interface CoachRepository {
   list(): Promise<Coach[]>;
+  listWithOffers(): Promise<CoachWithOffers[]>;
   get(id: string): Promise<Coach | undefined>;
   offers(coachId: string): Promise<CoachOffer[]>;
 }

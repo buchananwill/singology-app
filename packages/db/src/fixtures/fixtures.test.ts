@@ -289,6 +289,16 @@ describe("createFixtureRepositories", () => {
     expect(coaches.map((c) => c.displayName)).toEqual(["Singology founder", "Standard coach"]);
   });
 
+  it("lists coaches with their offers", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const rows = await repos.coaches.listWithOffers();
+    expect(rows.map((row) => row.coach)).toEqual(await repos.coaches.list());
+    for (const row of rows) {
+      expect(row.offers).toEqual(await repos.coaches.offers(row.coach.id));
+      expect(row.offers.length).toBeGreaterThan(0);
+    }
+  });
+
   it("returns copies that cannot mutate the fixtures", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const [coach] = await repos.coaches.list();

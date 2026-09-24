@@ -27,18 +27,14 @@ export const meta: Route.MetaFunction = () => [
 
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
-  const coaches = await repositories.coaches.list();
-  const withOffers = await Promise.all(
-    coaches.map(async (coach) => {
-      const offers = await repositories.coaches.offers(coach.id);
-      return {
-        coach,
-        monthly: offers.find((offer) => offer.billing === "monthly"),
-        single: offers.find((offer) => offer.billing === "single"),
-      };
-    }),
-  );
-  return { coaches: withOffers };
+  const coaches = await repositories.coaches.listWithOffers();
+  return {
+    coaches: coaches.map(({ coach, offers }) => ({
+      coach,
+      monthly: offers.find((offer) => offer.billing === "monthly"),
+      single: offers.find((offer) => offer.billing === "single"),
+    })),
+  };
 }
 
 const STEPS = [

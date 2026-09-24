@@ -77,6 +77,13 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
   return {
     coaches: {
       list: async () => copy(data.coaches),
+      listWithOffers: async () =>
+        copy(
+          data.coaches.map((coach) => ({
+            coach,
+            offers: data.coachOffers.filter((o) => o.coachId === coach.id),
+          })),
+        ),
       get: async (id) => copy(data.coaches.find((c) => c.id === id)),
       offers: async (coachId) => copy(data.coachOffers.filter((o) => o.coachId === coachId)),
     },
