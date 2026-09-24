@@ -107,3 +107,10 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** The clock now re-reads `Date.now()` at most once per tick and never rounds it ([useNow.ts](../apps/web/app/lib/useNow.ts)). The queue e2e test asserts the exact "Submitted 62 hours ago" text after hydration.
 - **Affects.** The slice: any live countdown must start from a client time at or after the server's, and a browser clock that is behind the server's will still step backwards (only by its skew). Not the founder demo now it is fixed.
 - **Evidence.** Playwright, Chromium: `Expected: "Submitted 62 hours ago"`, `Received: "Submitted 61 hours ago"` with the rounded clock; passes in Chromium and WebKit without rounding.
+
+## 13. The client bundle has chunks over 500 kB
+
+- **What happened.** `pnpm build` warns that "Some chunks are larger than 500 kB after minification". The likely contributors are Mantine, wavesurfer.js and hls.js loaded where they aren't needed; which chunk and why is **not yet measured**.
+- **Workaround.** None in the facade; it works, and the founder will view it on good connections.
+- **Affects.** The slice: students use phones, often on mobile data, and first-load weight matters for a weekly habit. Before the beta, measure the chunks (a bundle visualiser), lazy-load the player (wavesurfer.js and hls.js) only on routes that render it, and check that Mantine is tree-shaken. Not the founder demo.
+- **Evidence.** The build output during the lead's `pnpm test:e2e` run on 2026-09-24, from the Vite reporter (`[plugin builtin:vite-reporter] (!) Some chunks are larger than 500 kB after minification`).
