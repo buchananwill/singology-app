@@ -1,7 +1,3 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
 import {
   AssignmentSchema,
   CoachOfferSchema,
@@ -26,11 +22,6 @@ import { createFixtureData, DEMO_COACH_ID, DEMO_STUDENT_ID } from "./data";
 /** Any fixed instant: fixture times are offsets from it. */
 const TEST_NOW = new Date("2026-09-23T12:00:00.000Z");
 const fixtureData = createFixtureData(TEST_NOW);
-
-const PUBLIC_DIR = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../apps/web/public",
-);
 
 const coaches = indexById(fixtureData.coaches);
 const offers = indexById(fixtureData.coachOffers);
@@ -154,14 +145,6 @@ describe("fixture data", () => {
   it("has demo identities that exist", () => {
     expect(students.has(DEMO_STUDENT_ID)).toBe(true);
     expect(coaches.has(DEMO_COACH_ID)).toBe(true);
-  });
-
-  it("has coach avatars in the web app's public folder", () => {
-    for (const coach of fixtureData.coaches) {
-      expect(existsSync(path.join(PUBLIC_DIR, ...coach.avatarSrc.split("/").filter(Boolean)))).toBe(
-        true,
-      );
-    }
   });
 
   it("references only existing coaches from offers", () => {

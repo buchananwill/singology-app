@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "include": ["src/**/*"],
   "compilerOptions": {
-    // Node types are for the fixture media test, which reads the committed files from apps/web/public.
+    // For `structuredClone`, which workerd provides too.
     "types": ["node"]
   }
 }
