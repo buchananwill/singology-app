@@ -61,22 +61,22 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   };
 }
 
-interface FilterRowProps<T extends string> {
+interface FilterRowProps<FilterValue extends string> {
   label: string;
-  values: readonly T[];
-  labels: Record<T, string>;
-  current: T | undefined;
-  hrefFor(value: T | undefined): string;
+  values: readonly FilterValue[];
+  labels: Record<FilterValue, string>;
+  current: FilterValue | undefined;
+  hrefFor(value: FilterValue | undefined): string;
 }
 
-function FilterRow<T extends string>({
+function FilterRow<FilterValue extends string>({
   label,
   values,
   labels,
   current,
   hrefFor,
-}: FilterRowProps<T>) {
-  const options: { value: T | undefined; text: string }[] = [
+}: FilterRowProps<FilterValue>) {
+  const options: { value: FilterValue | undefined; text: string }[] = [
     { value: undefined, text: "All" },
     ...values.map((value) => ({ value, text: labels[value] })),
   ];
