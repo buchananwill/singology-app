@@ -1,60 +1,41 @@
-import { RecordingUploadSchema } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { parseInput } from "./actionResult";
 
-function form(values: Record<string, string>): FormData {
-  const formData = new FormData();
-  for (const [name, value] of Object.entries(values)) {
-    formData.set(name, value);
-  }
-  return formData;
-}
+const FALLBACK = "The request was not valid.";
 
-const FALLBACK = "The upload details were not valid.";
-
-function parseUpload(values: Record<string, string>) {
-  return parseInput(RecordingUploadSchema, Object.fromEntries(form(values)), FALLBACK);
-}
-
-const VALID = {
-  fileName: "take.m4a",
-  sizeBytes: "611219",
-  durationSec: "76.6",
-  mimeType: "audio/mp4",
-  note: "Second go",
-};
+const Schema = z.object({
+  count: z.coerce.number().int("Count must be whole."),
+  label: z.string().default("none"),
+});
 
 describe("parseInput", () => {
-  it("returns the parsed data", () => {
-    expect(parseUpload(VALID)).toEqual({
+  it("returns the parsed data with the schema's coercions and defaults", () => {
+    expect(parseInput(Schema, { count: "2" }, FALLBACK)).toEqual({
       ok: true,
-      data: { ...VALID, sizeBytes: 611219, durationSec: 76.6 },
+      data: { count: 2, label: "none" },
     });
-    expect(parseUpload({ ...VALID, mimeType: "video/quicktime" }).ok).toBe(true);
   });
 
-  it("applies the schema's defaults", () => {
-    const withoutNote = form(VALID);
-    withoutNote.delete("note");
-    const result = parseInput(RecordingUploadSchema, Object.fromEntries(withoutNote), FALLBACK);
-    expect(result.ok && result.data.note).toBe("");
+  it("parses form data turned into an object", () => {
+    const formData = new FormData();
+    formData.set("count", "3");
+    formData.set("label", "three");
+    expect(parseInput(Schema, Object.fromEntries(formData), FALLBACK)).toEqual({
+      ok: true,
+      data: { count: 3, label: "three" },
+    });
   });
 
-  it("reports the schema's first problem", () => {
-    expect(parseUpload({ ...VALID, mimeType: "image/png" })).toEqual({
+  it("reports the schema's first issue", () => {
+    expect(parseInput(Schema, { count: "2.5" }, FALLBACK)).toEqual({
       ok: false,
-      error: "Pick an audio or video file.",
+      error: "Count must be whole.",
     });
-    expect(parseUpload({ ...VALID, fileName: "" }).ok).toBe(false);
-    expect(parseUpload({ ...VALID, durationSec: "Infinity" }).ok).toBe(false);
-    expect(parseUpload({ ...VALID, sizeBytes: "-1" }).ok).toBe(false);
   });
 
-  it("parses any input, not only forms", () => {
-    const Schema = z.object({ count: z.number().int() });
-    expect(parseInput(Schema, { count: 2 }, FALLBACK)).toEqual({ ok: true, data: { count: 2 } });
+  it("fails on input that is not an object", () => {
     expect(parseInput(Schema, null, FALLBACK).ok).toBe(false);
   });
 });
