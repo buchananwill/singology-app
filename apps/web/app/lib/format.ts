@@ -1,8 +1,11 @@
 import {
   type AssignmentStatus,
   type CoachTier,
+  type DemoRole,
   type LibraryCategory,
+  type MediaKind,
   MINUTE_MS,
+  type ReviewSlaState,
   type VoiceType,
 } from "@singology/shared";
 
@@ -121,4 +124,25 @@ export const ASSIGNMENT_STATUS_COLOR: Record<AssignmentStatus, string> = {
 export const COACH_TIER_LABEL: Record<CoachTier, string> = {
   premium: "Founder tier",
   standard: "Standard tier",
+};
+
+export const COACH_TIER_COLOR: Record<CoachTier, string> = {
+  premium: "brand",
+  standard: "gray",
+};
+
+export const SLA_COLOR: Record<ReviewSlaState, string> = {
+  on_track: "teal",
+  due_soon: "orange",
+  overdue: "red",
+};
+
+export const ROLE_LABEL: Record<DemoRole, string> = {
+  student: "Student view",
+  coach: "Coach view",
+};
+
+export const MEDIA_KIND_LABEL: Record<MediaKind, string> = {
+  audio: "Audio",
+  video: "Video",
 };

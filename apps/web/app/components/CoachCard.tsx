@@ -1,7 +1,7 @@
 import { Avatar, Badge, Card, Group, Stack, Text } from "@mantine/core";
 import type { Coach } from "@singology/shared";
 
-import { COACH_TIER_LABEL, formatTurnaround } from "../lib/format";
+import { COACH_TIER_COLOR, COACH_TIER_LABEL, formatTurnaround } from "../lib/format";
 
 export type CoachCardProps = Pick<
   Coach,
@@ -19,7 +19,7 @@ export function CoachCard({ displayName, tier, bio, avatarSrc, turnaroundHours }
             <Text fw={600} data-testid="coach-name">
               {displayName}
             </Text>
-            <Badge variant="light" color={tier === "premium" ? "brand" : "gray"}>
+            <Badge variant="light" color={COACH_TIER_COLOR[tier]}>
               {COACH_TIER_LABEL[tier]}
             </Badge>
           </div>

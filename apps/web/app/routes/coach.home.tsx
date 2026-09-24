@@ -1,20 +1,21 @@
 import { Badge, Button, Card, Container, Group, List, Stack, Text, Title } from "@mantine/core";
-import { reviewSla, type ReviewSlaState } from "@singology/shared";
+import { reviewSla } from "@singology/shared";
 import { data, href, Link } from "react-router";
 
 import { PlainOrderedList } from "../components/PlainOrderedList";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
-import { CATEGORY_LABEL, formatElapsed, formatTimeLeft, formatTurnaround } from "../lib/format";
+import {
+  CATEGORY_LABEL,
+  formatElapsed,
+  formatTimeLeft,
+  formatTurnaround,
+  MEDIA_KIND_LABEL,
+  SLA_COLOR,
+} from "../lib/format";
 import { useNow } from "../lib/useNow";
 import type { Route } from "./+types/coach.home";
 
 export const meta: Route.MetaFunction = () => [{ title: "Review queue | Singology" }];
-
-const SLA_COLOR: Record<ReviewSlaState, string> = {
-  on_track: "teal",
-  due_soon: "orange",
-  overdue: "red",
-};
 
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
@@ -66,7 +67,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
                           </Text>
                           <Text size="sm" c="dimmed">
                             {item.title} · {CATEGORY_LABEL[item.category]} ·{" "}
-                            {mediaKind === "video" ? "Video" : "Audio"}
+                            {MEDIA_KIND_LABEL[mediaKind]}
                           </Text>
                         </div>
                         <Badge

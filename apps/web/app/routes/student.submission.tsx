@@ -15,7 +15,7 @@ import { data, href, Link } from "react-router";
 import { CommentList } from "../components/player/CommentList";
 import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { repositoriesContext, studentIdContext } from "../context";
-import { CATEGORY_LABEL, formatDate } from "../lib/format";
+import { CATEGORY_LABEL, formatDate, MEDIA_KIND_LABEL } from "../lib/format";
 import type { Route } from "./+types/student.submission";
 
 export const meta: Route.MetaFunction = ({ loaderData }) => [
@@ -120,7 +120,7 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
                 {reply !== null && (
                   <Stack gap="xs" data-testid="coach-reply">
                     <Text size="sm" fw={600}>
-                      {reply.kind === "video" ? "Video reply" : "Audio reply"}
+                      {MEDIA_KIND_LABEL[reply.kind]} reply
                     </Text>
                     <StandalonePlayer asset={reply} label="Coach's reply" height={64} />
                   </Stack>

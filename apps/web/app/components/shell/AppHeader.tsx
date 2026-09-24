@@ -2,10 +2,7 @@ import { Anchor, Badge, Button, Group } from "@mantine/core";
 import type { DemoRole } from "@singology/shared";
 import { href, Link } from "react-router";
 
-const ROLE_LABEL: Record<DemoRole, string> = {
-  student: "Student view",
-  coach: "Coach view",
-};
+import { ROLE_LABEL } from "../../lib/format";
 
 export interface AppHeaderProps {
   /** The role picked on `/demo`, or `null` before one is picked. */
