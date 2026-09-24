@@ -2,6 +2,7 @@ import { Box, Button, Group, Progress, Stack, Text, Textarea } from "@mantine/co
 import type { SyntheticEvent } from "react";
 
 import { formatBytes, formatDuration } from "../../lib/format";
+import { VIDEO_PROPS } from "../videoProps";
 import type { PickedFile } from "./useUploadPanel";
 
 export interface PickedFilePanelProps {
@@ -62,15 +63,7 @@ export function PickedFilePanel({
         </Text>
       </Group>
       {picked.kind === "video" ? (
-        <Box
-          component="video"
-          playsInline
-          w="100%"
-          bg="black"
-          display="block"
-          mah={320}
-          {...previewProps}
-        />
+        <Box component="video" {...VIDEO_PROPS} mah={320} {...previewProps} />
       ) : (
         <Box component="audio" w="100%" {...previewProps} />
       )}

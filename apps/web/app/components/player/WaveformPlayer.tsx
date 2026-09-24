@@ -10,6 +10,7 @@ import {
   useRef,
 } from "react";
 
+import { VIDEO_PROPS } from "../videoProps";
 import { PlayerControls } from "./PlayerControls";
 import { type PlayerHandle, usePlayer } from "./PlayerProvider";
 import { shouldReportMediaTime } from "./playerReducer";
@@ -96,15 +97,12 @@ export function WaveformPlayer({
         <Box
           component="video"
           ref={mediaRef as Ref<HTMLVideoElement>}
-          playsInline
-          w="100%"
-          bg="black"
-          display="block"
+          {...VIDEO_PROPS}
           style={{ aspectRatio: "16 / 9" }}
           {...mediaProps}
         />
       ) : (
-        <audio ref={mediaRef as Ref<HTMLAudioElement>} {...mediaProps} />
+        <Box component="audio" ref={mediaRef as Ref<HTMLAudioElement>} {...mediaProps} />
       )}
       <Box
         ref={waveformRef}
