@@ -1,7 +1,8 @@
-import { Stack, Text, UnstyledButton } from "@mantine/core";
+import { List, Text, UnstyledButton } from "@mantine/core";
 import type { FeedbackComment } from "@singology/shared";
 
 import { formatTimestamp } from "../../lib/format";
+import { FULL_WIDTH_LIST_ITEMS } from "../fullWidthListItems";
 import { usePlayer } from "./PlayerProvider";
 
 /**
@@ -11,9 +12,9 @@ import { usePlayer } from "./PlayerProvider";
 export function CommentList({ comments }: { comments: readonly FeedbackComment[] }) {
   const { handle } = usePlayer();
   return (
-    <Stack gap={4} component="ol" p={0} m={0} style={{ listStyle: "none" }}>
+    <List type="ordered" listStyleType="none" spacing="xxs" styles={FULL_WIDTH_LIST_ITEMS}>
       {comments.map((comment, index) => (
-        <li key={comment.id}>
+        <List.Item key={comment.id}>
           <UnstyledButton
             onClick={() => handle.seek(comment.tSeconds)}
             data-testid="comment-item"
@@ -31,8 +32,8 @@ export function CommentList({ comments }: { comments: readonly FeedbackComment[]
               {comment.body}
             </Text>
           </UnstyledButton>
-        </li>
+        </List.Item>
       ))}
-    </Stack>
+    </List>
   );
 }

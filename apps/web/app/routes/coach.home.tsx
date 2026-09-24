@@ -1,7 +1,8 @@
-import { Badge, Button, Card, Container, Group, Stack, Text, Title } from "@mantine/core";
+import { Badge, Button, Card, Container, Group, List, Stack, Text, Title } from "@mantine/core";
 import { reviewSla, type ReviewSlaState } from "@singology/shared";
 import { data, Link } from "react-router";
 
+import { FULL_WIDTH_LIST_ITEMS } from "../components/fullWidthListItems";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import { CATEGORY_LABEL, formatElapsed, formatTimeLeft, formatTurnaround } from "../lib/format";
 import { useNow } from "../lib/useNow";
@@ -51,63 +52,58 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
         {items.length === 0 ? (
           <Text>Nothing waiting for review. Well done.</Text>
         ) : (
-          <Stack component="ol" gap="sm" p={0} m={0} style={{ listStyle: "none" }}>
+          <List type="ordered" listStyleType="none" spacing="sm" styles={FULL_WIDTH_LIST_ITEMS}>
             {items.map(({ submission, student, item, mediaKind }) => {
               const sla = reviewSla(submission.submittedAt, now, turnaroundHours);
               return (
-                <Card
-                  key={submission.id}
-                  component="li"
-                  withBorder
-                  padding="md"
-                  data-testid="queue-item"
-                  data-sla={sla.state}
-                >
-                  <Stack gap="xs">
-                    <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
-                      <div>
-                        <Text fw={600} data-testid="queue-student">
-                          {student.displayName}
+                <List.Item key={submission.id}>
+                  <Card withBorder padding="md" data-testid="queue-item" data-sla={sla.state}>
+                    <Stack gap="xs">
+                      <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
+                        <div>
+                          <Text fw={600} data-testid="queue-student">
+                            {student.displayName}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            {item.title} · {CATEGORY_LABEL[item.category]} ·{" "}
+                            {mediaKind === "video" ? "Video" : "Audio"}
+                          </Text>
+                        </div>
+                        <Badge
+                          color={SLA_COLOR[sla.state]}
+                          variant="light"
+                          size="lg"
+                          tt="none"
+                          data-testid="queue-sla"
+                          flex="none"
+                        >
+                          {sla.state === "due_soon" && "Due soon: "}
+                          {formatTimeLeft(sla.remainingMs)}
+                        </Badge>
+                      </Group>
+                      {submission.note !== "" && (
+                        <Text size="sm" fs="italic" data-testid="queue-note">
+                          “{submission.note}”
                         </Text>
-                        <Text size="sm" c="dimmed">
-                          {item.title} · {CATEGORY_LABEL[item.category]} ·{" "}
-                          {mediaKind === "video" ? "Video" : "Audio"}
+                      )}
+                      <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+                        <Text size="sm" c="dimmed" data-testid="queue-submitted">
+                          Submitted{" "}
+                          {formatElapsed(
+                            now - new Date(submission.submittedAt).getTime(),
+                            turnaroundHours,
+                          )}
                         </Text>
-                      </div>
-                      <Badge
-                        color={SLA_COLOR[sla.state]}
-                        variant="light"
-                        size="lg"
-                        tt="none"
-                        data-testid="queue-sla"
-                        flex="none"
-                      >
-                        {sla.state === "due_soon" && "Due soon: "}
-                        {formatTimeLeft(sla.remainingMs)}
-                      </Badge>
-                    </Group>
-                    {submission.note !== "" && (
-                      <Text size="sm" fs="italic" data-testid="queue-note">
-                        “{submission.note}”
-                      </Text>
-                    )}
-                    <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-                      <Text size="sm" c="dimmed" data-testid="queue-submitted">
-                        Submitted{" "}
-                        {formatElapsed(
-                          now - new Date(submission.submittedAt).getTime(),
-                          turnaroundHours,
-                        )}
-                      </Text>
-                      <Button component={Link} to={`/coach/reviews/${submission.id}`} size="sm">
-                        Review
-                      </Button>
-                    </Group>
-                  </Stack>
-                </Card>
+                        <Button component={Link} to={`/coach/reviews/${submission.id}`} size="sm">
+                          Review
+                        </Button>
+                      </Group>
+                    </Stack>
+                  </Card>
+                </List.Item>
               );
             })}
-          </Stack>
+          </List>
         )}
       </Stack>
     </Container>
