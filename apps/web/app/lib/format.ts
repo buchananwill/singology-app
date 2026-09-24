@@ -54,6 +54,15 @@ export function formatElapsed(ms: number, hoursUntilDays: number): string {
   return `${Math.floor(hours / 24)} days ago`;
 }
 
+/** A turnaround promise in one unit: `3 days` for whole days, else `36 hours`. */
+export function formatTurnaround(hours: number): string {
+  if (hours % 24 === 0) {
+    const days = hours / 24;
+    return days === 1 ? "1 day" : `${days} days`;
+  }
+  return hours === 1 ? "1 hour" : `${hours} hours`;
+}
+
 /** Time left before a deadline: `46h 05m left`, `9m left`; `overdue` once it has passed. */
 export function formatTimeLeft(ms: number): string {
   if (ms <= 0) {

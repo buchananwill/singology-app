@@ -3,7 +3,7 @@ import { reviewSla, type ReviewSlaState } from "@singology/shared";
 import { data, Link } from "react-router";
 
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
-import { CATEGORY_LABEL, formatElapsed, formatTimeLeft } from "../lib/format";
+import { CATEGORY_LABEL, formatElapsed, formatTimeLeft, formatTurnaround } from "../lib/format";
 import { useNow } from "../lib/useNow";
 import type { Route } from "./+types/coach.home";
 
@@ -43,7 +43,8 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
         <div>
           <Title order={1}>Review queue</Title>
           <Text c="dimmed">
-            Oldest first. You promise feedback within {turnaroundHours} hours of each upload.
+            Oldest first. You promise feedback within {formatTurnaround(turnaroundHours)} of each
+            upload.
           </Text>
         </div>
 

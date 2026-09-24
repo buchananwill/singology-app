@@ -1,7 +1,7 @@
 import { Avatar, Badge, Card, Group, Stack, Text } from "@mantine/core";
 import type { Coach } from "@singology/shared";
 
-import { COACH_TIER_LABEL } from "../lib/format";
+import { COACH_TIER_LABEL, formatTurnaround } from "../lib/format";
 
 type CoachCardProps = Pick<Coach, "displayName" | "tier" | "bio" | "avatarSrc" | "turnaroundHours">;
 
@@ -23,7 +23,7 @@ export function CoachCard({ displayName, tier, bio, avatarSrc, turnaroundHours }
         </Group>
         <Text size="sm">{bio}</Text>
         <Text size="sm" c="dimmed">
-          Feedback within {turnaroundHours / 24} days of your upload.
+          Feedback within {formatTurnaround(turnaroundHours)} of your upload.
         </Text>
       </Stack>
     </Card>

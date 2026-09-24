@@ -8,6 +8,7 @@ import {
   ASSIGNMENT_STATUS_LABEL,
   CATEGORY_LABEL,
   formatDate,
+  formatTurnaround,
 } from "../lib/format";
 import type { Route } from "./+types/student.home";
 
@@ -82,8 +83,8 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
         <div>
           <Title order={1}>This week</Title>
           <Text c="dimmed">
-            Hello {firstName}. {coach.name} replies within {coach.turnaroundHours} hours of your
-            upload.
+            Hello {firstName}. {coach.name} replies within {formatTurnaround(coach.turnaroundHours)}{" "}
+            of your upload.
           </Text>
         </div>
 

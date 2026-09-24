@@ -7,6 +7,7 @@ import {
   formatElapsed,
   formatPence,
   formatTimeLeft,
+  formatTurnaround,
 } from "./format";
 
 describe("format", () => {
@@ -42,6 +43,13 @@ describe("format", () => {
     expect(formatElapsed(48 * hour, 48)).toBe("2 days ago");
     expect(formatElapsed(71 * hour, 72)).toBe("71 hours ago");
     expect(formatElapsed(72 * hour, 72)).toBe("3 days ago");
+  });
+
+  it("formats a turnaround in days when it is whole days, else in hours", () => {
+    expect(formatTurnaround(72)).toBe("3 days");
+    expect(formatTurnaround(24)).toBe("1 day");
+    expect(formatTurnaround(36)).toBe("36 hours");
+    expect(formatTurnaround(1)).toBe("1 hour");
   });
 
   it("formats time left before a deadline", () => {

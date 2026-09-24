@@ -111,6 +111,7 @@ test("the landing page shows both coaches and the illustrative pricing", async (
   const errors = trackErrors(page);
   await page.goto("/");
   await expect(page.getByTestId("coach-name")).toHaveText(["Singology founder", "Standard coach"]);
+  await expect(page.getByText("Feedback within 3 days of your upload.")).toHaveCount(2);
   const pricing = page.getByTestId("pricing-table");
   await expect(pricing).toContainText("Illustrative pricing");
   await expect(pricing.getByRole("row", { name: /Singology founder/ })).toContainText(
@@ -131,6 +132,9 @@ test("role-scoped routes redirect to /demo until a role is picked", async ({ pag
   }
   await chooseRole(page, "student");
   await expect(page.getByTestId("current-role")).toHaveText("Student view");
+  await expect(
+    page.getByText("Singology founder replies within 3 days of your upload."),
+  ).toBeVisible();
   await page.goto("/coach");
   await expect(page).toHaveURL(/\/demo$/);
   await chooseRole(page, "coach");
@@ -159,6 +163,7 @@ test("the coach nav has Queue and Library, and Queue stays current in a review",
 test("the review queue is oldest first, with no item overdue", async ({ page }) => {
   const errors = trackErrors(page);
   await chooseRole(page, "coach");
+  await expect(page.getByText("You promise feedback within 3 days of each upload.")).toBeVisible();
   const items = page.getByTestId("queue-item");
   await expect(items).toHaveCount(2);
   await expect(items.getByTestId("queue-student")).toHaveText(["Ben Sample", "Ada Example"]);
