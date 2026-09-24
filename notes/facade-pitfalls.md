@@ -114,3 +114,10 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** None in the facade; it works, and the founder will view it on good connections.
 - **Affects.** The slice: students use phones, often on mobile data, and first-load weight matters for a weekly habit. Before the beta, measure the chunks (a bundle visualiser), lazy-load the player (wavesurfer.js and hls.js) only on routes that render it, and check that Mantine is tree-shaken. Not the founder demo.
 - **Evidence.** The build output during the lead's `pnpm test:e2e` run on 2026-09-24, from the Vite reporter (`[plugin builtin:vite-reporter] (!) Some chunks are larger than 500 kB after minification`).
+
+## 14. `isbot` is not dead code: React Router's default server entry needs it
+
+- **What happened.** Review-fix item W3.10 (S-B18) said to remove `isbot` from `apps/web/package.json`, since no app code imports it. But the app has no `app/entry.server.tsx`, so React Router uses its default `entry.server.web.tsx`, which does `import { isbot } from "isbot"`. When the dependency is missing, `@react-router/dev` adds `isbot@^5` back to `package.json` and runs `pnpm install` by itself.
+- **Workaround.** Not removed. The sub-item is skipped and reported to the lead. Removing it would only make sense with a custom `entry.server.tsx` that does not use it.
+- **Affects.** Neither the slice nor the founder demo. The review finding was wrong.
+- **Evidence.** `node_modules/@react-router/dev/dist/config/defaults/entry.server.web.tsx:3` imports `isbot`; `@react-router/dev` 8.4.0 `typegen-*.js:449-457` (`if (!deps["isbot"]) { console.log("adding \`isbot@5\` to your package.json ...") ... execSync("pnpm install") }`).
