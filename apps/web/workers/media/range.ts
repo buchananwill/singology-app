@@ -6,6 +6,7 @@
  * representation with `200`: RFC 9110 section 14.2 lets a server ignore `Range`, and no media
  * element needs `multipart/byteranges`.
  */
+import { HLS_MIME_TYPE } from "@singology/shared";
 
 /** Why a request gets the full body instead of a partial one. */
 export type FullBodyReason = "absent" | "malformed" | "multi-range";
@@ -88,7 +89,7 @@ const MEDIA_TYPES: Readonly<Record<string, string>> = {
   ".mp4": "video/mp4",
   ".m4s": "video/iso.segment",
   ".ts": "video/mp2t",
-  ".m3u8": "application/vnd.apple.mpegurl",
+  ".m3u8": HLS_MIME_TYPE,
 };
 
 /** The `Content-Type` for a media path by extension, or `undefined` to keep the asset's own. */

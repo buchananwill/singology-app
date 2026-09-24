@@ -1,4 +1,4 @@
-import type { MediaAsset } from "@singology/shared";
+import { HLS_MIME_TYPE, type MediaAsset } from "@singology/shared";
 
 /** How the media element got its source (spec decision 21). */
 export type SourceMode = "progressive" | "native-hls" | "hls.js";
@@ -8,8 +8,6 @@ export interface AttachedSource {
   /** Stops loading and releases the source (and any hls.js instance). Safe to call more than once. */
   detach(): void;
 }
-
-const HLS_MIME_TYPE = "application/vnd.apple.mpegurl";
 
 function resetElement(media: HTMLMediaElement): void {
   media.pause();

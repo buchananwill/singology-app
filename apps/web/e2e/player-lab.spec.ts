@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { HLS_MIME_TYPE } from "@singology/shared";
 
 import { currentTime, readyWaveforms, trackErrors } from "./helpers";
 
@@ -29,10 +30,11 @@ test.describe("/lab/player", () => {
     // The HLS video takes an HLS path whenever the browser offers one (native HLS or Media Source
     // Extensions for hls.js), else the progressive MP4, and loads its metadata either way.
     const canUseHls = await page.evaluate(
-      () =>
-        document.createElement("video").canPlayType("application/vnd.apple.mpegurl") !== "" ||
+      (hlsMimeType) =>
+        document.createElement("video").canPlayType(hlsMimeType) !== "" ||
         "MediaSource" in window ||
         "ManagedMediaSource" in window,
+      HLS_MIME_TYPE,
     );
     const video = page.getByTestId("lab-hls").getByTestId("player-media");
     await expect(video).toHaveAttribute(

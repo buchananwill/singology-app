@@ -23,5 +23,7 @@ export const ASSIGNMENT_STATUSES = ["todo", "submitted", "feedback_ready"] as co
 
 export const SUBMISSION_STATUSES = ["awaiting_review", "reviewed"] as const;
 
+export const HLS_MIME_TYPE = "application/vnd.apple.mpegurl";
+
 export const MINUTE_MS = 60 * 1000;
 export const HOUR_MS = 60 * MINUTE_MS;
