@@ -235,18 +235,28 @@ async function packageHls(videoFile: string, outDir: string): Promise<string> {
   await mkdir(dir, { recursive: true });
   const playlist = path.join(dir, "index.m3u8");
   // Run inside the output folder: ffmpeg writes the fMP4 init segment relative to its working directory.
-  const args = [
-    ["-i", videoFile],
-    ["-c", "copy"],
-    ["-f", "hls"],
-    ["-hls_time", "6"],
-    ["-hls_playlist_type", "vod"],
-    ["-hls_segment_type", "fmp4"],
-    ["-hls_fmp4_init_filename", "init.mp4"],
-    ["-hls_segment_filename", "segment-%03d.m4s"],
-    ["index.m3u8"],
-  ].flat();
-  await runFfmpeg(args, { cwd: dir });
+  await runFfmpeg(
+    [
+      "-i",
+      videoFile,
+      "-c",
+      "copy",
+      "-f",
+      "hls",
+      "-hls_time",
+      "6",
+      "-hls_playlist_type",
+      "vod",
+      "-hls_segment_type",
+      "fmp4",
+      "-hls_fmp4_init_filename",
+      "init.mp4",
+      "-hls_segment_filename",
+      "segment-%03d.m4s",
+      "index.m3u8",
+    ],
+    { cwd: dir },
+  );
   return playlist;
 }
 
