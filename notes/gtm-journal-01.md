@@ -36,7 +36,17 @@ Produce a GTM proposal for an asynchronous singing-coaching platform (PT-style: 
 ## 4. Next work
 
 - **The draft proposal is complete:** [gtm-proposal.md](./gtm-proposal.md), written 2026-09-23 from all five briefs (F1 to F9). It awaits the user's review.
-- **MORNING SUMMARY (2026-09-24): the facade is complete on branch `facade`; not merged, not deployed.**
+- **STATE AT CLOSE OF SESSION 1 (2026-09-24):**
+  - **Code:** `main` holds the facade plus all review fixes (F16 to F21); the tree is clean; there is no remote.
+  - **Deploy:** live and gated at `https://singology-facade.resort-reference-gallery.workers.dev` (F17). **The deployed version predates the review fixes:** it is `facade` at `57d59e7`. Redeploying from `main` is safe (no behaviour change, except the teal waveform and turnaround-in-days copy), but it is the user's call, and the user runs the deploy (F17 operational note).
+  - **Next session:**
+    - **Open `gtm-journal-02.md`** (this journal is long; its reading order should point at D15 to D41 and F16 to F21 only);
+    - **turn the House Rules and D35 to D41 into a `singology-style` skill** that every implementation brief loads (style review N1; the F16 lesson);
+    - **founder feedback** on the facade;
+    - **the iPhone device check** (pitfalls 7 and 8);
+    - **slice spikes, in risk order:** Drizzle over Hyperdrive with RLS transactions, then Bunny tus signatures and tokens, then Container pricing and job, then Stripe Connect;
+    - **still waiting on others:** the accountant (VAT agency or entity), the solicitor pack and PRS.
+- **MORNING SUMMARY (2026-09-24): the facade is complete on branch `facade`; not merged, not deployed.** *(Superseded by the state above.)*
   - **Lead's verification on the final tree:**
     - `pnpm install --force --frozen-lockfile`, to undo any `node_modules` probe from the pitfall-11 diagnosis;
     - `pnpm test`: 105 pass;
@@ -381,6 +391,17 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Accepted interpretations:** **`isbot` stays** (pitfall 14: React Router's default server entry imports it, and the tooling re-adds it); `@singology/db` exports `createFixtureData`, so the app-side public-folder test avoids a deep import; `formatSince` takes the display threshold as an argument; the theme types `brand` via Mantine's colour override.
 - **New minor warning:** Vite warns that `vite.config.ts` imports `./previewPort` without a file extension, which the future native config loader rejects. To be folded into the final findings.
 - **Final three-reviewer pass (style, React, type) is running.**
+
+**F21. Wave 4 has landed and the review-fix branch is complete** (`a108bdb` to `976aa2b`, plus `250c94d`).
+- **Lead's targeted checks (D40) on the final tree:**
+  - `pnpm test` passes 140; lint and `format:check` are clean;
+  - `pnpm test:e2e` passes 47 with 3 skipped by design (Chromium and WebKit, under `wrangler dev`);
+  - `data-ready` appears only in `e2e/helpers.ts`;
+  - the only `=== 1 ?` is inside `formatCount`;
+  - no `postcss` in any `package.json`;
+  - the Vite native-config warning is gone.
+- **The D41 check caught one miss:** `RoleCard` was still defined in `demo.tsx` (the fix list had named only the review and library routes). It was moved to `components/demo/RoleCard.tsx` in `250c94d`, and no route module now defines a non-default component.
+- **Merged to `facade` and then `main` by fast-forward, at the user's instruction** ("Merge everything into main once the fixes land in full").
 
 **F17. The facade is deployed (2026-09-24), by the user, at `https://singology-facade.resort-reference-gallery.workers.dev`** (Worker `singology-facade`, version `d176313f-cfc4-448e-a052-070224027569`). Built from `facade` at the reviewed code; the commits since are notes only.
 - **Account facts** (read-only API inspection by the lead, token never printed):
