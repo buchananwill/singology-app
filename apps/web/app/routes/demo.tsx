@@ -18,13 +18,11 @@ export function loader({ context }: Route.LoaderArgs) {
   return { role: context.get(demoRoleContext) };
 }
 
-const PICK_A_VIEW = "Pick one of the two views.";
-
 export async function action({ request }: Route.ActionArgs) {
   const parsed = parseInput(
     DemoRoleChoiceSchema,
     Object.fromEntries(await request.formData()),
-    PICK_A_VIEW,
+    "The view choice was not valid.",
   );
   if (!parsed.ok) {
     return data<ActionResult>({ ok: false, error: parsed.error }, { status: 400 });
