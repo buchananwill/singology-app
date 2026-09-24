@@ -1,14 +1,6 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { expect, type Locator, test } from "@playwright/test";
 
-import { chooseRole, settle, trackErrors } from "./helpers";
-
-const REPLY_FILE = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../public/media/coach-reply.m4a",
-);
+import { chooseRole, currentTime, mediaFixture, settle, trackErrors } from "./helpers";
 
 /** Seeks the take's media element (what `handle.seek` does) and waits for the seek to land. */
 async function seekTo(media: Locator, timeSec: number): Promise<void> {
@@ -20,9 +12,7 @@ async function seekTo(media: Locator, timeSec: number): Promise<void> {
       }),
     timeSec,
   );
-  await expect
-    .poll(() => media.evaluate((el: HTMLMediaElement) => el.currentTime))
-    .toBeCloseTo(timeSec, 1);
+  await expect.poll(() => currentTime(media)).toBeCloseTo(timeSec, 1);
 }
 
 test("the previous take of the same exercise opens with its own player", async ({ page }) => {
@@ -75,15 +65,13 @@ test.describe("the coach review workspace", () => {
     // Clicking the comment seeks the player back to it.
     await seekTo(media, 5);
     await items.first().click();
-    await expect
-      .poll(() => media.evaluate((el: HTMLMediaElement) => el.currentTime))
-      .toBeCloseTo(30, 0);
+    await expect.poll(() => currentTime(media)).toBeCloseTo(30, 0);
 
     // A reply through the shared upload panel.
     const upload = page.getByTestId("upload-panel");
     const input = upload.getByTestId("upload-input");
     await expect(input).toBeEnabled();
-    await input.setInputFiles(REPLY_FILE);
+    await input.setInputFiles(mediaFixture("coach-reply.m4a"));
     await expect(upload.getByTestId("upload-file-duration")).toContainText("0:28");
     await upload.getByRole("button", { name: "Attach reply" }).click();
     await expect(upload.getByTestId("upload-success")).toContainText("coach-reply.m4a");

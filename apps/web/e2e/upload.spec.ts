@@ -1,14 +1,6 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { expect, test } from "@playwright/test";
 
-import { chooseRole, trackErrors } from "./helpers";
-
-const FIXTURE_TAKE = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../public/media/student-take-a.m4a",
-);
+import { chooseRole, mediaFixture, trackErrors } from "./helpers";
 
 test("uploading a take shows its details, then the success state", async ({
   page,
@@ -24,7 +16,7 @@ test("uploading a take shows its details, then the success state", async ({
   await expect(input).toBeEnabled();
   await expect(input).not.toHaveAttribute("capture");
   await expect(input).toHaveAttribute("accept", "audio/*,video/*");
-  await input.setInputFiles(FIXTURE_TAKE);
+  await input.setInputFiles(mediaFixture("student-take-a.m4a"));
 
   await expect(panel.getByTestId("upload-file-name")).toContainText("student-take-a.m4a");
   await expect(panel.getByTestId("upload-file-size")).toContainText("596.9 KB");

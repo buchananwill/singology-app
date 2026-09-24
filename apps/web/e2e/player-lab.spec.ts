@@ -1,18 +1,6 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-/** Collects console errors and uncaught page errors for the whole test. */
-function trackErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on("console", (message) => {
-    if (message.type() === "error") {
-      errors.push(message.text());
-    }
-  });
-  page.on("pageerror", (error) => {
-    errors.push(error.message);
-  });
-  return errors;
-}
+import { currentTime, readyWaveforms, trackErrors } from "./helpers";
 
 test.describe("/lab/player", () => {
   test("waveform, rate buttons and HLS video work with no console errors", async ({ page }) => {
@@ -56,9 +44,7 @@ test.describe("/lab/player", () => {
       .toBeGreaterThanOrEqual(1);
 
     // Both side-by-side players draw their waveforms.
-    await expect(
-      page.getByTestId("lab-side-by-side").locator('[data-testid="waveform"][data-ready="true"]'),
-    ).toHaveCount(2);
+    await expect(readyWaveforms(page.getByTestId("lab-side-by-side"))).toHaveCount(2);
 
     expect(errors).toEqual([]);
   });
@@ -140,7 +126,7 @@ test.describe("/lab/player", () => {
     await expect(audioMedia).toHaveAttribute("data-requested-time", "24");
     expect(await seekedAt).toBeCloseTo(24, 0);
     // The position holds after the seek instead of snapping back to 0.
-    expect(await audioMedia.evaluate((el: HTMLMediaElement) => el.currentTime)).toBeCloseTo(24, 0);
+    expect(await currentTime(audioMedia)).toBeCloseTo(24, 0);
     expect(errors).toEqual([]);
   });
 

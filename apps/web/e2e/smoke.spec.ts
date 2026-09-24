@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { chooseRole, settle, trackErrors } from "./helpers";
+import { chooseRole, currentTime, readyWaveforms, settle, trackErrors } from "./helpers";
 
 /** Screenshot widths (spec decision 25): desktop and a small phone. */
 const WIDTHS = [1280, 375] as const;
@@ -66,9 +66,7 @@ const ROUTES: readonly RouteCase[] = [
 
 async function expectWaveformsReady(page: Page, count: number): Promise<void> {
   if (count > 0) {
-    await expect(page.locator('[data-testid="waveform"][data-ready="true"]')).toHaveCount(count, {
-      timeout: 15_000,
-    });
+    await expect(readyWaveforms(page)).toHaveCount(count, { timeout: 15_000 });
   }
 }
 
@@ -218,9 +216,7 @@ test("feedback comments are pinned on the take and a comment seeks there", async
 
   const media = take.getByTestId("player-media");
   await take.getByTestId("comment-item").nth(2).click();
-  await expect
-    .poll(() => media.evaluate((el: HTMLMediaElement) => el.currentTime))
-    .toBeCloseTo(45.5, 0);
+  await expect.poll(() => currentTime(media)).toBeCloseTo(45.5, 0);
   expect(errors).toEqual([]);
 });
 
@@ -229,7 +225,7 @@ test("the A/B compare plays one take and switches at the same position", async (
   await chooseRole(page, "student");
   await page.goto("/student/progress");
   const compare = page.getByTestId("ab-compare");
-  await expect(compare.locator('[data-testid="waveform"][data-ready="true"]')).toHaveCount(2);
+  await expect(readyWaveforms(compare)).toHaveCount(2);
   const mediaA = compare.getByTestId("ab-take-a").getByTestId("player-media");
   const mediaB = compare.getByTestId("ab-take-b").getByTestId("player-media");
   const paused = (el: HTMLMediaElement) => el.paused;
@@ -237,15 +233,13 @@ test("the A/B compare plays one take and switches at the same position", async (
   await compare.getByTestId("ab-play").click();
   await expect.poll(() => mediaA.evaluate(paused)).toBe(false);
   await expect(compare.getByTestId("ab-play")).toHaveText("Pause");
-  await expect
-    .poll(() => mediaA.evaluate((el: HTMLMediaElement) => el.currentTime))
-    .toBeGreaterThan(1);
+  await expect.poll(() => currentTime(mediaA)).toBeGreaterThan(1);
 
   await compare.getByText(/^B: /).click();
   await expect.poll(() => mediaB.evaluate(paused)).toBe(false);
   expect(await mediaA.evaluate(paused)).toBe(true);
-  const positionA = await mediaA.evaluate((el: HTMLMediaElement) => el.currentTime);
-  const positionB = await mediaB.evaluate((el: HTMLMediaElement) => el.currentTime);
+  const positionA = await currentTime(mediaA);
+  const positionB = await currentTime(mediaB);
   expect(Math.abs(positionB - positionA)).toBeLessThan(1.5);
   await expect(compare.getByTestId("ab-take-b")).toHaveAttribute("data-active", "true");
 

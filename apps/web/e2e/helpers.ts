@@ -1,4 +1,21 @@
-import { expect, type Page, type Request } from "@playwright/test";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { expect, type Locator, type Page, type Request } from "@playwright/test";
+
+const MEDIA_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public/media");
+
+export function mediaFixture(name: string): string {
+  return path.join(MEDIA_DIR, name);
+}
+
+export function currentTime(media: Locator): Promise<number> {
+  return media.evaluate((el: HTMLMediaElement) => el.currentTime);
+}
+
+export function readyWaveforms(scope: Page | Locator): Locator {
+  return scope.locator('[data-testid="waveform"][data-ready="true"]');
+}
 
 /** In-flight `/__manifest` requests per page (see `settle`). */
 const manifestRequests = new WeakMap<Page, Set<Request>>();
