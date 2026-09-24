@@ -10,6 +10,7 @@ import {
   type MediaAsset,
   type Student,
   type Submission,
+  VOICE_TYPES,
 } from "@singology/shared";
 
 import { mediaAssets } from "./media";
@@ -43,14 +44,7 @@ export const DEMO_STUDENT_ID = "student-ada";
 /** The coach the facade's coach view shows: the founder. */
 export const DEMO_COACH_ID = "coach-founder";
 
-const ALL_VOICES: LibraryItem["voiceTypes"] = [
-  "soprano",
-  "mezzo",
-  "alto",
-  "tenor",
-  "baritone",
-  "bass",
-];
+const ALL_VOICES: LibraryItem["voiceTypes"] = [...VOICE_TYPES];
 
 const coaches: Coach[] = [
   {
