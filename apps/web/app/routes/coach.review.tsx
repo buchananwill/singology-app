@@ -154,7 +154,7 @@ export default function CoachReview({ loaderData }: Route.ComponentProps) {
   return <ReviewWorkspace key={loaderData.submission.id} {...loaderData} />;
 }
 
-interface SubmittedAgoProps {
+export interface SubmittedAgoProps {
   serverNow: number;
   submittedAt: string;
   turnaroundHours: number;
@@ -166,7 +166,7 @@ function SubmittedAgo({ serverNow, submittedAt, turnaroundHours }: SubmittedAgoP
   return formatElapsed(now - new Date(submittedAt).getTime(), turnaroundHours);
 }
 
-type ReviewWorkspaceProps = Route.ComponentProps["loaderData"];
+export type ReviewWorkspaceProps = Route.ComponentProps["loaderData"];
 
 function ReviewWorkspace({
   now,

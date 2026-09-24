@@ -61,7 +61,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   };
 }
 
-interface FilterRowProps<FilterValue extends string> {
+export interface FilterRowProps<FilterValue extends string> {
   label: string;
   values: readonly FilterValue[];
   labels: Record<FilterValue, string>;
