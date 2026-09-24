@@ -13,7 +13,6 @@ import type {
   Submission,
 } from "@singology/shared";
 
-/** A coach with every offer they sell. */
 export interface CoachWithOffers {
   coach: Coach;
   offers: CoachOffer[];
@@ -41,7 +40,6 @@ export interface LibraryRepository {
 
 export interface MediaRepository {
   get(id: string): Promise<MediaAsset | undefined>;
-  /** The assets with these ids, in the order given; unknown ids are omitted. */
   getMany(ids: readonly string[]): Promise<MediaAsset[]>;
 }
 
@@ -49,13 +47,11 @@ export interface AssignmentRepository {
   forStudent(studentId: string): Promise<Assignment[]>;
 }
 
-/** A submission together with the enrolment that owns it. */
 export interface OwnedSubmission {
   submission: Submission;
   enrolment: Enrolment;
 }
 
-/** One row of a coach's review queue. */
 export interface CoachQueueItem {
   submission: Submission;
   student: Student;
@@ -69,7 +65,6 @@ export interface SubmissionRepository {
   /** The submission, when it belongs to one of this coach's students; otherwise `undefined`. */
   getForCoach(coachId: string, submissionId: string): Promise<OwnedSubmission | undefined>;
   forStudent(studentId: string): Promise<Submission[]>;
-  /** The same queue, each item joined with its student, exercise and media kind. */
   queueViewForCoach(coachId: string): Promise<CoachQueueItem[]>;
   /**
    * The same student's most recent earlier submission of the same exercise,
@@ -78,7 +73,7 @@ export interface SubmissionRepository {
   previousFor(submissionId: string): Promise<Submission | undefined>;
 }
 
-/** A feedback item with its timestamped comments, in time order. */
+/** The comments are in time order. */
 export interface FeedbackWithComments {
   feedback: Feedback;
   comments: FeedbackComment[];

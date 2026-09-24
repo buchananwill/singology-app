@@ -54,7 +54,6 @@ export function formatElapsed(ms: number, hoursUntilDays: number): string {
   return `${Math.floor(hours / 24)} days ago`;
 }
 
-/** A turnaround promise in one unit: `3 days` for whole days, else `36 hours`. */
 export function formatTurnaround(hours: number): string {
   if (hours % 24 === 0) {
     const days = hours / 24;

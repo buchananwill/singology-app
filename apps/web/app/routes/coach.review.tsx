@@ -114,7 +114,6 @@ export async function action({ context, params, request }: Route.ActionArgs) {
   });
 }
 
-/** What the coach sees once "Send feedback" succeeds. */
 function feedbackSentMessage(
   studentName: string,
   { comments, reply, assignLibraryItemIds }: SendFeedback,

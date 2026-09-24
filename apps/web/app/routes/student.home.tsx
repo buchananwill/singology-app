@@ -17,7 +17,6 @@ export const meta: Route.MetaFunction = () => [{ title: "This week | Singology" 
 /** "This week" shows the most recent assignments, up to this many. */
 const THIS_WEEK_LIMIT = 4;
 
-/** One assigned exercise on "This week", with the submission that answered it, if any. */
 interface ThisWeekRow {
   assignment: Assignment;
   item: LibraryItem;

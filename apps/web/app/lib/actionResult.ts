@@ -1,12 +1,11 @@
 import type { z } from "zod";
 
-/** What a route action returns: success with its payload, or an error to show. */
 export type ActionResult<T extends object = object> =
   ({ ok: true } & T) | { ok: false; error: string };
 
 export type MessageResult = ActionResult<{ message: string }>;
 
-/** Validates an action's input, reporting the schema's first problem, or `fallbackMessage`. */
+/** Reports the schema's first issue. */
 export function parseInput<Schema extends z.ZodType>(
   schema: Schema,
   input: unknown,

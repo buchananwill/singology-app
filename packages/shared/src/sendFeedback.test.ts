@@ -9,7 +9,6 @@ const reply = {
   mimeType: "audio/mp4",
 };
 
-/** A "Send feedback" payload with the given fields. */
 function send(fields: Record<string, unknown>) {
   return { intent: "send", ...fields };
 }

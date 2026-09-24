@@ -185,7 +185,6 @@ export const RecordingUploadSchema = z.object({
 });
 export type RecordingUpload = z.infer<typeof RecordingUploadSchema>;
 
-/** The coach's reply upload on the review page: a recording upload tagged `intent: "reply"`. */
 export const ReplyUploadSchema = RecordingUploadSchema.extend({ intent: z.literal("reply") });
 export type ReplyUpload = z.infer<typeof ReplyUploadSchema>;
 
@@ -234,13 +233,10 @@ export type SendFeedback = z.infer<typeof SendFeedbackSchema>;
 
 /** What "Send feedback" is checked against beyond its shape. */
 export interface SendFeedbackLimits {
-  /** The take's length: every comment must sit inside it. */
   durationSec: number;
-  /** Every exercise the coach may assign. */
   libraryItemIds: ReadonlySet<string>;
 }
 
-/** `SendFeedbackSchema` that also checks the comments against the take and the exercises against the library. */
 export function sendFeedbackSchemaFor(limits: SendFeedbackLimits) {
   return SendFeedbackSchema.superRefine((feedback, ctx) => {
     if (feedback.comments.some((comment) => comment.tSeconds > limits.durationSec)) {
@@ -260,7 +256,6 @@ export function sendFeedbackSchemaFor(limits: SendFeedbackLimits) {
   });
 }
 
-/** Everything the review page posts to its action, told apart by `intent`. */
 export function reviewActionSchemaFor(limits: SendFeedbackLimits) {
   return z.discriminatedUnion("intent", [ReplyUploadSchema, sendFeedbackSchemaFor(limits)]);
 }

@@ -38,7 +38,6 @@ export async function loader({ context }: Route.LoaderArgs) {
   };
 }
 
-/** A monthly offer as `£80 a month for 4 reviews`. */
 function formatMonthlyOffer({ pricePence, submissionsPerPeriod }: CoachOffer): string {
   const reviews = submissionsPerPeriod === 1 ? "review" : "reviews";
   return `${formatPence(pricePence)} a month for ${submissionsPerPeriod} ${reviews}`;

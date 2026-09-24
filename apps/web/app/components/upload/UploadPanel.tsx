@@ -25,7 +25,6 @@ import { useHydrated } from "../../lib/useHydrated";
 const PROGRESS_STEP = 8;
 const PROGRESS_TICK_MS = 80;
 
-/** What the panel posts as JSON: the picked file's metadata plus the page's extra fields. */
 type UploadPayload = Readonly<Record<string, string | number>>;
 
 interface PickedFile {

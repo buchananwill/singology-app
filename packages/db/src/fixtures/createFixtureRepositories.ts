@@ -8,7 +8,6 @@ import type {
 } from "../repositories";
 import { createFixtureData, type FixtureData } from "./data";
 
-/** The enrolment field that names its owner: the student or the coach. */
 type EnrolmentOwner = "studentId" | "coachId";
 
 /**
@@ -22,7 +21,6 @@ function copy<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-/** The rows with these ids, in the order given; unknown ids are omitted. */
 function pickByIds<T extends { id: string }>(rows: readonly T[], ids: readonly string[]): T[] {
   const byId = new Map(rows.map((row) => [row.id, row]));
   return ids.flatMap((id) => byId.get(id) ?? []);
