@@ -151,7 +151,7 @@ export default function Library({ loaderData }: Route.ComponentProps) {
                   ) : (
                     <Text fw={600}>{item.title}</Text>
                   )}
-                  <Badge variant="light" style={{ flexShrink: 0 }}>
+                  <Badge variant="light" flex="none">
                     {CATEGORY_LABEL[item.category]}
                   </Badge>
                 </Group>

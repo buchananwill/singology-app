@@ -80,7 +80,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
                         size="lg"
                         tt="none"
                         data-testid="queue-sla"
-                        style={{ flexShrink: 0 }}
+                        flex="none"
                       >
                         {sla.state === "due_soon" && "Due soon: "}
                         {formatTimeLeft(sla.remainingMs)}

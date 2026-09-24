@@ -102,7 +102,7 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
                 <Badge
                   color={ASSIGNMENT_STATUS_COLOR[assignment.status]}
                   variant="light"
-                  style={{ flexShrink: 0 }}
+                  flex="none"
                 >
                   {ASSIGNMENT_STATUS_LABEL[assignment.status]}
                 </Badge>
