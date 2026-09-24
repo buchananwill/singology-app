@@ -16,7 +16,7 @@ import {
   StudentSchema,
   SubmissionSchema,
 } from "@singology/shared";
-import { describe, expect, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 
 import { createFixtureRepositories } from "./createFixtureRepositories";
 import { createFixtureData, DEMO_COACH_ID, DEMO_STUDENT_ID } from "./data";
@@ -277,12 +277,12 @@ describe("review queue against the turnaround promise (journal decision 32)", ()
   it("puts the due-soon item in the demo coach's queue", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const queue = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
-    const turnaroundHours = coaches.get(DEMO_COACH_ID)?.turnaroundHours;
-    expect(turnaroundHours).toBeDefined();
+    const coach = coaches.get(DEMO_COACH_ID);
+    assert(coach, "the demo coach exists");
     expect(
       queue.map(
         ({ submission }) =>
-          reviewSla(submission.submittedAt, TEST_NOW.getTime(), turnaroundHours ?? 0).state,
+          reviewSla(submission.submittedAt, TEST_NOW.getTime(), coach.turnaroundHours).state,
       ),
     ).toContain("due_soon");
   });
