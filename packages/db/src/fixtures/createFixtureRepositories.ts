@@ -1,4 +1,4 @@
-import type { LibraryFilter } from "@singology/shared";
+import { indexById, type LibraryFilter } from "@singology/shared";
 
 import type {
   CoachQueueItem,
@@ -22,7 +22,7 @@ function copy<T>(value: T): T {
 }
 
 function pickByIds<T extends { id: string }>(rows: readonly T[], ids: readonly string[]): T[] {
-  const byId = new Map(rows.map((row) => [row.id, row]));
+  const byId = indexById(rows);
   return ids.flatMap((id) => byId.get(id) ?? []);
 }
 

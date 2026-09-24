@@ -1,5 +1,5 @@
 import { Anchor, Badge, Button, Card, Container, Group, Stack, Text, Title } from "@mantine/core";
-import type { Assignment, LibraryItem } from "@singology/shared";
+import { indexById } from "@singology/shared";
 import { data, Link } from "react-router";
 
 import { repositoriesContext, studentIdContext } from "../context";
@@ -16,12 +16,6 @@ export const meta: Route.MetaFunction = () => [{ title: "This week | Singology" 
 
 /** "This week" shows the most recent assignments, up to this many. */
 const THIS_WEEK_LIMIT = 4;
-
-interface ThisWeekRow {
-  assignment: Assignment;
-  item: LibraryItem;
-  submissionId: string | undefined;
-}
 
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
@@ -49,18 +43,16 @@ export async function loader({ context }: Route.LoaderArgs) {
     latestSubmission ? repositories.library.get(latestSubmission.libraryItemId) : undefined,
     latest ? repositories.feedback.comments(latest.id) : [],
   ]);
-  const itemById = new Map(recentItems.map((item) => [item.id, item]));
+  const itemById = indexById(recentItems);
 
   return {
     firstName: student.displayName.split(" ")[0] ?? student.displayName,
     coach: { name: coach.displayName, turnaroundHours: coach.turnaroundHours },
-    thisWeek: recent
-      .map((assignment) => ({
-        assignment,
-        item: itemById.get(assignment.libraryItemId),
-        submissionId: submissions.find((s) => s.assignmentId === assignment.id)?.id,
-      }))
-      .filter((row): row is ThisWeekRow => row.item !== undefined),
+    thisWeek: recent.flatMap((assignment) => {
+      const item = itemById.get(assignment.libraryItemId);
+      const submissionId = submissions.find((s) => s.assignmentId === assignment.id)?.id;
+      return item ? [{ assignment, item, submissionId }] : [];
+    }),
     latestFeedback:
       latest && latestSubmission && latestItem
         ? {

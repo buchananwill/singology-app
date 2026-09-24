@@ -1,5 +1,5 @@
 import { Anchor, Badge, Container, Group, Stack, Text, Timeline, Title } from "@mantine/core";
-import type { MediaAsset, Submission } from "@singology/shared";
+import { indexById, type MediaAsset, type Submission } from "@singology/shared";
 import { Link } from "react-router";
 
 import { AbCompare } from "../components/compare/AbCompare";
@@ -18,7 +18,7 @@ export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const submissions = await repositories.submissions.forStudent(context.get(studentIdContext));
   const assets = await repositories.media.getMany(submissions.map((s) => s.mediaId));
-  const assetById = new Map(assets.map((asset) => [asset.id, asset]));
+  const assetById = indexById(assets);
 
   const byItem = new Map<string, Take[]>();
   for (const submission of [...submissions].sort((x, y) =>
