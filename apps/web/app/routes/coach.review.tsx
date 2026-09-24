@@ -14,7 +14,7 @@ import { initialReviewState, reviewReducer } from "../components/review/reviewRe
 import { SendFeedbackCard } from "../components/review/SendFeedbackCard";
 import { UploadPanel } from "../components/upload/UploadPanel";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
-import { type ActionResult, parseInput } from "../lib/actionResult";
+import { type MessageResult, parseInput } from "../lib/actionResult";
 import { CATEGORY_LABEL, formatDate, formatElapsed } from "../lib/format";
 import type { Route } from "./+types/coach.review";
 
@@ -27,7 +27,7 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
 ];
 
 /** What the review action returns: a reply upload echoes its metadata back. */
-type ReviewActionResult = ActionResult<{ message: string; upload?: RecordingUpload }>;
+type ReviewActionResult = MessageResult & { upload?: RecordingUpload };
 
 /** The fetcher key the reply's upload panel shares with the page, one per submission. */
 function replyFetcherKey(submissionId: string): string {

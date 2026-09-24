@@ -6,7 +6,7 @@ import { PlayerProvider } from "../components/player/PlayerProvider";
 import { WaveformPlayer } from "../components/player/WaveformPlayer";
 import { UploadPanel } from "../components/upload/UploadPanel";
 import { repositoriesContext, studentIdContext } from "../context";
-import { type ActionResult, parseInput } from "../lib/actionResult";
+import { type MessageResult, parseInput } from "../lib/actionResult";
 import {
   ASSIGNMENT_STATUS_COLOR,
   ASSIGNMENT_STATUS_LABEL,
@@ -61,18 +61,12 @@ export async function action({ context, params, request }: Route.ActionArgs) {
     "The upload details were not valid.",
   );
   if (!item) {
-    return data<ActionResult<{ message: string }>>(
-      { ok: false, error: "Exercise not found." },
-      { status: 404 },
-    );
+    return data<MessageResult>({ ok: false, error: "Exercise not found." }, { status: 404 });
   }
   if (!parsed.ok) {
-    return data<ActionResult<{ message: string }>>(
-      { ok: false, error: parsed.error },
-      { status: 400 },
-    );
+    return data<MessageResult>({ ok: false, error: parsed.error }, { status: 400 });
   }
-  return data<ActionResult<{ message: string }>>({
+  return data<MessageResult>({
     ok: true,
     message: `"${parsed.data.fileName}" is with your coach for "${item.title}". This is a demo, so nothing was saved.`,
   });

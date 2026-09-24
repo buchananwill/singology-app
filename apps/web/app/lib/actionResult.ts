@@ -4,6 +4,8 @@ import type { z } from "zod";
 export type ActionResult<T extends object = object> =
   ({ ok: true } & T) | { ok: false; error: string };
 
+export type MessageResult = ActionResult<{ message: string }>;
+
 /** Validates an action's input, reporting the schema's first problem, or `fallbackMessage`. */
 export function parseInput<Schema extends z.ZodType>(
   schema: Schema,
