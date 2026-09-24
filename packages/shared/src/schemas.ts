@@ -25,6 +25,10 @@ export type Role = z.infer<typeof RoleSchema>;
 export const DemoRoleSchema = z.enum(DEMO_ROLES);
 export type DemoRole = z.infer<typeof DemoRoleSchema>;
 
+export const DemoRoleChoiceSchema = z.object({
+  role: z.enum(DEMO_ROLES, { error: "Pick one of the two views." }),
+});
+
 export const LibraryCategorySchema = z.enum(LIBRARY_CATEGORIES);
 export type LibraryCategory = z.infer<typeof LibraryCategorySchema>;
 

@@ -23,8 +23,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router": "8.4.0",
-    "wavesurfer.js": "8.0.0",
-    "zod": "4.6.5"
+    "wavesurfer.js": "8.0.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.58.0",
@@ -39,6 +38,7 @@
     "typescript": "~6.0.3",
     "vite": "8.3.0",
     "vitest": "5.0.1",
-    "wrangler": "4.137.0"
+    "wrangler": "4.137.0",
+    "zod": "4.6.5"
   }
 }

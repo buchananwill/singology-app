@@ -1,7 +1,6 @@
 import { Badge, Button, Card, Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import { DEMO_ROLES, type DemoRole } from "@singology/shared";
+import { DemoRoleChoiceSchema, type DemoRole } from "@singology/shared";
 import { data, Form, redirect } from "react-router";
-import { z } from "zod";
 
 import { demoRoleContext } from "../context";
 import { serializeDemoRole } from "../demo/roleCookie.server";
@@ -21,11 +20,9 @@ export function loader({ context }: Route.LoaderArgs) {
 
 const PICK_A_VIEW = "Pick one of the two views.";
 
-const RoleChoiceSchema = z.object({ role: z.enum(DEMO_ROLES, { error: PICK_A_VIEW }) });
-
 export async function action({ request }: Route.ActionArgs) {
   const parsed = parseInput(
-    RoleChoiceSchema,
+    DemoRoleChoiceSchema,
     Object.fromEntries(await request.formData()),
     PICK_A_VIEW,
   );
