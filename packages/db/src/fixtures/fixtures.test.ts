@@ -53,20 +53,18 @@ describe("fixture data", () => {
   it("stores times as offsets from now, so every timestamp moves with now", () => {
     const hundredDays = 100 * 24 * HOUR_MS;
     const later = createFixtureData(new Date(TEST_NOW.getTime() + hundredDays));
-    const shift = (a: string, b: string) => new Date(b).getTime() - new Date(a).getTime();
-    fixtureData.submissions.forEach((s, i) =>
-      expect(shift(s.submittedAt, later.submissions[i]?.submittedAt ?? "")).toBe(hundredDays),
+    const shifted = (iso: string) => new Date(new Date(iso).getTime() + hundredDays).toISOString();
+    expect(later.submissions.map((s) => s.submittedAt)).toEqual(
+      fixtureData.submissions.map((s) => shifted(s.submittedAt)),
     );
-    fixtureData.assignments.forEach((a, i) =>
-      expect(shift(a.assignedAt, later.assignments[i]?.assignedAt ?? "")).toBe(hundredDays),
+    expect(later.assignments.map((a) => a.assignedAt)).toEqual(
+      fixtureData.assignments.map((a) => shifted(a.assignedAt)),
     );
-    fixtureData.feedback.forEach((f, i) =>
-      expect(shift(f.sentAt, later.feedback[i]?.sentAt ?? "")).toBe(hundredDays),
+    expect(later.feedback.map((f) => f.sentAt)).toEqual(
+      fixtureData.feedback.map((f) => shifted(f.sentAt)),
     );
-    fixtureData.enrolments.forEach((e, i) =>
-      expect(shift(e.currentPeriodEnd, later.enrolments[i]?.currentPeriodEnd ?? "")).toBe(
-        hundredDays,
-      ),
+    expect(later.enrolments.map((e) => e.currentPeriodEnd)).toEqual(
+      fixtureData.enrolments.map((e) => shifted(e.currentPeriodEnd)),
     );
   });
 
@@ -311,7 +309,8 @@ describe("createFixtureRepositories", () => {
     const now = new Date("2031-01-15T08:00:00.000Z");
     const repos = createFixtureRepositories({ now });
     const [oldest] = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
-    expect(oldest?.submission.submittedAt).toBe(
+    assert(oldest, "the demo coach's queue has an item");
+    expect(oldest.submission.submittedAt).toBe(
       new Date(now.getTime() - 62 * HOUR_MS).toISOString(),
     );
   });
@@ -345,10 +344,11 @@ describe("createFixtureRepositories", () => {
   it("gets a submission's feedback with its comments in time order", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const found = await repos.feedback.forSubmissionWithComments("sub-ada-siren-2");
-    expect(found?.feedback.id).toBe("fb-ada-siren-2");
-    expect(found?.comments).toEqual(await repos.feedback.comments("fb-ada-siren-2"));
-    expect(found?.comments.length).toBeGreaterThanOrEqual(3);
-    const times = found?.comments.map((c) => c.tSeconds) ?? [];
+    assert(found, "the submission has feedback");
+    expect(found.feedback.id).toBe("fb-ada-siren-2");
+    expect(found.comments).toEqual(await repos.feedback.comments("fb-ada-siren-2"));
+    expect(found.comments.length).toBeGreaterThanOrEqual(3);
+    const times = found.comments.map((c) => c.tSeconds);
     expect(times).toEqual(times.toSorted((a, b) => a - b));
     expect(await repos.feedback.forSubmissionWithComments("sub-ben-hiss")).toBeUndefined();
   });
