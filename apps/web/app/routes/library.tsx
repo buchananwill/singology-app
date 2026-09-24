@@ -24,7 +24,6 @@ import type { Route } from "./+types/library";
 
 export const meta: Route.MetaFunction = () => [{ title: "Exercise library | Singology" }];
 
-/** The search param names that hold the filters. */
 const PARAM = { category: "category", voiceType: "voice" } as const;
 
 function readFilter(searchParams: URLSearchParams): LibraryFilter {

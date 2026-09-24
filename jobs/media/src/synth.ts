@@ -1,8 +1,4 @@
-/**
- * Pure, dependency-free synthesis of the facade's fixture sounds. Everything
- * here is generated from maths: no recordings, no samples, no human voices.
- * ffmpeg only encodes the result (see generate.ts).
- */
+// Everything here is generated from maths; ffmpeg only encodes the result.
 import { clamp } from "./clamp.ts";
 
 export const SAMPLE_RATE = 48_000;

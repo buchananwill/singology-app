@@ -24,13 +24,7 @@ function once(fn: () => void): () => void {
   };
 }
 
-/**
- * Gives `media` its source. When the asset has an HLS rendition and the
- * element is a `<video>`: native HLS if the browser can play it (Safari,
- * iOS), else hls.js over Media Source Extensions, imported on demand so it
- * never loads during SSR or for audio. Otherwise the progressive `src`.
- * Browser-only: call it from an effect, never during render.
- */
+/** Browser-only: call it from an effect; hls.js is imported on demand so it never loads during SSR. */
 export async function attachMediaSource(
   media: HTMLMediaElement,
   asset: Pick<MediaAsset, "src" | "hlsSrc">,
