@@ -1,6 +1,5 @@
 import { clamp } from "./clamp.ts";
 
-/** Default waveform resolution (spec decision 23). */
 export const PEAKS_PER_SECOND = 100;
 
 export interface MinMaxPeaks {
@@ -24,11 +23,7 @@ function round(value: number, precision: number): number {
   return Math.round(value * factor) / factor + 0;
 }
 
-/**
- * Splits mono float PCM into fixed-length bins and returns each bin's
- * minimum and maximum sample, clamped to [-1, 1]. The final bin may be
- * shorter than the rest. Pure: no I/O, no ffmpeg.
- */
+/** The final bin may be shorter than the rest. */
 export function computePeaks(samples: Float32Array, options: ComputePeaksOptions): MinMaxPeaks {
   const peaksPerSecond = options.peaksPerSecond ?? PEAKS_PER_SECOND;
   const precision = options.precision ?? 3;

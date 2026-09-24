@@ -19,7 +19,7 @@ export interface RunFfmpegOptions {
   cwd?: string;
 }
 
-/** Runs the `ffmpeg` on PATH, quiet except for errors, and returns its raw stdout (e.g. PCM on `pipe:1`). */
+/** Returns ffmpeg's raw stdout, e.g. PCM written to `pipe:1`. */
 export async function runFfmpeg(
   args: readonly string[],
   options: RunFfmpegOptions = {},
@@ -32,7 +32,6 @@ export async function runFfmpeg(
   return stdout;
 }
 
-/** Measures a media file's container duration in seconds with `ffprobe`. */
 export async function probeDurationSec(file: string): Promise<number> {
   const { stdout } = await execFileAsync("ffprobe", [
     "-v",

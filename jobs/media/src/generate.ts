@@ -1,9 +1,7 @@
 /**
- * Generates the facade's synthetic fixture media into apps/web/public/media
- * (spec decision 22). Run with `pnpm --filter @singology/media-jobs generate`.
+ * Generates the synthetic fixture media, with no recordings or human voices, into apps/web/public/media.
  *
- * Every sound is synthesised in synth.ts; ffmpeg (on PATH) only encodes it.
- * No recordings and no human voices are involved.
+ *   pnpm --filter @singology/media-jobs generate
  */
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";

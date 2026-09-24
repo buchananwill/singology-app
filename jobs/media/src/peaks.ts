@@ -1,13 +1,8 @@
 /**
- * Writes wavesurfer-compatible peaks JSON next to media files (spec decision 23),
- * the prototype of the D21 media job.
+ * Writes `<name>.peaks.json` next to each media file, the prototype of the production media job.
  *
  *   pnpm --filter @singology/media-jobs peaks            # every .m4a/.mp4 in apps/web/public/media
  *   pnpm --filter @singology/media-jobs peaks <file>...  # specific inputs, any format ffmpeg reads
- *
- * ffmpeg decodes each input to mono 32-bit float PCM; computePeaks (pure,
- * unit-tested) reduces it to min/max bins; the result is written as
- * `<name>.peaks.json` in the shape of `WaveformPeaksSchema` (packages/shared).
  */
 import { readdir, writeFile } from "node:fs/promises";
 import path from "node:path";

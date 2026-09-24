@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Generates the synthetic fixture media and computes waveform peaks with the ffmpeg on PATH (prototype of the D21 media job).",
+  "description": "Generates the synthetic fixture media and computes waveform peaks with the ffmpeg on PATH (prototype of the production media job).",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "generate": "node src/generate.ts",
