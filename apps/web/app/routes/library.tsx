@@ -12,10 +12,9 @@ import {
 } from "@mantine/core";
 import {
   LIBRARY_CATEGORIES,
-  LibraryCategorySchema,
   type LibraryFilter,
+  LibraryFilterSchema,
   VOICE_TYPES,
-  VoiceTypeSchema,
 } from "@singology/shared";
 import { href, Link } from "react-router";
 
@@ -29,12 +28,10 @@ export const meta: Route.MetaFunction = () => [{ title: "Exercise library | Sing
 const PARAM = { category: "category", voiceType: "voice" } as const;
 
 function readFilter(searchParams: URLSearchParams): LibraryFilter {
-  const category = LibraryCategorySchema.safeParse(searchParams.get(PARAM.category));
-  const voiceType = VoiceTypeSchema.safeParse(searchParams.get(PARAM.voiceType));
-  return {
-    category: category.success ? category.data : undefined,
-    voiceType: voiceType.success ? voiceType.data : undefined,
-  };
+  return LibraryFilterSchema.parse({
+    category: searchParams.get(PARAM.category),
+    voiceType: searchParams.get(PARAM.voiceType),
+  });
 }
 
 /** The library URL for `filter`, keeping the parameters stable and short. */

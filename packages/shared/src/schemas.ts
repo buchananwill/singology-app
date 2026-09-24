@@ -126,9 +126,10 @@ export const LibraryItemSchema = z.object({
 });
 export type LibraryItem = z.infer<typeof LibraryItemSchema>;
 
+// An unknown filter value is ignored rather than rejected.
 export const LibraryFilterSchema = z.object({
-  category: LibraryCategorySchema.optional(),
-  voiceType: VoiceTypeSchema.optional(),
+  category: LibraryCategorySchema.optional().catch(undefined),
+  voiceType: VoiceTypeSchema.optional().catch(undefined),
 });
 export type LibraryFilter = z.infer<typeof LibraryFilterSchema>;
 
