@@ -343,6 +343,13 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **singology-style-decomposition-reviewer** (the D34 agent's first run): 19 BLOCKING, 8 NOTE. The pattern is **cross-stage duplication**, where separate delegates solved the same problem independently, plus loaders doing record assembly and ownership checks that belong behind `Repositories`.
 **Lesson for future briefs: name the shared helpers (formatters, result types, test helpers) in every stage brief.** The arc-lead skill's "name shared primitives" rule was under-applied across stages 2 to 3b.
 
+**F18. Review-fix waves 0 and 1 have landed on `facade-review-fixes`** (`1e4adcd` to `7fb1296`, 14 commits).
+- **Wave 0:** Prettier, with the format-only commit `cfc4eb5`; ES2023.
+- **Wave 1:** ownership getters `submissions.getForStudent` and `getForCoach` returning `OwnedSubmission | undefined`; `library.getMany` and `media.getMany`; `feedback.forSubmissionWithComments`; `submissions.queueViewForCoach` returning `CoachQueueItem[]`; `coaches.listWithOffers`; `ActionResult<T>` plus `parseInput(schema, input, fallback)`; the review action is JSON-only (the upload panel posts JSON too); `reviewSla` and `formatElapsed` take the coach's `turnaroundHours`; the turnaround shows in days, and the monthly review count is rendered from data (the two *visible* changes).
+- **Lead re-verification:** `pnpm test` passes 120 tests (17 + 8 + 49 + 46); typecheck is clean; the tree is clean; a grep finds no `await` inside a loop and no `flatMap(x ? [x] : [])` in the routes. The delegate reports e2e passing 47 with 3 skipped after each wave.
+- **Side effect:** Prettier reformatted `.claude/agents/*.md` (not in `.prettierignore`). This is layout only and accepted.
+- **Fix-cycle review of `cfc4eb5..HEAD`** by the style reviewer is running.
+
 **F17. The facade is deployed (2026-09-24), by the user, at `https://singology-facade.resort-reference-gallery.workers.dev`** (Worker `singology-facade`, version `d176313f-cfc4-448e-a052-070224027569`). Built from `facade` at the reviewed code; the commits since are notes only.
 - **Account facts** (read-only API inspection by the lead, token never printed):
   - the `workers.dev` subdomain is `resort-reference-gallery`, shared with the user's other Worker `resort-reference`;
