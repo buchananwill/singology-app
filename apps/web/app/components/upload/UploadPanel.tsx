@@ -11,28 +11,12 @@ import {
   Textarea,
   Title,
 } from "@mantine/core";
-import type { MediaKind } from "@singology/shared";
-import { type ChangeEvent, type SyntheticEvent, useEffect, useId, useState } from "react";
-import { useFetcher } from "react-router";
+import { useId } from "react";
 
-import type { MessageResult } from "../../lib/actionResult";
 import { formatBytes, formatDuration } from "../../lib/format";
-import { useActionNotification } from "../../lib/useActionNotification";
 import { useHydrated } from "../../lib/useHydrated";
 import { SuccessState } from "../SuccessState";
-
-/** Simulated upload: this many percent per tick. */
-const PROGRESS_STEP = 8;
-const PROGRESS_TICK_MS = 80;
-
-type UploadPayload = Readonly<Record<string, string | number>>;
-
-interface PickedFile {
-  file: File;
-  /** Object URL for local playback; revoked when the pick changes or the panel unmounts. */
-  url: string;
-  kind: MediaKind;
-}
+import { useUploadPanel } from "./useUploadPanel";
 
 export interface UploadPanelProps {
   /** Heading above the panel, e.g. "Upload your take". */
@@ -72,100 +56,31 @@ export function UploadPanel({
 }: UploadPanelProps) {
   const inputId = useId();
   const hydrated = useHydrated();
-  const fetcher = useFetcher<MessageResult>({ key: fetcherKey });
-  const { submit } = fetcher;
-
-  const [picked, setPicked] = useState<PickedFile | null>(null);
-  /** Remounts the file input so "Upload another" clears it. */
-  const [inputKey, setInputKey] = useState(0);
-  const [durationSec, setDurationSec] = useState<number | null>(null);
-  const [playable, setPlayable] = useState(true);
-  const [note, setNote] = useState("");
-  /** The metadata being "uploaded"; non-null while the simulated progress runs. */
-  const [pending, setPending] = useState<UploadPayload | null>(null);
-  const [progress, setProgress] = useState(0);
-
-  const result = useActionNotification(fetcher, successTitle);
+  const {
+    picked,
+    inputKey,
+    durationSec,
+    playable,
+    note,
+    uploading,
+    progress,
+    result,
+    busy,
+    setNote,
+    onFileChange,
+    onLoadedMetadata,
+    onPreviewError,
+    onSubmit,
+    onReset,
+  } = useUploadPanel({ successTitle, fields, action, fetcherKey });
   const succeeded = result?.ok === true;
-  const busy = pending !== null || fetcher.state !== "idle";
-
-  useEffect(() => {
-    if (picked === null) {
-      return;
-    }
-    const { url } = picked;
-    return () => URL.revokeObjectURL(url);
-  }, [picked]);
-
-  // The simulated upload: tick the progress bar to 100%, then call the action.
-  useEffect(() => {
-    if (pending === null) {
-      return;
-    }
-    let value = 0;
-    const timer = window.setInterval(() => {
-      value = Math.min(100, value + PROGRESS_STEP);
-      setProgress(value);
-      if (value === 100) {
-        window.clearInterval(timer);
-        setPending(null);
-        void submit(pending, { method: "post", action, encType: "application/json" });
-      }
-    }, PROGRESS_TICK_MS);
-    return () => window.clearInterval(timer);
-  }, [pending, submit, action]);
-
-  function onFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0];
-    setDurationSec(null);
-    setPlayable(true);
-    setProgress(0);
-    setPicked(
-      file === undefined
-        ? null
-        : {
-            file,
-            url: URL.createObjectURL(file),
-            kind: file.type.startsWith("video/") ? "video" : "audio",
-          },
-    );
-  }
-
-  function onLoadedMetadata(event: SyntheticEvent<HTMLMediaElement>) {
-    const { duration } = event.currentTarget;
-    setDurationSec(Number.isFinite(duration) ? duration : null);
-  }
-
-  function onSubmit() {
-    if (picked === null || durationSec === null) {
-      return;
-    }
-    setProgress(0);
-    setPending({
-      ...fields,
-      fileName: picked.file.name,
-      sizeBytes: picked.file.size,
-      durationSec,
-      mimeType: picked.file.type,
-      note,
-    });
-  }
-
-  function onReset() {
-    fetcher.reset();
-    setPicked(null);
-    setInputKey((key) => key + 1);
-    setDurationSec(null);
-    setNote("");
-    setProgress(0);
-  }
 
   const previewProps = {
     src: picked?.url,
     controls: true,
     preload: "metadata",
     onLoadedMetadata,
-    onError: () => setPlayable(false),
+    onError: onPreviewError,
     "data-testid": "upload-preview",
   } as const;
 
@@ -264,7 +179,7 @@ export function UploadPanel({
                     disabled={busy}
                   />
                 )}
-                {pending !== null && (
+                {uploading && (
                   <Progress
                     value={progress}
                     aria-label="Upload progress"
