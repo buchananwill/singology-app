@@ -5,8 +5,9 @@ The shared media player from facade spec decisions 20 and 21. The student feedba
 ## Public API
 
 ```tsx
-import { PlayerProvider, usePlayer, type PlayerHandle } from "~/components/player/PlayerProvider";
-import { WaveformPlayer } from "~/components/player/WaveformPlayer";
+// From a route module in app/routes/.
+import { PlayerProvider, usePlayer, type PlayerHandle } from "../components/player/PlayerProvider";
+import { WaveformPlayer } from "../components/player/WaveformPlayer";
 
 <PlayerProvider>
   <WaveformPlayer

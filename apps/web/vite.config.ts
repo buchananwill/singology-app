@@ -4,9 +4,6 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [cloudflare({ viteEnvironment: { name: "ssr" } }), reactRouter()],
-  resolve: {
-    tsconfigPaths: true,
-  },
   preview: {
     port: 4173,
     strictPort: true,
