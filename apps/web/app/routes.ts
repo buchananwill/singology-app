@@ -14,6 +14,6 @@ export default [
     route("coach/reviews/:submissionId", "routes/coach.review.tsx"),
   ]),
   layout("routes/anyRole.layout.tsx", [route("library", "routes/library.tsx")]),
-  // Player regression page (stage 2); deliberately not linked from the navigation.
+  // Player regression page, deliberately not linked from the navigation.
   route("lab/player", "routes/lab.player.tsx"),
 ] satisfies RouteConfig;

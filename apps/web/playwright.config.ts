@@ -17,10 +17,7 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: {
-    // Builds, then serves the built Worker straight from workerd with `wrangler dev` (local only).
-    // Not `pnpm preview`: its Node proxy (Cloudflare Vite plugin, miniflare) opens a new loopback
-    // TCP connection to workerd per request, and on Windows the TIME_WAIT sockets from a stressed
-    // run exhaust ephemeral ports, so requests fail with `connect EADDRINUSE` (pitfall 11).
+    // `wrangler dev`, not `vite preview`: its proxy exhausts Windows ephemeral ports.
     command: `pnpm run build && pnpm exec wrangler dev --config build/server/wrangler.json --port ${PORT} --ip 127.0.0.1`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,

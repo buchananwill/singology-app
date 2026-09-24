@@ -10,12 +10,7 @@ function subscribe(onTick: () => void): () => void {
 
 let latest = 0;
 
-/**
- * The browser clock, re-read at most once a tick so repeated reads between
- * ticks return the same value. It is never rounded down: a rounded value
- * could sit below the server's request time and make the first client
- * update read "61 hours ago" where the server said "62 hours ago".
- */
+/** Never rounded: the first client value must not precede the server's. */
 function getSnapshot(): number {
   const now = Date.now();
   if (now - latest >= CLOCK_TICK_MS) {
@@ -24,13 +19,7 @@ function getSnapshot(): number {
   return latest;
 }
 
-/**
- * The current time in milliseconds, as a clock source for live countdowns
- * (journal decision 32). During SSR and hydration it returns `serverNow` (the
- * loader's request time), so the server HTML equals the first client render.
- * After hydration it follows the browser clock, re-rendering every tick. No
- * state is set in an effect: React owns the subscription.
- */
+/** Returns `serverNow` during SSR and hydration, then follows the browser clock. */
 export function useNow(serverNow: number): number {
   return useSyncExternalStore(subscribe, getSnapshot, () => serverNow);
 }

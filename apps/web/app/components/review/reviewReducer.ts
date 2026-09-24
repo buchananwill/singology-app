@@ -1,21 +1,16 @@
 import type { FeedbackComment } from "@singology/shared";
 
-/**
- * The coach's draft review, page-local to the review workspace (no global
- * store). Seeded from the loader; nothing persists (decision 11).
- */
+/** Page-local to the review workspace, seeded from the loader; nothing persists. */
 export interface ReviewState {
-  /** The feedback id new comments belong to (the existing feedback, or a draft id). */
+  /** The existing feedback's id, or a draft id. */
   feedbackId: string;
-  /** Every comment, sorted by time, so list numbers match the waveform markers. */
+  /** Sorted by time, so list numbers match the waveform markers. */
   comments: readonly FeedbackComment[];
-  /** Counter for page-local comment ids. */
   nextCommentNumber: number;
-  /** The comment being written, pinned at the time it was opened at; `null` when none. */
+  /** Pinned at the time the draft was opened at. */
   draft: { tSeconds: number } | null;
-  /** Library item ids ticked in "Assign next exercises", in library order. */
+  /** In library order. */
   assigned: readonly string[];
-  /** The written summary sent with the comments. */
   summary: string;
 }
 

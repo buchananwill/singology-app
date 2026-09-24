@@ -6,10 +6,7 @@ declare module "@mantine/core" {
   }
 }
 
-/**
- * Placeholder brand colour (a muted teal). Replace once the founder picks
- * brand colours.
- */
+/** Placeholder muted teal until the founder picks brand colours. */
 const brand: MantineColorsTuple = [
   "#e8f7f6",
   "#d5ebe9",

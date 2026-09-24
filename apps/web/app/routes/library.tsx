@@ -24,7 +24,7 @@ import type { Route } from "./+types/library";
 
 export const meta: Route.MetaFunction = () => [{ title: "Exercise library | Singology" }];
 
-/** The URL search params that hold the filters. Unknown values are ignored. */
+/** The search param names that hold the filters. */
 const PARAM = { category: "category", voiceType: "voice" } as const;
 
 function readFilter(searchParams: URLSearchParams): LibraryFilter {
@@ -34,7 +34,6 @@ function readFilter(searchParams: URLSearchParams): LibraryFilter {
   });
 }
 
-/** The library URL for `filter`, keeping the parameters stable and short. */
 function libraryHref(filter: LibraryFilter): string {
   const params = new URLSearchParams();
   if (filter.category) {
@@ -53,7 +52,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   return {
     filter,
     items,
-    // Only the student view has exercise pages; the coach assigns from the library in stage 3b.
+    // Only the student view has exercise pages.
     linkToExercises: context.get(demoRoleContext) === "student",
   };
 }

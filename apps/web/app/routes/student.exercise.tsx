@@ -61,7 +61,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   };
 }
 
-/** Validates the upload and reports success without persisting anything (decision 11). */
+/** Validates the upload and saves nothing. */
 export async function action({ context, params, request }: Route.ActionArgs) {
   const item = await context.get(repositoriesContext).library.get(params.id);
   const parsed = parseInput(

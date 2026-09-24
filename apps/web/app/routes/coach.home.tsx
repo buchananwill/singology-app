@@ -28,7 +28,7 @@ export async function loader({ context }: Route.LoaderArgs) {
     throw data("The demo coach was not found", { status: 404 });
   }
   return {
-    /** The instant fixture times were resolved against: the server renders every countdown from it. */
+    // The server renders every countdown from the request time.
     now: context.get(requestTimeContext).getTime(),
     turnaroundHours: coach.turnaroundHours,
     items,

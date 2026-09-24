@@ -1,12 +1,7 @@
-/** Playback rates offered by the player (spec decision 20). */
 export const PLAYBACK_RATES = [0.5, 0.75, 1] as const;
 export type PlaybackRate = (typeof PLAYBACK_RATES)[number];
 
-/**
- * Minimum wall-clock gap between `mediaTime` events: at most 4 React
- * updates a second from playback (spec decision 20). The waveform cursor is
- * drawn by wavesurfer itself, so this only drives the time readout.
- */
+/** At most 4 React updates a second from playback; wavesurfer draws its own cursor. */
 export const MEDIA_TIME_INTERVAL_MS = 250;
 
 export interface LoopRegion {
@@ -29,20 +24,12 @@ export interface PlayerState {
 }
 
 export type PlayerEvent =
-  /** The media element started playing. */
   | { type: "play" }
-  /** The media element paused (or ended). */
   | { type: "pause" }
-  /** The media element finished seeking to `time`. */
   | { type: "seek"; time: number }
-  /** The user picked a playback rate; the player applies it to the media element. */
   | { type: "setRate"; rate: PlaybackRate }
-  /**
-   * Update the loop: `region` replaces (or with `null` clears) the loop region,
-   * `enabled` switches looping on or off. Looping cannot be on without a region.
-   */
+  /** `region: null` clears the loop; looping cannot be on without a region. */
   | { type: "setLoop"; enabled?: boolean; region?: LoopRegion | null }
-  /** A throttled playback position report from the media element. */
   | { type: "mediaTime"; time: number };
 
 export const initialPlayerState: PlayerState = {

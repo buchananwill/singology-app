@@ -8,7 +8,6 @@ export type CoachCardProps = Pick<
   "displayName" | "tier" | "bio" | "avatarSrc" | "turnaroundHours"
 >;
 
-/** A coach's placeholder avatar, name, tier, bio and turnaround promise. */
 export function CoachCard({ displayName, tier, bio, avatarSrc, turnaroundHours }: CoachCardProps) {
   return (
     <Card withBorder padding="lg" h="100%">

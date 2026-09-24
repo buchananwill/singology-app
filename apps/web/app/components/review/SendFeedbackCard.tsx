@@ -13,16 +13,11 @@ import type { ReviewEvent, ReviewState } from "./reviewReducer";
 export interface SendFeedbackCardProps {
   review: ReviewState;
   dispatch: Dispatch<ReviewEvent>;
-  /** The attached reply's metadata, or `null` when there is none. */
   reply: RecordingUpload | null;
   studentFirstName: string;
 }
 
-/**
- * The written summary and "Send feedback" (decision 16). Posts the whole
- * review as JSON to the route action, which validates it and saves nothing
- * (decision 11), then shows a notification and a success state.
- */
+/** Posts the whole review as JSON to the route action, which saves nothing. */
 export function SendFeedbackCard({
   review,
   dispatch,

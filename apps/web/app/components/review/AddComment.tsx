@@ -11,11 +11,7 @@ export interface AddCommentProps {
   dispatch: Dispatch<ReviewEvent>;
 }
 
-/**
- * "Add comment at current time" (decision 16). Reads the exact position from
- * the nearest player's handle, pauses there and opens a short text input.
- * Render inside the take's `PlayerProvider`.
- */
+/** Render inside the take's `PlayerProvider`. */
 export function AddComment({ draft, dispatch }: AddCommentProps) {
   const { handle } = usePlayer();
   const hydrated = useHydrated();

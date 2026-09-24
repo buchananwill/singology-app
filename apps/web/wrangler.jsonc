@@ -6,8 +6,8 @@
   "assets": {
     // The Cloudflare Vite plugin fills in `directory` with the client build output.
     "binding": "ASSETS",
-    // The static-assets handler ignores HTTP Range (pitfall 6), so media goes through the Worker's
-    // Range-aware route first (spec decision 31). Keep in sync with MEDIA_PATH_PREFIX.
+    // The static-assets handler ignores HTTP Range, so media goes through the Worker's Range-aware
+    // route first. Keep in sync with MEDIA_PATH_PREFIX.
     "run_worker_first": ["/media/*"],
   },
 }

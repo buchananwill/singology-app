@@ -16,11 +16,7 @@ export interface PreviousTakeProps {
 
 const PANEL = "previous";
 
-/**
- * The student's previous take of the same exercise, collapsed by default
- * (decision 16). It has its own `PlayerProvider`, and its player mounts only
- * when the panel is open, so wavesurfer never draws into a hidden container.
- */
+/** The player mounts only when the panel is open, so wavesurfer never draws into a hidden container. */
 export function PreviousTake({ submittedAt, note, asset, comments }: PreviousTakeProps) {
   const [open, setOpen] = useState<string | null>(null);
   return (

@@ -6,19 +6,7 @@ export type AssetFetcher = Pick<Fetcher, "fetch">;
 /** Paths this route owns. Must match `assets.run_worker_first` in wrangler.jsonc. */
 export const MEDIA_PATH_PREFIX = "/media/";
 
-/**
- * Serves a `/media/*` static asset with HTTP Range support (spec decision 31, pitfall 6).
- *
- * The Workers static-assets handler ignores `Range`, so Chromium cannot seek into media it has not
- * fully buffered. This reads the asset through the `ASSETS` binding and answers:
- * - no usable `Range` (absent, malformed or multi-range): `200` with the whole body;
- * - one satisfiable byte range: `206` with `Content-Range`;
- * - an unsatisfiable range: `416` with `Content-Range: bytes *\/total`.
- * Every answer carries `Accept-Ranges: bytes`. `HEAD` returns the same headers with no body.
- *
- * FACADE ONLY: the whole asset is buffered in memory before slicing. That is fine for the small
- * generated fixtures and wrong for real media, which the slice serves from Bunny's CDN (D21, D31).
- */
+/** FACADE ONLY: buffers the whole asset; production media is served by the CDN. */
 export async function serveMedia(request: Request, assets: AssetFetcher): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response(null, { status: 405, headers: { Allow: "GET, HEAD" } });

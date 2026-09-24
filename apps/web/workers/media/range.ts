@@ -1,17 +1,8 @@
-/**
- * Pure HTTP `Range` parsing for the facade's `/media/*` Worker route (spec decision 31).
- *
- * Only a single byte range is honoured. A `Range` header that is absent, malformed, uses a unit
- * other than `bytes`, or asks for several ranges is ignored, and the caller serves the whole
- * representation with `200`: RFC 9110 section 14.2 lets a server ignore `Range`, and no media
- * element needs `multipart/byteranges`.
- */
+// Only a single byte range is honoured: RFC 9110 lets a server ignore any other `Range`.
 import { HLS_MIME_TYPE } from "@singology/shared";
 
-/** Why a request gets the full body instead of a partial one. */
 export type FullBodyReason = "absent" | "malformed" | "multi-range";
 
-/** The outcome of reading a `Range` header against a representation of known length. */
 export type RangeResult =
   | { readonly kind: "full"; readonly reason: FullBodyReason }
   /** Inclusive byte offsets, already clamped to the representation. */
@@ -28,13 +19,7 @@ function parseOffset(text: string): number | undefined {
   return Number.isSafeInteger(value) ? value : undefined;
 }
 
-/**
- * Reads `header` (the raw `Range` value, or `null`) for a body of `total` bytes.
- *
- * - `bytes=start-end` and `bytes=start-` are partial when `start < total`; `end` is clamped.
- * - `bytes=-N` is the last `N` bytes (the whole body when `N >= total`).
- * - A syntactically valid range that selects no byte is unsatisfiable (`416`).
- */
+/** A syntactically valid range that selects no byte is unsatisfiable (`416`). */
 export function parseRange(header: string | null, total: number): RangeResult {
   if (header === null || header.trim() === "") {
     return { kind: "full", reason: "absent" };

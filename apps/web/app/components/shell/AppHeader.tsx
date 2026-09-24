@@ -5,11 +5,10 @@ import { href, Link } from "react-router";
 import { ROLE_LABEL } from "../../lib/format";
 
 export interface AppHeaderProps {
-  /** The role picked on `/demo`, or `null` before one is picked. */
+  /** `null` before a role is picked on `/demo`. */
   role: DemoRole | null;
 }
 
-/** Brand link, plus the current demo role and a way back to the role switcher. */
 export function AppHeader({ role }: AppHeaderProps) {
   return (
     <Group h="100%" px="md" justify="space-between" wrap="nowrap">

@@ -1,6 +1,5 @@
 import { HLS_MIME_TYPE, type MediaAsset } from "@singology/shared";
 
-/** How the media element got its source (spec decision 21). */
 export type SourceMode = "progressive" | "native-hls" | "hls.js";
 
 export interface AttachedSource {

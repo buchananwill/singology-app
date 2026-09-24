@@ -8,32 +8,20 @@ import { RecorderTips } from "./RecorderTips";
 import { useUploadPanel } from "./useUploadPanel";
 
 export interface UploadPanelProps {
-  /** Heading above the panel, e.g. "Upload your take". */
   title: string;
-  /** Label of the submit button, e.g. "Send to your coach". */
   submitLabel: string;
-  /** Title of the success notification and alert. */
   successTitle: string;
-  /** Label of the optional note field; omit to hide the field. */
+  /** Omit to hide the note field. */
   noteLabel?: string;
-  /** Extra fields posted with the metadata, e.g. `{ libraryItemId }`. */
+  /** Posted with the metadata, e.g. `{ libraryItemId }`. */
   fields?: Readonly<Record<string, string>>;
-  /** Route to post to; defaults to the current route's action. */
+  /** Defaults to the current route's action. */
   action?: string;
-  /**
-   * Shares the panel's fetcher under this key, so the page can read the
-   * action's result with `useFetcher({ key })`.
-   */
+  /** Lets the page read the action's result with `useFetcher({ key })`. */
   fetcherKey?: string;
 }
 
-/**
- * The upload panel (spec decision 19). The visitor picks an audio or video
- * file; the panel shows its name, size and duration and plays it back in a
- * plain media element (no waveform decode of local files). Submit runs a
- * simulated progress bar, then posts only the file's metadata to the route
- * action (decision 11). The file never leaves the browser.
- */
+/** Posts only the picked file's metadata: the file never leaves the browser. */
 export function UploadPanel({
   title,
   submitLabel,
@@ -84,7 +72,7 @@ export function UploadPanel({
               description="An audio or video file from your phone or computer."
               id={inputId}
             >
-              {/* No `capture` attribute, so iOS offers Photos, Camera and Files (decision 19). */}
+              {/* No `capture` attribute, so iOS offers Photos, Camera and Files. */}
               <Box
                 component="input"
                 key={inputKey}

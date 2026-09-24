@@ -12,7 +12,6 @@ export interface AssignChecklistProps {
   disabled?: boolean;
 }
 
-/** "Assign next exercises": a checklist of the library (decision 16). */
 export function AssignChecklist({ items, value, onChange, disabled }: AssignChecklistProps) {
   return (
     <Checkbox.Group

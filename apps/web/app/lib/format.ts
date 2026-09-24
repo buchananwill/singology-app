@@ -9,12 +9,7 @@ import {
   type VoiceType,
 } from "@singology/shared";
 
-/**
- * Display formatting shared by the routes. Dates are formatted by hand in UTC
- * rather than with `Intl.DateTimeFormat`: the server (workerd) and each
- * browser ship different ICU data (e.g. "Sep" versus "Sept" for en-GB), and
- * any difference would be a hydration mismatch.
- */
+// Dates are formatted by hand in UTC: workerd and browsers ship different ICU data, which would break hydration.
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -37,15 +32,12 @@ export function formatDuration(seconds: number): string {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 }
 
-/** A playback position as `m:ss`, truncated like a player's clock (matches the waveform markers). */
+/** Truncated like a player's clock, to match the waveform markers. */
 export function formatTimestamp(seconds: number): string {
   return formatDuration(Math.floor(Math.max(0, seconds)));
 }
 
-/**
- * Time since an event: `just now`, `12 min ago`, `26 hours ago`, `3 days ago`.
- * Counts in hours below `hoursUntilDays`, so a review window reads precisely.
- */
+/** Counts in hours below `hoursUntilDays`, so a review window reads precisely. */
 export function formatElapsed(ms: number, hoursUntilDays: number): string {
   const minutes = Math.floor(Math.max(0, ms) / MINUTE_MS);
   if (minutes < 1) {

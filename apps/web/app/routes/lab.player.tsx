@@ -6,10 +6,7 @@ import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { repositoriesContext } from "../context";
 import type { Route } from "./+types/lab.player";
 
-/**
- * Regression page for the waveform player (stage 2). Not linked from the
- * navigation. The comments below are lab test data, not fixtures.
- */
+/** Lab test data, not fixtures. */
 const LAB_COMMENTS: FeedbackComment[] = [
   {
     id: "lab-comment-1",
