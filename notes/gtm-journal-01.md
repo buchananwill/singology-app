@@ -267,6 +267,10 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **The contract for the waves is [facade-review-fixes.md](./facade-review-fixes.md),** on branch `facade-review-fixes` (off `facade`, so the deployed version stays the reviewed one). It names the shared primitives up front, applying the F16 lesson. The one deliberate visible change: the turnaround is shown in days everywhere, and the review count is rendered from data.
 - **Behaviour must not change.** After each wave: `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm test:e2e` all pass, and the lead re-runs the style reviewer on the fix range (fix-cycle verification).
 
+**38. One rule for request encoding:** a native `<Form>` posts form data, parsed with `Schema.safeParse(Object.fromEntries(formData))`; fetcher submissions post JSON, read with one `readJson(request)` helper. It's stated once, as a module comment in `apps/web/app/lib/actionResult.ts`. *Reason:* Wave 1 made the review action JSON-only (S-B8), so two encodings now legitimately coexist. The fix-cycle review (FC-N2) rightly asked for the split to be marked rather than left implicit.
+
+**39. Standing brief rule: no JSDoc that restates a name, type or signature.** Both review cycles found delegates adding reflexive JSDoc (S-B19, then FC-B5 with about 15 new blocks). From now on, every implementation brief says so explicitly: JSDoc only for a contract the type cannot state, one sentence.
+
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
 - **Mock-up stage (about £0):** Workers Free, Supabase Free (projects pause after about a week of inactivity; no Branching), Bunny's $1 monthly minimum, and Stripe (no fixed fee).
 - **Pilot-ready (about $30/month plus a domain):** Workers Paid ($5) and Supabase Pro ($25, needed for Branching, no pausing, backups and London hosting), plus usage-based Bunny.
@@ -348,7 +352,7 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Wave 1:** ownership getters `submissions.getForStudent` and `getForCoach` returning `OwnedSubmission | undefined`; `library.getMany` and `media.getMany`; `feedback.forSubmissionWithComments`; `submissions.queueViewForCoach` returning `CoachQueueItem[]`; `coaches.listWithOffers`; `ActionResult<T>` plus `parseInput(schema, input, fallback)`; the review action is JSON-only (the upload panel posts JSON too); `reviewSla` and `formatElapsed` take the coach's `turnaroundHours`; the turnaround shows in days, and the monthly review count is rendered from data (the two *visible* changes).
 - **Lead re-verification:** `pnpm test` passes 120 tests (17 + 8 + 49 + 46); typecheck is clean; the tree is clean; a grep finds no `await` inside a loop and no `flatMap(x ? [x] : [])` in the routes. The delegate reports e2e passing 47 with 3 skipped after each wave.
 - **Side effect:** Prettier reformatted `.claude/agents/*.md` (not in `.prettierignore`). This is layout only and accepted.
-- **Fix-cycle review of `cfc4eb5..HEAD`** by the style reviewer is running.
+- **Fix-cycle review of `cfc4eb5..356d201`:** all seven Wave 1 findings (S-B2, S-B3, S-B7, S-B8, S-B9, S-B10, S-N8) are **CLOSED by shape change**. The fixes introduced 5 new BLOCKING issues and 5 NOTEs, **which the lead accepted in full as Wave 1b** in [facade-review-fixes.md](./facade-review-fixes.md). The most important: the six superseded repository methods stayed on the interface the slice must implement.
 
 **F17. The facade is deployed (2026-09-24), by the user, at `https://singology-facade.resort-reference-gallery.workers.dev`** (Worker `singology-facade`, version `d176313f-cfc4-448e-a052-070224027569`). Built from `facade` at the reviewed code; the commits since are notes only.
 - **Account facts** (read-only API inspection by the lead, token never printed):

@@ -48,6 +48,20 @@ This is the contract for the review-fix waves on branch `facade-review-fixes` (j
    - Delete `REVIEW_TURNAROUND_HOURS` if nothing else needs it.
 6. **S-B3.** **(visible, wording only)** `home.tsx:121` and `:136` render the count from `monthly.submissionsPerPeriod`.
 
+## Wave 1b: fix-cycle findings on Wave 1
+
+Raised by the fix-cycle review of `cfc4eb5..356d201` (IDs **FC-B**n / **FC-N**n). Wave 1's own findings are all closed.
+
+1. **FC-B1 dead repository methods.** Delete `coaches.list`, `coaches.offers`, `enrolments.get`, `submissions.get`, `submissions.queueForCoach` and `feedback.forSubmission` from `Repositories` and the fixture implementation. Keep `queueFor` and `commentsFor` as private fixture helpers. Rewrite the `fixtures.test.ts` cases (lines 264 to 425) against `queueViewForCoach`, `listWithOffers` and `forSubmissionWithComments`. **The interface carries only methods a production caller uses.**
+2. **FC-B2.** Export `DemoRoleChoiceSchema = z.object({ role: DemoRoleSchema })` (with its error message) from `packages/shared`, and use it in `demo.tsx`. Remove the direct `zod` runtime dependency from `apps/web` if nothing else needs it at runtime.
+3. **FC-B3.** Export `MessageResult = ActionResult<{ message: string }>` from `lib/actionResult.ts`, and use it in `UploadPanel`, `SendFeedbackCard` and `student.exercise.tsx`. Define `ReviewActionResult` as an intersection with it.
+4. **FC-B4.** `sla.test.ts` uses `TURNAROUND_HOURS` in place of its five literal `72`s.
+5. **FC-B5 comments.** Delete the restating JSDoc listed in the review: `repositories.ts` (`CoachWithOffers`, `OwnedSubmission`, `CoachQueueItem`, `queueViewForCoach`); `createFixtureRepositories.ts` (`EnrolmentOwner`, `pickByIds`); `schemas.ts` (`ReplyUploadSchema`, `sendFeedbackSchemaFor`, `reviewActionSchemaFor`, the `SendFeedbackLimits` field docs); `coach.review.tsx` (`feedbackSentMessage`); `home.tsx` (`formatMonthlyOffer`); `student.home.tsx` (`ThisWeekRow`); `UploadPanel.tsx` (`UploadPayload`); `actionResult.ts` (`ActionResult`); `format.ts` (`formatTurnaround`); `sendFeedback.test.ts` (`send`). Keep the ordering contract once, on `LibraryRepository.getMany`, and one sentence each on `FeedbackWithComments` ("in time order") and `parseInput` ("reports the schema's first issue").
+6. **FC-N1.** Move the `RecordingUploadSchema` cases from `apps/web/app/lib/actionResult.test.ts` into a test beside the schema in `packages/shared`. `actionResult.test.ts` keeps only `parseInput`'s own contract.
+7. **FC-N2 request encoding (journal D38).** Add `readJson(request)` to `lib/actionResult.ts` and use it in both JSON actions. Write the rule once, as a one-line module comment there: native `<Form>` posts form data (parsed with `Object.fromEntries`); fetcher submissions post JSON.
+8. **FC-N4.** Add `indexById(items)` to `packages/shared` (next to Wave 3's `groupBy`), and use it in `student.home.tsx`, `student.progress.tsx` and `pickByIds`. `student.home` takes the same map-over-items shape as `student.progress`, and `ThisWeekRow` goes if it only existed to narrow.
+9. **FC-N5.** `fixtures.test.ts:280-283` looks the coach up once and asserts it exists, with no `?? 0` fallback.
+
 ## Wave 2: player and components
 
 1. **R-B1 `useWaveformInstance`.** Extract wavesurfer and RegionsPlugin construction, peaks fetching, region event wiring, the loop-boundary `timeupdate` listener and media-source attachment from `WaveformPlayer.tsx:116-213` into `apps/web/app/components/player/useWaveformInstance.ts`. It returns a small typed handle (ready, error, sourceMode, regions API). `WaveformPlayer.tsx` ends up under 150 lines. The create/destroy pairs stay together inside the hook.
@@ -59,7 +73,7 @@ This is the contract for the review-fix waves on branch `facade-review-fixes` (j
    - Use Mantine `List listStyleType="none"` for the two unstyled `ol` stacks (`coach.home.tsx:64`, `CommentList.tsx:14`).
 4. **S-N5 / R-N4 / T-B1 `StandalonePlayer`.** Replace the five inline `PlayerProvider` + `WaveformPlayer` wraps (`student.exercise.tsx:97`, `:115`, `student.submission.tsx:114`, `AbCompare.tsx:148`, `PreviousTake.tsx:39`) and `LabPlayer` in `lab.player.tsx`. Its props type is named and exported.
 5. **R-N1 `useAbTransport`.** Extract the transport sync from `AbCompare.tsx:45-107` into a hook; the component keeps the markup.
-6. **R-N2 `useUploadPanel`.** Extract the upload state machine from `UploadPanel.tsx` into a hook, plus a pure `buildUploadFormData`. The component keeps the markup.
+6. **R-N2 `useUploadPanel`.** Extract the upload state machine from `UploadPanel.tsx` into a hook, plus a pure `buildUploadPayload` (*amended after Wave 1:* the panel posts JSON, so this builds the JSON payload, not `FormData`). The component keeps the markup.
 7. **S-N3 `useActionNotification`.** Share the "idle fetcher result, notification, success alert" flow between `UploadPanel` and `SendFeedbackCard`, with a small `SuccessState` component.
 8. **S-N4.** The review page's "Submitted N ago" uses `useNow`, like the queue.
 9. **R-B2, R-B3, R-N3 props.** Name and export the props types for `CommentList`, `RoleNav`, `CoachCard`, `AppHeader`, `AbCompare` and `demo.tsx`'s `RoleCard`.
