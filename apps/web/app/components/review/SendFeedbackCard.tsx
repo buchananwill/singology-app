@@ -1,11 +1,12 @@
-import { Alert, Box, Button, Card, Stack, Text, Textarea, Title } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
+import { Box, Button, Card, Stack, Text, Textarea, Title } from "@mantine/core";
 import type { RecordingUpload, SendFeedback } from "@singology/shared";
-import { type Dispatch, useEffect } from "react";
+import type { Dispatch } from "react";
 import { Link, useFetcher } from "react-router";
 
 import type { MessageResult } from "../../lib/actionResult";
+import { useActionNotification } from "../../lib/useActionNotification";
 import { useHydrated } from "../../lib/useHydrated";
+import { SuccessState } from "../SuccessState";
 import type { ReviewEvent, ReviewState } from "./reviewReducer";
 
 export interface SendFeedbackCardProps {
@@ -33,14 +34,8 @@ export function SendFeedbackCard({
 }: SendFeedbackCardProps) {
   const hydrated = useHydrated();
   const fetcher = useFetcher<MessageResult>();
-  const result = fetcher.state === "idle" ? fetcher.data : undefined;
+  const result = useActionNotification(fetcher, "Feedback sent");
   const sent = result?.ok === true;
-
-  useEffect(() => {
-    if (fetcher.data?.ok === true) {
-      notifications.show({ color: "green", title: "Feedback sent", message: fetcher.data.message });
-    }
-  }, [fetcher.data]);
 
   function onSend() {
     // Typed as the parsed shape: JSON-safe (the schema's input type has `unknown` coerced numbers).
@@ -61,16 +56,11 @@ export function SendFeedbackCard({
           Send feedback
         </Title>
         {sent ? (
-          <Stack gap="sm">
-            <Alert color="green" title="Feedback sent" data-testid="send-success">
-              {result.message}
-            </Alert>
-            <Box>
-              <Button component={Link} to="/coach" variant="light">
-                Back to the review queue
-              </Button>
-            </Box>
-          </Stack>
+          <SuccessState title="Feedback sent" message={result.message} testId="send-success">
+            <Button component={Link} to="/coach" variant="light">
+              Back to the review queue
+            </Button>
+          </SuccessState>
         ) : (
           <>
             <Textarea

@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -12,14 +11,15 @@ import {
   Textarea,
   Title,
 } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import type { MediaKind } from "@singology/shared";
 import { type ChangeEvent, type SyntheticEvent, useEffect, useId, useState } from "react";
 import { useFetcher } from "react-router";
 
 import type { MessageResult } from "../../lib/actionResult";
 import { formatBytes, formatDuration } from "../../lib/format";
+import { useActionNotification } from "../../lib/useActionNotification";
 import { useHydrated } from "../../lib/useHydrated";
+import { SuccessState } from "../SuccessState";
 
 /** Simulated upload: this many percent per tick. */
 const PROGRESS_STEP = 8;
@@ -85,7 +85,7 @@ export function UploadPanel({
   const [pending, setPending] = useState<UploadPayload | null>(null);
   const [progress, setProgress] = useState(0);
 
-  const result = fetcher.state === "idle" ? fetcher.data : undefined;
+  const result = useActionNotification(fetcher, successTitle);
   const succeeded = result?.ok === true;
   const busy = pending !== null || fetcher.state !== "idle";
 
@@ -114,12 +114,6 @@ export function UploadPanel({
     }, PROGRESS_TICK_MS);
     return () => window.clearInterval(timer);
   }, [pending, submit, action]);
-
-  useEffect(() => {
-    if (fetcher.data?.ok === true) {
-      notifications.show({ color: "green", title: successTitle, message: fetcher.data.message });
-    }
-  }, [fetcher.data, successTitle]);
 
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
@@ -183,16 +177,11 @@ export function UploadPanel({
         </Title>
 
         {succeeded ? (
-          <Stack gap="sm">
-            <Alert color="green" title={successTitle} data-testid="upload-success">
-              {result.message}
-            </Alert>
-            <Box>
-              <Button variant="light" onClick={onReset}>
-                Upload another
-              </Button>
-            </Box>
-          </Stack>
+          <SuccessState title={successTitle} message={result.message} testId="upload-success">
+            <Button variant="light" onClick={onReset}>
+              Upload another
+            </Button>
+          </SuccessState>
         ) : (
           <>
             <Input.Wrapper
