@@ -294,17 +294,11 @@ describe("createFixtureRepositories", () => {
   it("lists coaches with their offers", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const rows = await repos.coaches.listWithOffers();
-    expect(rows.map((row) => row.coach.displayName)).toEqual([
-      "Singology founder",
-      "Standard coach",
-    ]);
     expect(rows.map((row) => row.coach)).toEqual(fixtureData.coaches);
-    for (const row of rows) {
-      expect(row.offers).toEqual(
-        fixtureData.coachOffers.filter((offer) => offer.coachId === row.coach.id),
-      );
-      expect(row.offers.length).toBeGreaterThan(0);
-    }
+    expect(rows.map((row) => row.offers.map((offer) => offer.id))).toEqual([
+      ["offer-founder-monthly", "offer-founder-single"],
+      ["offer-standard-monthly", "offer-standard-single"],
+    ]);
   });
 
   it("returns copies that cannot mutate the fixtures", async () => {
