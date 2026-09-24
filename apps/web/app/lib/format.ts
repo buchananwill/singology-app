@@ -1,9 +1,4 @@
-import type {
-  AssignmentStatus,
-  CoachTier,
-  LibraryCategory,
-  VoiceType,
-} from "@singology/shared";
+import type { AssignmentStatus, CoachTier, LibraryCategory, VoiceType } from "@singology/shared";
 
 /**
  * Display formatting shared by the routes. Dates are formatted by hand in UTC

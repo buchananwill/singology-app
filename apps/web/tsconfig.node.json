@@ -1,6 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["vite.config.ts", "vitest.config.ts", "react-router.config.ts", "playwright.config.ts", "e2e/**/*"],
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "react-router.config.ts",
+    "playwright.config.ts",
+    "e2e/**/*"
+  ],
   "compilerOptions": {
     "composite": true,
     "types": ["node"],

@@ -37,7 +37,12 @@ export function PreviousTake({ submittedAt, note, asset, comments }: PreviousTak
                 </Text>
               )}
               <PlayerProvider>
-                <WaveformPlayer asset={asset} comments={comments} label="Previous take" height={64} />
+                <WaveformPlayer
+                  asset={asset}
+                  comments={comments}
+                  label="Previous take"
+                  height={64}
+                />
                 {comments.length > 0 && <CommentList comments={comments} />}
               </PlayerProvider>
             </Stack>

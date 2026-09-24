@@ -165,7 +165,11 @@ export function WaveformPlayer({
             other.remove();
           }
         }
-        dispatch({ type: "setLoop", region: { start: region.start, end: region.end }, enabled: true });
+        dispatch({
+          type: "setLoop",
+          region: { start: region.start, end: region.end },
+          enabled: true,
+        });
       });
       regions.on("region-updated", (region) => {
         if (region.id === LOOP_REGION_ID) {
@@ -335,7 +339,12 @@ export function WaveformPlayer({
           disabled={state.loop.region === null}
           onChange={(event) => dispatch({ type: "setLoop", enabled: event.currentTarget.checked })}
         />
-        <Button size="xs" variant="subtle" onClick={clearLoop} disabled={state.loop.region === null}>
+        <Button
+          size="xs"
+          variant="subtle"
+          onClick={clearLoop}
+          disabled={state.loop.region === null}
+        >
           Clear loop
         </Button>
       </Group>

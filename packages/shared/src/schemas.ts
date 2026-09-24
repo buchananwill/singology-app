@@ -213,8 +213,12 @@ export const SendFeedbackSchema = z
       .max(20)
       .refine((ids) => new Set(ids).size === ids.length, "Each exercise can be assigned once."),
   })
-  .refine((feedback) => feedback.comments.length > 0 || feedback.summary !== "" || feedback.reply !== null, {
-    message: "Add a comment, a summary or a reply before sending.",
-    path: ["comments"],
-  });
+  .refine(
+    (feedback) =>
+      feedback.comments.length > 0 || feedback.summary !== "" || feedback.reply !== null,
+    {
+      message: "Add a comment, a summary or a reply before sending.",
+      path: ["comments"],
+    },
+  );
 export type SendFeedback = z.infer<typeof SendFeedbackSchema>;

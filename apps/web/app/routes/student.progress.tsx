@@ -108,7 +108,11 @@ export default function StudentProgress({ loaderData }: Route.ComponentProps) {
                     title={`Take ${index + 1}: ${formatDate(submission.submittedAt)}`}
                   >
                     {submission.status === "reviewed" ? (
-                      <Anchor component={Link} to={`/student/submissions/${submission.id}`} size="sm">
+                      <Anchor
+                        component={Link}
+                        to={`/student/submissions/${submission.id}`}
+                        size="sm"
+                      >
                         Feedback ready
                       </Anchor>
                     ) : (

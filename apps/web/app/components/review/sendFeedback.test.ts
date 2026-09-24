@@ -27,7 +27,9 @@ describe("parseSendFeedback", () => {
   });
 
   it("reports the schema's first problem", () => {
-    expect(parseSendFeedback({ comments: [], reply: null, assignLibraryItemIds: [] }, limits)).toEqual({
+    expect(
+      parseSendFeedback({ comments: [], reply: null, assignLibraryItemIds: [] }, limits),
+    ).toEqual({
       ok: false,
       error: "Add a comment, a summary or a reply before sending.",
     });

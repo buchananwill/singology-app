@@ -59,10 +59,7 @@ describe("serveMedia", () => {
   });
 
   it("serves HEAD with headers and no body", async () => {
-    const response = await serveMedia(
-      get("/media/a.m4a", { Range: "bytes=0-99" }, "HEAD"),
-      assets,
-    );
+    const response = await serveMedia(get("/media/a.m4a", { Range: "bytes=0-99" }, "HEAD"), assets);
     expect(response.status).toBe(206);
     expect(response.headers.get("Content-Length")).toBe("100");
     expect(response.body).toBeNull();

@@ -37,7 +37,9 @@ async function findCoachSubmission(
   submissionId: string,
 ) {
   const submission = await repositories.submissions.get(submissionId);
-  const enrolment = submission ? await repositories.enrolments.get(submission.enrolmentId) : undefined;
+  const enrolment = submission
+    ? await repositories.enrolments.get(submission.enrolmentId)
+    : undefined;
   return submission && enrolment?.coachId === coachId ? { submission, enrolment } : null;
 }
 
@@ -224,7 +226,12 @@ function ReviewWorkspace({
                   <strong>{firstName}'s note:</strong> {submission.note}
                 </Text>
               )}
-              <Stack component="section" gap="sm" aria-labelledby="take-title" data-testid="review-take">
+              <Stack
+                component="section"
+                gap="sm"
+                aria-labelledby="take-title"
+                data-testid="review-take"
+              >
                 <Title id="take-title" order={2} size="h3">
                   The take
                 </Title>

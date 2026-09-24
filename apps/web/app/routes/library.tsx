@@ -1,4 +1,15 @@
-import { Anchor, Badge, Button, Card, Container, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import {
+  Anchor,
+  Badge,
+  Button,
+  Card,
+  Container,
+  Group,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import {
   LIBRARY_CATEGORIES,
   LibraryCategorySchema,
@@ -58,7 +69,13 @@ interface FilterRowProps<T extends string> {
   hrefFor(value: T | undefined): string;
 }
 
-function FilterRow<T extends string>({ label, values, labels, current, hrefFor }: FilterRowProps<T>) {
+function FilterRow<T extends string>({
+  label,
+  values,
+  labels,
+  current,
+  hrefFor,
+}: FilterRowProps<T>) {
   const options: { value: T | undefined; text: string }[] = [
     { value: undefined, text: "All" },
     ...values.map((value) => ({ value, text: labels[value] })),

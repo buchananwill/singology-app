@@ -21,6 +21,5 @@ export const theme = createTheme({
   primaryColor: "brand",
   colors: { brand },
   defaultRadius: "md",
-  fontFamily:
-    "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
 });

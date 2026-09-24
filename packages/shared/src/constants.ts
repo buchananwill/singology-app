@@ -16,14 +16,7 @@ export const DEMO_ROLES = ["student", "coach"] as const;
 /** Exercise library categories. */
 export const LIBRARY_CATEGORIES = ["breath", "onset", "range", "agility"] as const;
 
-export const VOICE_TYPES = [
-  "soprano",
-  "mezzo",
-  "alto",
-  "tenor",
-  "baritone",
-  "bass",
-] as const;
+export const VOICE_TYPES = ["soprano", "mezzo", "alto", "tenor", "baritone", "bass"] as const;
 
 export const MEDIA_KINDS = ["audio", "video"] as const;
 

@@ -119,9 +119,7 @@ describe("fixture data", () => {
       expect(count).toBeGreaterThanOrEqual(3);
       expect(count).toBeLessThanOrEqual(5);
     }
-    expect(
-      fixtureData.submissions.some((s) => media.get(s.mediaId)?.kind === "video"),
-    ).toBe(true);
+    expect(fixtureData.submissions.some((s) => media.get(s.mediaId)?.kind === "video")).toBe(true);
     expect(new Set(fixtureData.assignments.map((a) => a.status))).toEqual(
       new Set(["todo", "submitted", "feedback_ready"]),
     );
@@ -147,7 +145,10 @@ describe("fixture data", () => {
     );
     const perItem = new Map<string, Set<string>>();
     for (const take of takes) {
-      perItem.set(take.libraryItemId, (perItem.get(take.libraryItemId) ?? new Set()).add(take.mediaId));
+      perItem.set(
+        take.libraryItemId,
+        (perItem.get(take.libraryItemId) ?? new Set()).add(take.mediaId),
+      );
     }
     expect([...perItem.values()].some((mediaIds) => mediaIds.size >= 2)).toBe(true);
   });
@@ -275,9 +276,9 @@ describe("review queue against the turnaround promise (journal decision 32)", ()
   it("puts the due-soon item in the demo coach's queue", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const queue = await repos.submissions.queueForCoach(DEMO_COACH_ID);
-    expect(
-      queue.map((s) => reviewSla(s.submittedAt, TEST_NOW.getTime()).state),
-    ).toContain("due_soon");
+    expect(queue.map((s) => reviewSla(s.submittedAt, TEST_NOW.getTime()).state)).toContain(
+      "due_soon",
+    );
   });
 });
 
@@ -318,9 +319,7 @@ describe("createFixtureRepositories", () => {
     const now = new Date("2031-01-15T08:00:00.000Z");
     const repos = createFixtureRepositories({ now });
     const [oldest] = await repos.submissions.queueForCoach(DEMO_COACH_ID);
-    expect(oldest?.submittedAt).toBe(
-      new Date(now.getTime() - 62 * 60 * 60 * 1000).toISOString(),
-    );
+    expect(oldest?.submittedAt).toBe(new Date(now.getTime() - 62 * 60 * 60 * 1000).toISOString());
   });
 
   it("finds the same student's previous take of the same exercise", async () => {

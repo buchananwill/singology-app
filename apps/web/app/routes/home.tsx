@@ -126,7 +126,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               {coaches.map(({ coach, monthly, single }) => (
                 <Table.Tr key={coach.id}>
                   <Table.Th scope="row">{coach.displayName}</Table.Th>
-                  <Table.Td>{monthly ? `${formatPence(monthly.pricePence)} a month` : "–"}</Table.Td>
+                  <Table.Td>
+                    {monthly ? `${formatPence(monthly.pricePence)} a month` : "–"}
+                  </Table.Td>
                   <Table.Td>{single ? formatPence(single.pricePence) : "–"}</Table.Td>
                 </Table.Tr>
               ))}

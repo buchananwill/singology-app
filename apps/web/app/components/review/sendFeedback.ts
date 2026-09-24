@@ -3,7 +3,8 @@ import { type SendFeedback, SendFeedbackSchema } from "@singology/shared";
 /** What the review route's action returns to "Send feedback". */
 export type SendFeedbackResult = { ok: true; message: string } | { ok: false; error: string };
 
-export type ParsedSendFeedback = { ok: true; feedback: SendFeedback } | { ok: false; error: string };
+export type ParsedSendFeedback =
+  { ok: true; feedback: SendFeedback } | { ok: false; error: string };
 
 /** What the payload is checked against beyond its shape. */
 export interface SendFeedbackLimits {

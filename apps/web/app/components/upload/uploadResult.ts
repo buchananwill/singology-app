@@ -6,5 +6,4 @@ import type { RecordingUpload } from "@singology/shared";
  * (e.g. the coach's reply, which is sent later with the feedback).
  */
 export type UploadActionResult =
-  | { ok: true; message: string; upload?: RecordingUpload }
-  | { ok: false; error: string };
+  { ok: true; message: string; upload?: RecordingUpload } | { ok: false; error: string };

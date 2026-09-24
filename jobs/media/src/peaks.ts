@@ -21,14 +21,16 @@ const DECODE_SAMPLE_RATE = 48_000;
 const DEFAULT_EXTENSIONS = new Set([".m4a", ".mp4"]);
 
 async function decodeMono(file: string): Promise<Float32Array> {
-  const pcm = await runFfmpegToBuffer([
-    ["-i", file],
-    ["-vn"],
-    ["-ac", "1"],
-    ["-ar", String(DECODE_SAMPLE_RATE)],
-    ["-f", "f32le"],
-    ["pipe:1"],
-  ].flat());
+  const pcm = await runFfmpegToBuffer(
+    [
+      ["-i", file],
+      ["-vn"],
+      ["-ac", "1"],
+      ["-ar", String(DECODE_SAMPLE_RATE)],
+      ["-f", "f32le"],
+      ["pipe:1"],
+    ].flat(),
+  );
   // Copy into an aligned buffer: Node's Buffer may sit at an odd offset in its pool.
   const aligned = new ArrayBuffer(pcm.byteLength - (pcm.byteLength % 4));
   new Uint8Array(aligned).set(pcm.subarray(0, aligned.byteLength));

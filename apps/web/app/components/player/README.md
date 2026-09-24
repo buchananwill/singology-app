@@ -9,9 +9,14 @@ import { PlayerProvider, usePlayer, type PlayerHandle } from "~/components/playe
 import { WaveformPlayer } from "~/components/player/WaveformPlayer";
 
 <PlayerProvider>
-  <WaveformPlayer asset={mediaAsset} comments={feedbackComments} label="Student take" ref={handleRef} />
+  <WaveformPlayer
+    asset={mediaAsset}
+    comments={feedbackComments}
+    label="Student take"
+    ref={handleRef}
+  />
   <AddCommentButton /> {/* calls usePlayer().handle.getCurrentTime() */}
-</PlayerProvider>
+</PlayerProvider>;
 ```
 
 - **`PlayerProvider`** holds one player's state and its media element ref. Put exactly one `WaveformPlayer` inside each provider. Two players side by side need two providers.
@@ -23,6 +28,7 @@ import { WaveformPlayer } from "~/components/player/WaveformPlayer";
   - `ref?: Ref<PlayerHandle>`
 
   It renders its own `<audio>` or `<video>`, depending on `asset.kind`. Keep the `comments` array stable, for example from loader data, because a new array redraws the markers.
+
 - **`usePlayer()`** returns `{ state, dispatch, handle }` from the nearest provider. It throws outside a provider.
 - **`PlayerHandle`** has these methods:
   - `getCurrentTime()`: the exact position, read from the media element
@@ -32,6 +38,7 @@ import { WaveformPlayer } from "~/components/player/WaveformPlayer";
   - `getMediaElement()`
 
   Use it for "add comment at current time", or to drive several players from one control (the A/B compare).
+
 - **`state: PlayerState`** has these fields:
   - `isPlaying`
   - `currentTime`: throttled to at most 4 updates a second

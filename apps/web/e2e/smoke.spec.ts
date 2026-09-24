@@ -55,7 +55,13 @@ const ROUTES: readonly RouteCase[] = [
     heading: "Review: Ada Example",
     waveforms: 1,
   },
-  { name: "coach-library", path: "/library", role: "coach", heading: "Exercise library", waveforms: 0 },
+  {
+    name: "coach-library",
+    path: "/library",
+    role: "coach",
+    heading: "Exercise library",
+    waveforms: 0,
+  },
 ];
 
 async function expectWaveformsReady(page: Page, count: number): Promise<void> {
@@ -107,7 +113,9 @@ test("the landing page shows both coaches and the illustrative pricing", async (
   await expect(page.getByTestId("coach-name")).toHaveText(["Singology founder", "Standard coach"]);
   const pricing = page.getByTestId("pricing-table");
   await expect(pricing).toContainText("Illustrative pricing");
-  await expect(pricing.getByRole("row", { name: /Singology founder/ })).toContainText("£80 a month");
+  await expect(pricing.getByRole("row", { name: /Singology founder/ })).toContainText(
+    "£80 a month",
+  );
   await expect(pricing.getByRole("row", { name: /Singology founder/ })).toContainText("£25");
   await expect(pricing.getByRole("row", { name: /Standard coach/ })).toContainText("£45 a month");
   await expect(pricing.getByRole("row", { name: /Standard coach/ })).toContainText("£12");
@@ -178,7 +186,10 @@ test("library filters live in the URL", async ({ page }) => {
   await expect(page).toHaveURL(/\/library\?category=range$/);
   await expect(page.getByTestId("library-item")).toHaveCount(2);
 
-  await page.getByRole("group", { name: "Voice type" }).getByRole("link", { name: "Soprano" }).click();
+  await page
+    .getByRole("group", { name: "Voice type" })
+    .getByRole("link", { name: "Soprano" })
+    .click();
   await expect(page).toHaveURL(/\/library\?category=range&voice=soprano$/);
   await expect(page.getByTestId("library-item")).toHaveCount(1);
 
@@ -219,7 +230,9 @@ test("the A/B compare plays one take and switches at the same position", async (
   await compare.getByTestId("ab-play").click();
   await expect.poll(() => mediaA.evaluate(paused)).toBe(false);
   await expect(compare.getByTestId("ab-play")).toHaveText("Pause");
-  await expect.poll(() => mediaA.evaluate((el: HTMLMediaElement) => el.currentTime)).toBeGreaterThan(1);
+  await expect
+    .poll(() => mediaA.evaluate((el: HTMLMediaElement) => el.currentTime))
+    .toBeGreaterThan(1);
 
   await compare.getByText(/^B: /).click();
   await expect.poll(() => mediaB.evaluate(paused)).toBe(false);

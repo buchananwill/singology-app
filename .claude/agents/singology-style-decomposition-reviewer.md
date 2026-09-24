@@ -30,7 +30,7 @@ Measure entropy on five axes:
    that do not change together belong apart. In this codebase, import fan-out (how many modules import a given module)
    and the package dependency graph are the measurable proxies for this axis.
 3. **Configuration space** — how many forms are acceptable for the same concept. House style collapses this space. If
-   a route may read data through the context repositories *or* by importing a fixture module *or* by constructing a
+   a route may read data through the context repositories _or_ by importing a fixture module _or_ by constructing a
    Drizzle client inline, `n` routes can be written `3^n` ways, and every engineer must reason about each one. One rule,
    one form.
 4. **Path count** — how many execution paths and nested states a reader must hold at once. Nesting depth, null-checking
@@ -175,7 +175,7 @@ Two sibling reviewers own adjacent territory. Do not duplicate their findings:
 
 - **`typescript-type-reviewer`** owns the type surface: inline object types in signatures, hand-copied fields that
   should be `Pick`/`Omit`/`Partial`, unexported types, `any` and `Record<string, unknown>` escapes, floating promises,
-  async `forEach`. You may cite a duplicated *schema or concept* (Axis 1) — two Zod schemas describing the same domain
+  async `forEach`. You may cite a duplicated _schema or concept_ (Axis 1) — two Zod schemas describing the same domain
   entity — but leave the type-derivation mechanics to that reviewer.
 - **`react-quality-reviewer`** owns React hook and component discipline: the finger rule on dependency arrays, covariant
   grouping, the hooks/components/domain layering inside React, the 150-line component cap, null-as-sentinel. You own
@@ -333,7 +333,7 @@ Do not withhold extraction suggestions due to perceived call or module overhead:
 - **The bundler and minifier** inline small functions and tree-shake unused code. Module boundaries cost nothing at
   runtime.
 - **Bundle size** is governed by what a route imports, not by how many files the code is split across. Extraction into
-  smaller modules usually *helps* lazy loading.
+  smaller modules usually _helps_ lazy loading.
 
 Always propose the extraction. Never self-censor because "it might be slower."
 
@@ -432,7 +432,7 @@ BLOCKING.
   `<event>_at`. Enums are declared once with `pgEnum` and imported, never repeated as string unions elsewhere.
 - RLS policies are declared beside their table in the Drizzle schema (`pgPolicy`), not in scattered SQL files.
 - User-scoped queries go through the user-scoped database factory; the privileged factory appears only in webhook
-  handlers and jobs. (Whether a given use is *safe* is the safety reviewer's call; whether the codebase uses one form
+  handlers and jobs. (Whether a given use is _safe_ is the safety reviewer's call; whether the codebase uses one form
   for one purpose is yours.)
 - The query builder is the default. Raw `sql` templates are a deviation that needs a one-line _why_.
 

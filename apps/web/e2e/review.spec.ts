@@ -20,10 +20,9 @@ async function seekTo(media: Locator, timeSec: number): Promise<void> {
       }),
     timeSec,
   );
-  await expect.poll(() => media.evaluate((el: HTMLMediaElement) => el.currentTime)).toBeCloseTo(
-    timeSec,
-    1,
-  );
+  await expect
+    .poll(() => media.evaluate((el: HTMLMediaElement) => el.currentTime))
+    .toBeCloseTo(timeSec, 1);
 }
 
 test("the previous take of the same exercise opens with its own player", async ({ page }) => {
@@ -76,10 +75,9 @@ test.describe("the coach review workspace", () => {
     // Clicking the comment seeks the player back to it.
     await seekTo(media, 5);
     await items.first().click();
-    await expect.poll(() => media.evaluate((el: HTMLMediaElement) => el.currentTime)).toBeCloseTo(
-      30,
-      0,
-    );
+    await expect
+      .poll(() => media.evaluate((el: HTMLMediaElement) => el.currentTime))
+      .toBeCloseTo(30, 0);
 
     // A reply through the shared upload panel.
     const upload = page.getByTestId("upload-panel");

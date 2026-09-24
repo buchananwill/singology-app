@@ -1,4 +1,15 @@
-import { Alert, Anchor, Avatar, Card, Container, Group, List, Stack, Text, Title } from "@mantine/core";
+import {
+  Alert,
+  Anchor,
+  Avatar,
+  Card,
+  Container,
+  Group,
+  List,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import { data, Link } from "react-router";
 
 import { CommentList } from "../components/player/CommentList";
@@ -16,7 +27,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const studentId = context.get(studentIdContext);
   const submission = await repositories.submissions.get(params.id);
-  const enrolment = submission ? await repositories.enrolments.get(submission.enrolmentId) : undefined;
+  const enrolment = submission
+    ? await repositories.enrolments.get(submission.enrolmentId)
+    : undefined;
   // Only the student's own submissions; anything else is "not found", not "forbidden".
   if (!submission || enrolment?.studentId !== studentId) {
     throw data("Submission not found", { status: 404 });
@@ -74,7 +87,12 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
           </Text>
         )}
 
-        <Stack component="section" gap="xs" aria-labelledby="take-title" data-testid="feedback-take">
+        <Stack
+          component="section"
+          gap="xs"
+          aria-labelledby="take-title"
+          data-testid="feedback-take"
+        >
           <Title id="take-title" order={2} size="h3">
             Your recording
           </Title>

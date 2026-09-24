@@ -9,7 +9,12 @@ import {
   useRef,
 } from "react";
 
-import { initialPlayerState, type PlayerEvent, type PlayerState, playerReducer } from "./playerReducer";
+import {
+  initialPlayerState,
+  type PlayerEvent,
+  type PlayerState,
+  playerReducer,
+} from "./playerReducer";
 
 /**
  * Imperative access to one player, for parents that need the exact media

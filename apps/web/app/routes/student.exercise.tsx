@@ -43,7 +43,13 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     .filter((s) => s.libraryItemId === item.id)
     .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
     .map((s) => ({ id: s.id, submittedAt: s.submittedAt, reviewed: s.status === "reviewed" }));
-  return { item, demo, backingTrack: backingTrack ?? null, assignment: assignment ?? null, previousTakes };
+  return {
+    item,
+    demo,
+    backingTrack: backingTrack ?? null,
+    assignment: assignment ?? null,
+    previousTakes,
+  };
 }
 
 /** Validates the upload and reports success without persisting anything (decision 11). */
@@ -90,7 +96,12 @@ export default function StudentExercise({ loaderData }: Route.ComponentProps) {
           <Text>{item.instructions}</Text>
         </Stack>
 
-        <Stack component="section" gap="xs" aria-labelledby="demo-title" data-testid="exercise-demo">
+        <Stack
+          component="section"
+          gap="xs"
+          aria-labelledby="demo-title"
+          data-testid="exercise-demo"
+        >
           <Title id="demo-title" order={2} size="h3">
             Demonstration
           </Title>

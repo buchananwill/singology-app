@@ -255,11 +255,20 @@ async function main(): Promise<void> {
   const tmp = await mkdtemp(path.join(os.tmpdir(), "singology-media-"));
   try {
     const outputs: string[] = [];
-    outputs.push(await encodeAudio(await writePcm(tmp, "take-a", studentTakeA()), "student-take-a.m4a"));
-    outputs.push(await encodeAudio(await writePcm(tmp, "take-b", studentTakeB()), "student-take-b.m4a"));
-    outputs.push(await encodeAudio(await writePcm(tmp, "backing", backingTrack()), "backing-track.m4a"));
+    outputs.push(
+      await encodeAudio(await writePcm(tmp, "take-a", studentTakeA()), "student-take-a.m4a"),
+    );
+    outputs.push(
+      await encodeAudio(await writePcm(tmp, "take-b", studentTakeB()), "student-take-b.m4a"),
+    );
+    outputs.push(
+      await encodeAudio(await writePcm(tmp, "backing", backingTrack()), "backing-track.m4a"),
+    );
     outputs.push(await encodeAudio(await writePcm(tmp, "coach", coachReply()), "coach-reply.m4a"));
-    const video = await encodeVideo(await writePcm(tmp, "video-tone", videoTone()), "test-pattern.mp4");
+    const video = await encodeVideo(
+      await writePcm(tmp, "video-tone", videoTone()),
+      "test-pattern.mp4",
+    );
     outputs.push(video);
     outputs.push(await packageHls(video, "test-pattern-hls"));
 

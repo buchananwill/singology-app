@@ -25,7 +25,12 @@ function plural(count: number, one: string, many: string): string {
  * review as JSON to the route action, which validates it and saves nothing
  * (decision 11), then shows a notification and a success state.
  */
-export function SendFeedbackCard({ review, dispatch, reply, studentFirstName }: SendFeedbackCardProps) {
+export function SendFeedbackCard({
+  review,
+  dispatch,
+  reply,
+  studentFirstName,
+}: SendFeedbackCardProps) {
   const hydrated = useHydrated();
   const fetcher = useFetcher<SendFeedbackResult>();
   const result = fetcher.state === "idle" ? fetcher.data : undefined;
@@ -70,7 +75,9 @@ export function SendFeedbackCard({ review, dispatch, reply, studentFirstName }: 
             <Textarea
               label={`Summary for ${studentFirstName} (optional)`}
               value={review.summary}
-              onChange={(event) => dispatch({ type: "setSummary", summary: event.currentTarget.value })}
+              onChange={(event) =>
+                dispatch({ type: "setSummary", summary: event.currentTarget.value })
+              }
               maxLength={2000}
               autosize
               minRows={3}

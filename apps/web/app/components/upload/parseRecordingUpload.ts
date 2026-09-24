@@ -1,8 +1,7 @@
 import { type RecordingUpload, RecordingUploadSchema } from "@singology/shared";
 
 export type ParsedRecordingUpload =
-  | { ok: true; upload: RecordingUpload }
-  | { ok: false; error: string };
+  { ok: true; upload: RecordingUpload } | { ok: false; error: string };
 
 /** Validates the upload panel's posted metadata in a route action. */
 export function parseRecordingUpload(formData: FormData): ParsedRecordingUpload {

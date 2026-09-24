@@ -218,7 +218,9 @@ export function UploadPanel({
                 Recommended recorder
               </Text>
               <List size="sm">
-                <List.Item>iPhone: Voice Memos with Lossless turned on, or the Camera app.</List.Item>
+                <List.Item>
+                  iPhone: Voice Memos with Lossless turned on, or the Camera app.
+                </List.Item>
                 <List.Item>Android: the built-in voice recorder.</List.Item>
               </List>
             </Box>
@@ -234,7 +236,11 @@ export function UploadPanel({
                   </Text>
                   <Text size="sm" data-testid="upload-file-duration">
                     <strong>Length:</strong>{" "}
-                    {durationSec !== null ? formatDuration(durationSec) : playable ? "reading…" : "unknown"}
+                    {durationSec !== null
+                      ? formatDuration(durationSec)
+                      : playable
+                        ? "reading…"
+                        : "unknown"}
                   </Text>
                 </Group>
                 {picked.kind === "video" ? (

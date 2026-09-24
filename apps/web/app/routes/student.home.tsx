@@ -1,14 +1,4 @@
-import {
-  Anchor,
-  Badge,
-  Button,
-  Card,
-  Container,
-  Group,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Anchor, Badge, Button, Card, Container, Group, Stack, Text, Title } from "@mantine/core";
 import { data, Link } from "react-router";
 
 import { repositoriesContext, studentIdContext } from "../context";
@@ -53,7 +43,9 @@ export async function loader({ context }: Route.LoaderArgs) {
   );
 
   const [latest] = feedback;
-  const latestSubmission = latest ? await repositories.submissions.get(latest.submissionId) : undefined;
+  const latestSubmission = latest
+    ? await repositories.submissions.get(latest.submissionId)
+    : undefined;
   const latestItem = latestSubmission
     ? await repositories.library.get(latestSubmission.libraryItemId)
     : undefined;

@@ -14,7 +14,9 @@ const demoRoleCookie = createCookie("singology_demo_role", {
 
 /** The role in the request's cookie, or `null` when none (or an unknown value) is set. */
 export async function readDemoRole(request: Request): Promise<DemoRole | null> {
-  const parsed = DemoRoleSchema.safeParse(await demoRoleCookie.parse(request.headers.get("Cookie")));
+  const parsed = DemoRoleSchema.safeParse(
+    await demoRoleCookie.parse(request.headers.get("Cookie")),
+  );
   return parsed.success ? parsed.data : null;
 }
 
