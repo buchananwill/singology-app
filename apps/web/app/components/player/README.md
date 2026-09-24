@@ -29,7 +29,7 @@ import { WaveformPlayer } from "~/components/player/WaveformPlayer";
 
   It renders its own `<audio>` or `<video>`, depending on `asset.kind`. Keep the `comments` array stable, for example from loader data, because a new array redraws the markers.
 
-- **`StandalonePlayer`** is a `PlayerProvider` holding one `WaveformPlayer`. It takes the same props, plus optional `children` rendered after the player inside the provider (for example a `CommentList`). Use it wherever nothing else on the page needs the player's context.
+- **`StandalonePlayer`** is a `PlayerProvider` holding one `WaveformPlayer`. It takes the same props, plus optional `children` rendered after the player inside the provider (for example a `CommentList`). Use it wherever only its own children need the player's context.
 - **`usePlayer()`** returns `{ state, dispatch, handle }` from the nearest provider. It throws outside a provider.
 - **`PlayerHandle`** has these methods:
   - `getCurrentTime()`: the exact position, read from the media element

@@ -5,8 +5,7 @@ import { useReducer } from "react";
 import { data, Link, useFetcher } from "react-router";
 
 import { CommentList } from "../components/player/CommentList";
-import { PlayerProvider } from "../components/player/PlayerProvider";
-import { WaveformPlayer } from "../components/player/WaveformPlayer";
+import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { AddComment } from "../components/review/AddComment";
 import { AssignChecklist } from "../components/review/AssignChecklist";
 import { PreviousTake } from "../components/review/PreviousTake";
@@ -228,12 +227,11 @@ function ReviewWorkspace({
                 <Title id="take-title" order={2} size="h3">
                   The take
                 </Title>
-                <PlayerProvider>
-                  <WaveformPlayer
-                    asset={take}
-                    comments={review.comments}
-                    label={`${student.displayName}'s take`}
-                  />
+                <StandalonePlayer
+                  asset={take}
+                  comments={review.comments}
+                  label={`${student.displayName}'s take`}
+                >
                   <AddComment draft={review.draft} dispatch={dispatch} />
                   <Title order={3} size="h4">
                     Comments ({review.comments.length})
@@ -245,7 +243,7 @@ function ReviewWorkspace({
                       No comments yet. Pause where you hear something and add one.
                     </Text>
                   )}
-                </PlayerProvider>
+                </StandalonePlayer>
               </Stack>
               {previous !== null ? (
                 <PreviousTake {...previous} />
