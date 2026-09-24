@@ -367,6 +367,17 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
   - **React:** R-B1 to R-B4, R-N1, R-N4 and R-N5 are CLOSED. R-N2 is partial (`UploadPanel.tsx` is still 207 lines, because the markup was never split). R-N3 is partial (three props types still unexported). All four new hooks pass the finger rule and the hooks/components split.
   - **The lead accepted all of it as Wave 2b.** The 6 px to 4 px spacing change (three gaps and one margin absorbed by `xxs`) is accepted as imperceptible.
 
+**F20. Review-fix waves 2b and 3 have landed** (`7ffbf52` to `926af47`, 43 commits).
+- **Lead re-verification on the final tree:** `pnpm test` passes 140 tests (28 + 8 + 38 + 66); lint and `format:check` are clean; `pnpm test:e2e` passes 47 with 3 skipped by design, in Chromium and WebKit, under `wrangler dev`; the tree is clean.
+- **Outcomes:**
+  - `UploadPanel.tsx` is 116 lines (`PickedFilePanel`, `RecorderTips`);
+  - typed `href()` from React Router 8.4.0 is used for links, with the nav table in `navItems.ts` and `HOME_FOR_ROLE` derived from it;
+  - **PostCSS removed**: the built CSS is byte-identical without it, and Mantine's docs say the preset is only for app CSS;
+  - the shared primitives from the fix list are all in place.
+- **Accepted interpretations:** **`isbot` stays** (pitfall 14: React Router's default server entry imports it, and the tooling re-adds it); `@singology/db` exports `createFixtureData`, so the app-side public-folder test avoids a deep import; `formatSince` takes the display threshold as an argument; the theme types `brand` via Mantine's colour override.
+- **New minor warning:** Vite warns that `vite.config.ts` imports `./previewPort` without a file extension, which the future native config loader rejects. To be folded into the final findings.
+- **Final three-reviewer pass (style, React, type) is running.**
+
 **F17. The facade is deployed (2026-09-24), by the user, at `https://singology-facade.resort-reference-gallery.workers.dev`** (Worker `singology-facade`, version `d176313f-cfc4-448e-a052-070224027569`). Built from `facade` at the reviewed code; the commits since are notes only.
 - **Account facts** (read-only API inspection by the lead, token never printed):
   - the `workers.dev` subdomain is `resort-reference-gallery`, shared with the user's other Worker `resort-reference`;
