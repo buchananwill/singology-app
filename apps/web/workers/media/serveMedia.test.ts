@@ -1,3 +1,4 @@
+import { HLS_MIME_TYPE } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
 import { type AssetFetcher, serveMedia } from "./serveMedia";
@@ -75,7 +76,7 @@ describe("serveMedia", () => {
 
   it("types HLS playlists and segments", async () => {
     const playlist = await serveMedia(get("/media/hls/index.m3u8"), assets);
-    expect(playlist.headers.get("Content-Type")).toBe("application/vnd.apple.mpegurl");
+    expect(playlist.headers.get("Content-Type")).toBe(HLS_MIME_TYPE);
     const segment = await serveMedia(get("/media/hls/segment-000.m4s"), assets);
     expect(segment.headers.get("Content-Type")).toBe("video/iso.segment");
   });
