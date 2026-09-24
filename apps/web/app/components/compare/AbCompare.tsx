@@ -2,8 +2,8 @@ import { Button, Card, Group, SegmentedControl, SimpleGrid, Stack, Text } from "
 import type { MediaAsset } from "@singology/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { type PlayerHandle, PlayerProvider } from "../player/PlayerProvider";
-import { WaveformPlayer } from "../player/WaveformPlayer";
+import type { PlayerHandle } from "../player/PlayerProvider";
+import { StandalonePlayer } from "../player/StandalonePlayer";
 
 type Side = "a" | "b";
 
@@ -145,14 +145,12 @@ export function AbCompare({ a, b }: AbCompareProps) {
             <Text fw={600} size="sm" mb="xs">
               Take {side.toUpperCase()}: {takes[side].label}
             </Text>
-            <PlayerProvider>
-              <WaveformPlayer
-                asset={takes[side].asset}
-                label={`Take ${side.toUpperCase()}`}
-                height={64}
-                ref={side === "a" ? setHandleA : setHandleB}
-              />
-            </PlayerProvider>
+            <StandalonePlayer
+              asset={takes[side].asset}
+              label={`Take ${side.toUpperCase()}`}
+              height={64}
+              ref={side === "a" ? setHandleA : setHandleB}
+            />
           </Card>
         ))}
       </SimpleGrid>

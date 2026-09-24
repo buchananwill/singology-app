@@ -4,8 +4,7 @@ import { useState } from "react";
 
 import { formatDate } from "../../lib/format";
 import { CommentList } from "../player/CommentList";
-import { PlayerProvider } from "../player/PlayerProvider";
-import { WaveformPlayer } from "../player/WaveformPlayer";
+import { StandalonePlayer } from "../player/StandalonePlayer";
 
 export interface PreviousTakeProps {
   submittedAt: string;
@@ -36,15 +35,9 @@ export function PreviousTake({ submittedAt, note, asset, comments }: PreviousTak
                   <strong>Note then:</strong> {note}
                 </Text>
               )}
-              <PlayerProvider>
-                <WaveformPlayer
-                  asset={asset}
-                  comments={comments}
-                  label="Previous take"
-                  height={64}
-                />
+              <StandalonePlayer asset={asset} comments={comments} label="Previous take" height={64}>
                 {comments.length > 0 && <CommentList comments={comments} />}
-              </PlayerProvider>
+              </StandalonePlayer>
             </Stack>
           )}
         </Accordion.Panel>

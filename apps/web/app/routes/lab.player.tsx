@@ -1,9 +1,8 @@
 import { Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import type { FeedbackComment, MediaAsset } from "@singology/shared";
+import type { FeedbackComment } from "@singology/shared";
 import { data } from "react-router";
 
-import { PlayerProvider } from "../components/player/PlayerProvider";
-import { WaveformPlayer } from "../components/player/WaveformPlayer";
+import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { repositoriesContext } from "../context";
 import type { Route } from "./+types/lab.player";
 
@@ -50,22 +49,6 @@ export async function loader({ context }: Route.LoaderArgs) {
   return { takeA, takeB, video, comments: LAB_COMMENTS };
 }
 
-function LabPlayer({
-  asset,
-  label,
-  comments,
-}: {
-  asset: MediaAsset;
-  label: string;
-  comments?: FeedbackComment[];
-}) {
-  return (
-    <PlayerProvider>
-      <WaveformPlayer asset={asset} label={label} comments={comments} />
-    </PlayerProvider>
-  );
-}
-
 export default function PlayerLab({ loaderData }: Route.ComponentProps) {
   const { takeA, takeB, video, comments } = loaderData;
   return (
@@ -80,14 +63,14 @@ export default function PlayerLab({ loaderData }: Route.ComponentProps) {
           <Title order={2} size="h3">
             Audio take with comments
           </Title>
-          <LabPlayer asset={takeA} label="Student take with comments" comments={comments} />
+          <StandalonePlayer asset={takeA} label="Student take with comments" comments={comments} />
         </Stack>
 
         <Stack component="section" gap="xs" data-testid="lab-hls">
           <Title order={2} size="h3">
             HLS video
           </Title>
-          <LabPlayer asset={video} label="Test-pattern video (HLS)" />
+          <StandalonePlayer asset={video} label="Test-pattern video (HLS)" />
         </Stack>
 
         <Stack component="section" gap="xs" data-testid="lab-side-by-side">
@@ -95,8 +78,8 @@ export default function PlayerLab({ loaderData }: Route.ComponentProps) {
             Two takes side by side
           </Title>
           <SimpleGrid cols={{ base: 1, md: 2 }}>
-            <LabPlayer asset={takeA} label="Take A" />
-            <LabPlayer asset={takeB} label="Take B" />
+            <StandalonePlayer asset={takeA} label="Take A" />
+            <StandalonePlayer asset={takeB} label="Take B" />
           </SimpleGrid>
         </Stack>
       </Stack>

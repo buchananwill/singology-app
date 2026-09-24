@@ -13,8 +13,7 @@ import {
 import { data, Link } from "react-router";
 
 import { CommentList } from "../components/player/CommentList";
-import { PlayerProvider } from "../components/player/PlayerProvider";
-import { WaveformPlayer } from "../components/player/WaveformPlayer";
+import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { repositoriesContext, studentIdContext } from "../context";
 import { CATEGORY_LABEL, formatDate } from "../lib/format";
 import type { Route } from "./+types/student.submission";
@@ -96,10 +95,9 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
               Tap a numbered marker or a comment to jump to that moment.
             </Text>
           )}
-          <PlayerProvider>
-            <WaveformPlayer asset={take} comments={comments} label="Your recording" />
+          <StandalonePlayer asset={take} comments={comments} label="Your recording">
             {comments.length > 0 && <CommentList comments={comments} />}
-          </PlayerProvider>
+          </StandalonePlayer>
         </Stack>
 
         {feedback ? (
@@ -124,9 +122,7 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
                     <Text size="sm" fw={600}>
                       {reply.kind === "video" ? "Video reply" : "Audio reply"}
                     </Text>
-                    <PlayerProvider>
-                      <WaveformPlayer asset={reply} label="Coach's reply" height={64} />
-                    </PlayerProvider>
+                    <StandalonePlayer asset={reply} label="Coach's reply" height={64} />
                   </Stack>
                 )}
               </Stack>

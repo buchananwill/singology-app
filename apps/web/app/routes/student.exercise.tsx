@@ -2,8 +2,7 @@ import { Anchor, Badge, Container, Group, List, Stack, Text, Title } from "@mant
 import { RecordingUploadSchema } from "@singology/shared";
 import { data, Link } from "react-router";
 
-import { PlayerProvider } from "../components/player/PlayerProvider";
-import { WaveformPlayer } from "../components/player/WaveformPlayer";
+import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { UploadPanel } from "../components/upload/UploadPanel";
 import { repositoriesContext, studentIdContext } from "../context";
 import { type MessageResult, parseInput, readJson } from "../lib/actionResult";
@@ -108,9 +107,7 @@ export default function StudentExercise({ loaderData }: Route.ComponentProps) {
           <Title id="demo-title" order={2} size="h3">
             Demonstration
           </Title>
-          <PlayerProvider>
-            <WaveformPlayer asset={demo} label="Demonstration" height={64} />
-          </PlayerProvider>
+          <StandalonePlayer asset={demo} label="Demonstration" height={64} />
         </Stack>
 
         {backingTrack !== null && (
@@ -126,9 +123,7 @@ export default function StudentExercise({ loaderData }: Route.ComponentProps) {
             <Text size="sm" c="dimmed">
               Play this through a speaker while you record. Slow it down to practise.
             </Text>
-            <PlayerProvider>
-              <WaveformPlayer asset={backingTrack} label="Backing track" height={64} />
-            </PlayerProvider>
+            <StandalonePlayer asset={backingTrack} label="Backing track" height={64} />
           </Stack>
         )}
 
