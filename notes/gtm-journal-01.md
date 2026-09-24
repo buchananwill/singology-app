@@ -234,6 +234,16 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 
 **33. e2e runs against `wrangler dev` on the built output, not `vite preview`.** Facade pitfall 11 was diagnosed as a local tooling fault (classification B), not our code. `vite preview`'s Node proxy opens a fresh socket to workerd for every request and leaves it in TIME_WAIT: 200 of 200 sequential requests did so, whether static assets, SSR or media, while `wrangler dev` left 0. One stressed run leaves about 5,800 such sockets against Windows' 16,384 ephemeral ports, so back-to-back runs fail with `connect EADDRINUSE`, which surfaces as `fetch failed`. The failing URLs were mostly `/assets/*.js`, which never reach our Worker, and a 256-way concurrency load test had 0 failures. With the webServer on `wrangler dev`, 7 of 7 back-to-back stressed runs passed 94/94 (commits `b40f0be`, `5f252e2`). This still exercises the Workers runtime, which is the intent of spec decision 25, amended in place. **It does not affect production, the demo or the slice.** Its only lesson for the slice's CI is to use `wrangler dev`, not `vite preview`, for e2e. *Unproven and accepted:* why the proxy doesn't pool connections.
 
+**34. The project gets its own style-and-decomposition reviewer:** [.claude/agents/singology-style-decomposition-reviewer.md](../.claude/agents/singology-style-decomposition-reviewer.md). *User request 2026-09-24:* keep the principles of the user's `ue-style-decomposition-reviewer` and swap the C++/UE specifics for TypeScript, SQL and this project.
+- **Kept verbatim in spirit:** the low-entropy principle and its five axes; the canon, plus Codd's normalisation; the "comments are entropy" rules; mandate discipline; the output schema; and fix-cycle verification.
+- **Remapped:**
+  - UE lifetimes (GC, UPROPERTY ownership) become request scope, React component lifetime, and the Workers isolate, where module scope outlives the request;
+  - include fan-out becomes import fan-out plus workspace-package levelization (shared → db → apps/jobs, no deep imports);
+  - hot-loop layering becomes typed arrays in the peaks and range code, plus N+1 queries;
+  - clang-format becomes "no formatter configured, so one NOTE".
+- **The House Rules encode D18 to D27, D31 and D32** (React Router v8 imports; repositories-only data access; Zod-validated actions; no global store; hydration-safe time; Mantine conventions; Drizzle as the schema source with generated migrations; one form for user-scoped versus privileged DB access). It explicitly defers type-surface and hook-discipline findings to the sibling `typescript-type-reviewer` and `react-quality-reviewer`.
+- **Observed gap:** the repo has no formatter (Prettier or Biome) configured; the reviewer will raise that once as a NOTE.
+
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
 - **Mock-up stage (about £0):** Workers Free, Supabase Free (projects pause after about a week of inactivity; no Branching), Bunny's $1 monthly minimum, and Stripe (no fixed fee).
 - **Pilot-ready (about $30/month plus a domain):** Workers Paid ($5) and Supabase Pro ($25, needed for Branching, no pausing, backups and London hosting), plus usage-based Bunny.
