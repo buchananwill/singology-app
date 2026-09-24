@@ -57,6 +57,11 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
       : undefined;
   };
 
+  const commentsFor = (feedbackId: string) =>
+    data.feedbackComments
+      .filter((c) => c.feedbackId === feedbackId)
+      .sort((a, b) => a.tSeconds - b.tSeconds);
+
   return {
     coaches: {
       list: async () => copy(data.coaches),
@@ -124,6 +129,12 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
     feedback: {
       forSubmission: async (submissionId) =>
         copy(data.feedback.find((f) => f.submissionId === submissionId)),
+      forSubmissionWithComments: async (submissionId) => {
+        const feedback = data.feedback.find((f) => f.submissionId === submissionId);
+        return feedback === undefined
+          ? undefined
+          : copy({ feedback, comments: commentsFor(feedback.id) });
+      },
       forStudent: async (studentId) => {
         const enrolmentIds = enrolmentIdsFor("studentId", studentId);
         const submissionIds = new Set(
@@ -135,12 +146,7 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
             .sort((a, b) => b.sentAt.localeCompare(a.sentAt)),
         );
       },
-      comments: async (feedbackId) =>
-        copy(
-          data.feedbackComments
-            .filter((c) => c.feedbackId === feedbackId)
-            .sort((a, b) => a.tSeconds - b.tSeconds),
-        ),
+      comments: async (feedbackId) => copy(commentsFor(feedbackId)),
     },
   };
 }

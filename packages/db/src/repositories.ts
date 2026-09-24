@@ -66,8 +66,15 @@ export interface SubmissionRepository {
   previousFor(submissionId: string): Promise<Submission | undefined>;
 }
 
+/** A feedback item with its timestamped comments, in time order. */
+export interface FeedbackWithComments {
+  feedback: Feedback;
+  comments: FeedbackComment[];
+}
+
 export interface FeedbackRepository {
   forSubmission(submissionId: string): Promise<Feedback | undefined>;
+  forSubmissionWithComments(submissionId: string): Promise<FeedbackWithComments | undefined>;
   /** Every feedback item on this student's submissions, newest first. */
   forStudent(studentId: string): Promise<Feedback[]>;
   comments(feedbackId: string): Promise<FeedbackComment[]>;

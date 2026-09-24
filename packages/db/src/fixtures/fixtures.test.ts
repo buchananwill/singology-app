@@ -335,6 +335,17 @@ describe("createFixtureRepositories", () => {
     expect(await repos.library.getMany([])).toEqual([]);
   });
 
+  it("gets a submission's feedback with its comments in time order", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const found = await repos.feedback.forSubmissionWithComments("sub-ada-siren-2");
+    expect(found?.feedback.id).toBe("fb-ada-siren-2");
+    expect(found?.comments).toEqual(await repos.feedback.comments("fb-ada-siren-2"));
+    expect(found?.comments.length).toBeGreaterThanOrEqual(3);
+    const times = found?.comments.map((c) => c.tSeconds) ?? [];
+    expect(times).toEqual([...times].sort((a, b) => a - b));
+    expect(await repos.feedback.forSubmissionWithComments("sub-ben-hiss")).toBeUndefined();
+  });
+
   it("gets a submission with its enrolment for the student who owns it", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const owned = await repos.submissions.getForStudent("student-ada", "sub-ada-onset");

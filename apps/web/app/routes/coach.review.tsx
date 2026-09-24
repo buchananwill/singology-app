@@ -42,11 +42,11 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     throw data("Submission not found", { status: 404 });
   }
   const { submission, enrolment } = found;
-  const [student, item, take, feedback] = await Promise.all([
+  const [student, item, take, reviewed] = await Promise.all([
     repositories.students.get(enrolment.studentId),
     repositories.library.get(submission.libraryItemId),
     repositories.media.get(submission.mediaId),
-    repositories.feedback.forSubmission(submission.id),
+    repositories.feedback.forSubmissionWithComments(submission.id),
   ]);
   if (!student || !item || !take) {
     throw data("Submission data not found", { status: 404 });
@@ -62,9 +62,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     item,
     take,
     /** New comments join the existing feedback, or a page-local draft. */
-    feedbackId: feedback?.id ?? `draft-feedback-${submission.id}`,
-    comments: feedback ? await repositories.feedback.comments(feedback.id) : [],
-    summary: feedback?.body ?? "",
+    feedbackId: reviewed?.feedback.id ?? `draft-feedback-${submission.id}`,
+    comments: reviewed?.comments ?? [],
+    summary: reviewed?.feedback.body ?? "",
     previous,
     library: library.map(({ id, title, category }) => ({ id, title, category })),
   };
@@ -142,9 +142,9 @@ async function loadPreviousTake(repositories: Repositories, submissionId: string
   if (!previous) {
     return null;
   }
-  const [asset, feedback] = await Promise.all([
+  const [asset, reviewed] = await Promise.all([
     repositories.media.get(previous.mediaId),
-    repositories.feedback.forSubmission(previous.id),
+    repositories.feedback.forSubmissionWithComments(previous.id),
   ]);
   if (!asset) {
     return null;
@@ -153,7 +153,7 @@ async function loadPreviousTake(repositories: Repositories, submissionId: string
     submittedAt: previous.submittedAt,
     note: previous.note,
     asset,
-    comments: feedback ? await repositories.feedback.comments(feedback.id) : [],
+    comments: reviewed?.comments ?? [],
   };
 }
 

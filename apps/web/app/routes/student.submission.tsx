@@ -31,18 +31,18 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     throw data("Submission not found", { status: 404 });
   }
   const { submission, enrolment } = owned;
-  const [take, item, coach, feedback, assignments] = await Promise.all([
+  const [take, item, coach, reviewed, assignments] = await Promise.all([
     repositories.media.get(submission.mediaId),
     repositories.library.get(submission.libraryItemId),
     repositories.coaches.get(enrolment.coachId),
-    repositories.feedback.forSubmission(submission.id),
+    repositories.feedback.forSubmissionWithComments(submission.id),
     repositories.assignments.forStudent(studentId),
   ]);
   if (!take || !item || !coach) {
     throw data("Submission data not found", { status: 404 });
   }
-  const [comments, reply, next] = await Promise.all([
-    feedback ? repositories.feedback.comments(feedback.id) : [],
+  const feedback = reviewed?.feedback;
+  const [reply, next] = await Promise.all([
     feedback?.replyMediaId ? repositories.media.get(feedback.replyMediaId) : undefined,
     repositories.library.getMany(
       assignments.filter((a) => a.status === "todo").map((a) => a.libraryItemId),
@@ -54,7 +54,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     item,
     coach: { name: coach.displayName, avatarSrc: coach.avatarSrc },
     feedback: feedback ?? null,
-    comments,
+    comments: reviewed?.comments ?? [],
     reply: reply ?? null,
     next: next.map(({ id, title }) => ({ id, title })),
   };
