@@ -258,17 +258,18 @@ describe("review queue against the turnaround promise (journal decision 32)", ()
 
   it.each(NOWS)("has every item within its SLA, exactly one due soon, at %s", async (now) => {
     const repos = createFixtureRepositories({ now });
-    const queue = (
-      await Promise.all(fixtureData.coaches.map((c) => repos.submissions.queueForCoach(c.id)))
+    const states = (
+      await Promise.all(
+        fixtureData.coaches.map(async (coach) => {
+          const queue = await repos.submissions.queueForCoach(coach.id);
+          return queue.map(
+            (submission) =>
+              reviewSla(submission.submittedAt, now.getTime(), coach.turnaroundHours).state,
+          );
+        }),
+      )
     ).flat();
-    expect(queue.length).toBeGreaterThanOrEqual(3);
-    const states = await Promise.all(
-      queue.map(async (submission) => {
-        const enrolment = await repos.enrolments.get(submission.enrolmentId);
-        const coach = await repos.coaches.get(enrolment?.coachId ?? "");
-        return reviewSla(submission.submittedAt, now.getTime(), coach?.turnaroundHours).state;
-      }),
-    );
+    expect(states.length).toBeGreaterThanOrEqual(3);
     expect(states).not.toContain("overdue");
     expect(states.filter((state) => state === "due_soon")).toHaveLength(1);
   });
@@ -276,9 +277,11 @@ describe("review queue against the turnaround promise (journal decision 32)", ()
   it("puts the due-soon item in the demo coach's queue", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const queue = await repos.submissions.queueForCoach(DEMO_COACH_ID);
-    expect(queue.map((s) => reviewSla(s.submittedAt, TEST_NOW.getTime()).state)).toContain(
-      "due_soon",
-    );
+    const turnaroundHours = coaches.get(DEMO_COACH_ID)?.turnaroundHours;
+    expect(turnaroundHours).toBeDefined();
+    expect(
+      queue.map((s) => reviewSla(s.submittedAt, TEST_NOW.getTime(), turnaroundHours ?? 0).state),
+    ).toContain("due_soon");
   });
 });
 

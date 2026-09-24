@@ -25,6 +25,3 @@ export const ENROLMENT_STATUSES = ["active", "paused", "ended"] as const;
 export const ASSIGNMENT_STATUSES = ["todo", "submitted", "feedback_ready"] as const;
 
 export const SUBMISSION_STATUSES = ["awaiting_review", "reviewed"] as const;
-
-/** The coach turnaround promise, in hours, that the review queue counts down against. */
-export const REVIEW_TURNAROUND_HOURS = 72;

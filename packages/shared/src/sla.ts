@@ -1,5 +1,3 @@
-import { REVIEW_TURNAROUND_HOURS } from "./constants";
-
 const HOUR_MS = 60 * 60 * 1000;
 
 /** A queue item with less than this many hours left is "due soon". */
@@ -20,11 +18,7 @@ export interface ReviewSla {
  * Where a submission stands against the coach's turnaround promise at `nowMs`.
  * Pure, so the server and the browser compute the same result from the same inputs.
  */
-export function reviewSla(
-  submittedAt: string,
-  nowMs: number,
-  turnaroundHours: number = REVIEW_TURNAROUND_HOURS,
-): ReviewSla {
+export function reviewSla(submittedAt: string, nowMs: number, turnaroundHours: number): ReviewSla {
   const dueAtMs = new Date(submittedAt).getTime() + turnaroundHours * HOUR_MS;
   const remainingMs = dueAtMs - nowMs;
   const state: ReviewSlaState =
