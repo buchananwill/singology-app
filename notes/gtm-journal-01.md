@@ -271,6 +271,10 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 
 **39. Standing brief rule: no JSDoc that restates a name, type or signature.** Both review cycles found delegates adding reflexive JSDoc (S-B19, then FC-B5 with about 15 new blocks). From now on, every implementation brief says so explicitly: JSDoc only for a contract the type cannot state, one sentence.
 
+**40. The review cycle ends with Wave 4, which is verified by tests and the lead's targeted checks rather than another full review cycle.** The final pass: **type APPROVE** (0 findings); **React APPROVE** (0 BLOCKING, 2 NOTE); **style REQUEST CHANGES**, with 7 BLOCKING, all mechanical follow-through (pluralisation not routed through the new helper, one test file's leftovers, a dead `postcss` dependency, three comments). Each cycle's findings have been smaller follow-ons of the last. *Reason:* another full cycle would chase an asymptote. The remaining items are checkable by grep and tests. Future work gets reviewed as part of its own change.
+
+**41. Route modules and the 150-line component cap.** A route module holds its loader, action, meta and the default component, and may exceed 150 lines for those. **Any other component defined in a route module moves to `components/<feature>/`.** *Reason:* React reviewer N1 asked for an explicit ruling. Route co-location is the React Router convention, but extra components in a route file are the same responsibility sprawl the cap exists to catch (e.g. `ReviewWorkspace` inside `coach.review.tsx`).
+
 **Bootstrapping cost (for D17's zero-capital point; the lead's understanding, not re-verified this session):**
 - **Mock-up stage (about £0):** Workers Free, Supabase Free (projects pause after about a week of inactivity; no Branching), Bunny's $1 monthly minimum, and Stripe (no fixed fee).
 - **Pilot-ready (about $30/month plus a domain):** Workers Paid ($5) and Supabase Pro ($25, needed for Branching, no pausing, backups and London hosting), plus usage-based Bunny.

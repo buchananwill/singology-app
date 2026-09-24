@@ -131,6 +131,29 @@ These come from the fix-cycle reviews of `354b449..31968d2`: style (**FC2-B**n /
     - Derive `peaksSrc` in `media.ts` from `src` via one helper.
 14. **T-B2.** `e2e/helpers.ts:59` uses `DemoRole` from `@singology/shared`.
 
+## Wave 4: final tidy (last cycle; journal D40)
+
+These come from the final review pass over `65bbe9e..07309da`. The type reviewer approved outright, and the React reviewer approved (with notes). All of the style reviewer's items are closed at their cited sites; this wave is its follow-through. Verification is by tests plus the lead's targeted checks, **not** another full review cycle (D40).
+
+1. **FC3-B1.** Route pluralisation through `formatCount`: `format.ts` (the hours-ago, days and hours branches) and `home.tsx`'s monthly-offer copy. Output stays identical. Leave the `days ago` line alone.
+2. **FC3-B2.** In `fixtures.test.ts`, use the shared `groupBy` (not a hand-built Map of Sets) and `toSorted`.
+3. **FC3-B3.** Remove the remaining missing-fixture fallbacks in `fixtures.test.ts`. The time-shift test compares mapped arrays; `assert(oldest, …)` and `assert(found, …)` go before use; no `?? []`.
+4. **FC3-B4.** All five specs use `readyWaveforms(scope)` (or one `expectWaveformReady` helper built on it). No spec spells out `data-ready`.
+5. **FC3-B5.** Remove the `postcss` devDependency from `apps/web`. Then `pnpm install`, build, and the e2e screenshots.
+6. **FC3-B6.** Cut `attachMediaSource.ts`'s JSDoc to "Browser-only: call it from an effect; hls.js is imported on demand so it never loads during SSR." Cut `synth.ts`'s header to "Everything here is generated from maths; ffmpeg only encodes the result." Delete the `PARAM` comment in `library.tsx`.
+7. **FC3-B7.** In `apps/web/test/fixtureFiles.test.ts`: `const TOLERANCE_SEC = 0.05` and `Math.abs(bins / peaks.peaksPerSecond - peaks.duration) < TOLERANCE_SEC`; delete the contradicting comment.
+8. **FC3-N2.** Un-export `formatElapsed`, or fold it into `formatSince`, and test through `formatSince` with a fixed `nowMs`.
+9. **FC3-N3.** `isActive` becomes optional, defaulting to `pathname === item.to` in `RoleNav`. One shared `LIBRARY_NAV_ITEM`.
+10. **FC3-N4 / React N2.** The player's audio uses `Box component="audio"`. One shared `VIDEO_PROPS` for the two video elements.
+11. **FC3-N5.** Tests import `HLS_MIME_TYPE`. Keep exactly one test that pins its literal value.
+12. **FC3-N6.** Add `apps/web/publicDir.ts` (next to `previewPort.ts`), used by the e2e helpers and `fixtureFiles.test.ts`. `jobs/media` keeps its own copy (levelization).
+13. **FC3-N7.** Merge the two `./fixtures/data` exports in `packages/db/src/index.ts`.
+14. **FC3-N8.** `playwright.config.ts` uses `PREVIEW_PORT` without renaming it.
+15. **React N1 (D41).** Move the non-default components out of route modules: `SubmittedAgo` and `ReviewWorkspace` from `coach.review.tsx` into `components/review/`, and `FilterRow` from `library.tsx` into `components/library/`. Route modules keep the loader, action, meta and the default component.
+16. **Vite warning.** `vite.config.ts` imports `./previewPort.ts` with its extension (or whatever the native config loader requires), so the "unsupported by configLoader: native" warning is gone.
+
+Not taken in Wave 4: FC3-N9 (rename `waveformDom.ts`), deferred to a rename pass. FC3-N1 (a project style skill) is recorded as next work.
+
 ## Not taken
 
 - **S-N8:** superseded by W1.1.
