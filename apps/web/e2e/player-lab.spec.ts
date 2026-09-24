@@ -10,7 +10,7 @@ test.describe("/lab/player", () => {
 
     const audio = page.getByTestId("lab-audio");
     const audioWaveform = audio.getByTestId("waveform");
-    await expect(audioWaveform).toHaveAttribute("data-ready", "true");
+    await expect(readyWaveforms(audio)).toHaveCount(1);
     // wavesurfer draws into canvases inside its (open) shadow root; Playwright's CSS engine pierces it.
     await expect(audioWaveform.locator("canvas").first()).toBeVisible();
     await expect(audio.getByTestId("comment-marker")).toHaveCount(3);
@@ -92,7 +92,7 @@ test.describe("/lab/player", () => {
     await page.goto("/lab/player");
 
     const audio = page.getByTestId("lab-audio");
-    await expect(audio.getByTestId("waveform")).toHaveAttribute("data-ready", "true");
+    await expect(readyWaveforms(audio)).toHaveCount(1);
     const markers = audio.getByTestId("comment-marker");
     await expect(markers).toHaveCount(3);
     const audioMedia = audio.getByTestId("player-media");

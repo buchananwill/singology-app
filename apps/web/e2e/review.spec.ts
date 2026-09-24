@@ -1,6 +1,13 @@
 import { expect, type Locator, test } from "@playwright/test";
 
-import { chooseRole, currentTime, mediaFixture, settle, trackErrors } from "./helpers";
+import {
+  chooseRole,
+  currentTime,
+  mediaFixture,
+  readyWaveforms,
+  settle,
+  trackErrors,
+} from "./helpers";
 
 /** Seeks the take's media element (what `handle.seek` does) and waits for the seek to land. */
 async function seekTo(media: Locator, timeSec: number): Promise<void> {
@@ -23,9 +30,7 @@ test("the previous take of the same exercise opens with its own player", async (
   // Collapsed: no second player until it is opened.
   await expect(page.getByTestId("waveform-player")).toHaveCount(1);
   await previous.getByRole("button", { name: /^Previous take: / }).click();
-  await expect(previous.getByTestId("waveform")).toHaveAttribute("data-ready", "true", {
-    timeout: 15_000,
-  });
+  await expect(readyWaveforms(previous)).toHaveCount(1, { timeout: 15_000 });
   await expect(previous.getByTestId("comment-marker")).toHaveCount(3);
   await expect(previous).toContainText("I'm gasping by the end.");
 
@@ -46,7 +51,7 @@ test.describe("the coach review workspace", () => {
     await chooseRole(page, "coach");
     await page.goto("/coach/reviews/sub-ben-hiss");
     const take = page.getByTestId("review-take");
-    await expect(take.getByTestId("waveform")).toHaveAttribute("data-ready", "true");
+    await expect(readyWaveforms(take)).toHaveCount(1);
     const media = take.getByTestId("player-media");
 
     await seekTo(media, 30);

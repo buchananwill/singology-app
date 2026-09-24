@@ -210,7 +210,7 @@ test("feedback comments are pinned on the take and a comment seeks there", async
   await chooseRole(page, "student");
   await page.goto("/student/submissions/sub-ada-siren-2");
   const take = page.getByTestId("feedback-take");
-  await expect(take.getByTestId("waveform")).toHaveAttribute("data-ready", "true");
+  await expect(readyWaveforms(take)).toHaveCount(1);
   await expect(take.getByTestId("comment-marker")).toHaveCount(5);
   await expect(take.getByTestId("comment-item")).toHaveCount(5);
 
