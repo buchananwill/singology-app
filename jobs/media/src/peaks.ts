@@ -37,7 +37,7 @@ async function decodeMono(file: string): Promise<Float32Array> {
   return new Float32Array(aligned);
 }
 
-export function peaksPathFor(file: string): string {
+function peaksPathFor(file: string): string {
   const { dir, name } = path.parse(file);
   return path.join(dir, `${name}.peaks.json`);
 }

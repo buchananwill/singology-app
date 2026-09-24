@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 
 /** How often the clock ticks after hydration. Countdowns show minutes, so this is plenty. */
-export const CLOCK_TICK_MS = 15_000;
+const CLOCK_TICK_MS = 15_000;
 
 function subscribe(onTick: () => void): () => void {
   const timer = window.setInterval(onTick, CLOCK_TICK_MS);
