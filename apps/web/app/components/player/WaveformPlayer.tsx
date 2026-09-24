@@ -99,7 +99,8 @@ export function WaveformPlayer({
           playsInline
           w="100%"
           bg="black"
-          style={{ aspectRatio: "16 / 9", display: "block" }}
+          display="block"
+          style={{ aspectRatio: "16 / 9" }}
           {...mediaProps}
         />
       ) : (

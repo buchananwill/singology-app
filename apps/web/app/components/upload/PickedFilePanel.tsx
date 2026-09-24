@@ -72,7 +72,7 @@ export function PickedFilePanel({
           {...previewProps}
         />
       ) : (
-        <audio style={{ width: "100%" }} {...previewProps} />
+        <Box component="audio" w="100%" {...previewProps} />
       )}
       {!playable && (
         <Text size="sm" c="red" role="alert">
