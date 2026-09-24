@@ -1,5 +1,5 @@
 import { Anchor, Badge, Container, Group, Stack, Text, Timeline, Title } from "@mantine/core";
-import { indexById, type MediaAsset, type Submission } from "@singology/shared";
+import { groupBy, indexById, type MediaAsset, type Submission } from "@singology/shared";
 import { Link } from "react-router";
 
 import { AbCompare } from "../components/compare/AbCompare";
@@ -14,33 +14,28 @@ interface Take {
   asset: MediaAsset;
 }
 
+function latestTakeAt(takes: readonly Take[]): string {
+  return takes.at(-1)?.submission.submittedAt ?? "";
+}
+
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const submissions = await repositories.submissions.forStudent(context.get(studentIdContext));
   const assets = await repositories.media.getMany(submissions.map((s) => s.mediaId));
   const assetById = indexById(assets);
 
-  const byItem = new Map<string, Take[]>();
-  for (const submission of [...submissions].sort((x, y) =>
-    x.submittedAt.localeCompare(y.submittedAt),
-  )) {
-    const asset = assetById.get(submission.mediaId);
-    if (asset) {
-      byItem.set(submission.libraryItemId, [
-        ...(byItem.get(submission.libraryItemId) ?? []),
-        { submission, asset },
-      ]);
-    }
-  }
+  const takes = submissions
+    .toSorted((x, y) => x.submittedAt.localeCompare(y.submittedAt))
+    .flatMap((submission): Take[] => {
+      const asset = assetById.get(submission.mediaId);
+      return asset === undefined ? [] : [{ submission, asset }];
+    });
+  const byItem = groupBy(takes, (take) => take.submission.libraryItemId);
 
   const items = await repositories.library.getMany([...byItem.keys()]);
-  const exercises = items.map((item) => ({ item, takes: byItem.get(item.id) ?? [] }));
-  // Most recently practised exercise first.
-  exercises.sort((x, y) =>
-    (y.takes.at(-1)?.submission.submittedAt ?? "").localeCompare(
-      x.takes.at(-1)?.submission.submittedAt ?? "",
-    ),
-  );
+  const exercises = items
+    .map((item) => ({ item, takes: byItem.get(item.id) ?? [] }))
+    .toSorted((x, y) => latestTakeAt(y.takes).localeCompare(latestTakeAt(x.takes)));
 
   // A/B: the two latest takes of the most recent exercise that has at least two.
   const comparable = exercises.find((exercise) => exercise.takes.length >= 2);
