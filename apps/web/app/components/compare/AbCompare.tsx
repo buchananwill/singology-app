@@ -1,11 +1,8 @@
 import { Button, Card, Group, SegmentedControl, SimpleGrid, Stack, Text } from "@mantine/core";
 import type { MediaAsset } from "@singology/shared";
-import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { PlayerHandle } from "../player/PlayerProvider";
 import { StandalonePlayer } from "../player/StandalonePlayer";
-
-type Side = "a" | "b";
+import { type AbSide, useAbTransport } from "./useAbTransport";
 
 export interface AbTake {
   asset: MediaAsset;
@@ -18,95 +15,10 @@ interface AbCompareProps {
   b: AbTake;
 }
 
-function other(side: Side): Side {
-  return side === "a" ? "b" : "a";
-}
-
-/**
- * A/B compare of two takes (spec decision 15): two waveform players side by
- * side, each in its own `PlayerProvider`, and one shared control that plays
- * the chosen take and switches between them at the same position. Only one
- * take plays at a time, even when a player's own Play button is used.
- * Key it by the two takes so a new pair remounts it.
- */
+/** Key it by the two takes so a new pair remounts it. */
 export function AbCompare({ a, b }: AbCompareProps) {
-  const handles = useRef<Record<Side, PlayerHandle | null>>({ a: null, b: null });
-  const [active, setActive] = useState<Side>("a");
-  const [playing, setPlaying] = useState(false);
-
-  const setHandleA = useCallback((handle: PlayerHandle | null) => {
-    handles.current.a = handle;
-  }, []);
-  const setHandleB = useCallback((handle: PlayerHandle | null) => {
-    handles.current.b = handle;
-  }, []);
-
-  // Follow the media elements, so the shared control stays right when a player's own controls are used.
-  useEffect(() => {
-    const elements = {
-      a: handles.current.a?.getMediaElement() ?? null,
-      b: handles.current.b?.getMediaElement() ?? null,
-    };
-    const cleanups: (() => void)[] = [];
-    for (const side of ["a", "b"] as const) {
-      const element = elements[side];
-      if (element === null) {
-        continue;
-      }
-      const onPlay = () => {
-        elements[other(side)]?.pause();
-        setActive(side);
-        setPlaying(true);
-      };
-      const onPause = () => {
-        if (elements[other(side)]?.paused ?? true) {
-          setPlaying(false);
-        }
-      };
-      element.addEventListener("play", onPlay);
-      element.addEventListener("pause", onPause);
-      cleanups.push(() => {
-        element.removeEventListener("play", onPlay);
-        element.removeEventListener("pause", onPause);
-      });
-    }
-    return () => {
-      for (const cleanup of cleanups) {
-        cleanup();
-      }
-    };
-  }, []);
-
-  function switchTo(next: Side) {
-    const from = handles.current[active];
-    const to = handles.current[next];
-    setActive(next);
-    if (next === active || !from || !to) {
-      return;
-    }
-    const wasPlaying = playing;
-    const position = from.getCurrentTime();
-    from.pause();
-    to.seek(position);
-    if (wasPlaying) {
-      void to.play();
-    }
-  }
-
-  function togglePlay() {
-    const handle = handles.current[active];
-    if (!handle) {
-      return;
-    }
-    if (playing) {
-      handles.current.a?.pause();
-      handles.current.b?.pause();
-    } else {
-      void handle.play();
-    }
-  }
-
-  const takes: Record<Side, AbTake> = { a, b };
+  const { active, playing, setHandleA, setHandleB, switchTo, togglePlay } = useAbTransport();
+  const takes: Record<AbSide, AbTake> = { a, b };
 
   return (
     <Stack gap="md" data-testid="ab-compare">
