@@ -12,7 +12,7 @@ describe("reviewSla", () => {
     const sla = reviewSla(SUBMITTED, submittedMs + 26 * HOUR_MS, TURNAROUND_HOURS);
     expect(sla).toEqual({
       dueAtMs: submittedMs + TURNAROUND_HOURS * HOUR_MS,
-      remainingMs: 46 * HOUR_MS,
+      remainingMs: (TURNAROUND_HOURS - 26) * HOUR_MS,
       state: "on_track",
     });
   });
@@ -28,9 +28,10 @@ describe("reviewSla", () => {
     expect(
       reviewSla(SUBMITTED, submittedMs + TURNAROUND_HOURS * HOUR_MS, TURNAROUND_HOURS).state,
     ).toBe("overdue");
-    expect(reviewSla(SUBMITTED, submittedMs + 80 * HOUR_MS, TURNAROUND_HOURS).remainingMs).toBe(
-      -8 * HOUR_MS,
-    );
+    expect(
+      reviewSla(SUBMITTED, submittedMs + (TURNAROUND_HOURS + 8) * HOUR_MS, TURNAROUND_HOURS)
+        .remainingMs,
+    ).toBe(-8 * HOUR_MS);
   });
 
   it("takes the coach's own turnaround", () => {
