@@ -2,36 +2,7 @@ import { Button, Group } from "@mantine/core";
 import type { DemoRole } from "@singology/shared";
 import { Link, useLocation } from "react-router";
 
-interface NavItem {
-  label: string;
-  to: string;
-  /** Whether the item is the current section for `pathname`. */
-  isActive(pathname: string): boolean;
-}
-
-const NAV_ITEMS: Record<DemoRole, readonly NavItem[]> = {
-  student: [
-    {
-      label: "This week",
-      to: "/student",
-      isActive: (pathname) =>
-        pathname === "/student" ||
-        pathname.startsWith("/student/exercises/") ||
-        pathname.startsWith("/student/submissions/"),
-    },
-    { label: "Library", to: "/library", isActive: (pathname) => pathname === "/library" },
-    {
-      label: "Progress",
-      to: "/student/progress",
-      isActive: (pathname) => pathname === "/student/progress",
-    },
-  ],
-  coach: [
-    // The queue stays current inside a review (/coach/reviews/:id).
-    { label: "Queue", to: "/coach", isActive: (pathname) => pathname.startsWith("/coach") },
-    { label: "Library", to: "/library", isActive: (pathname) => pathname === "/library" },
-  ],
-};
+import { NAV_ITEMS } from "./navItems";
 
 export interface RoleNavProps {
   role: DemoRole;

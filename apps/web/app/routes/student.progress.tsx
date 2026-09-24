@@ -1,6 +1,6 @@
 import { Anchor, Badge, Container, Group, Stack, Text, Timeline, Title } from "@mantine/core";
 import { groupBy, indexById, type MediaAsset, type Submission } from "@singology/shared";
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 import { AbCompare } from "../components/compare/AbCompare";
 import { repositoriesContext, studentIdContext } from "../context";
@@ -85,7 +85,12 @@ export default function StudentProgress({ loaderData }: Route.ComponentProps) {
           {exercises.map(({ item, takes }) => (
             <Stack key={item.id} gap="xs" data-testid="progress-exercise">
               <Group gap="xs">
-                <Anchor component={Link} to={`/student/exercises/${item.id}`} c="inherit" fw={600}>
+                <Anchor
+                  component={Link}
+                  to={href("/student/exercises/:id", { id: item.id })}
+                  c="inherit"
+                  fw={600}
+                >
                   {item.title}
                 </Anchor>
                 <Badge variant="light" size="sm">
@@ -101,7 +106,7 @@ export default function StudentProgress({ loaderData }: Route.ComponentProps) {
                     {submission.status === "reviewed" ? (
                       <Anchor
                         component={Link}
-                        to={`/student/submissions/${submission.id}`}
+                        to={href("/student/submissions/:id", { id: submission.id })}
                         size="sm"
                       >
                         Feedback ready

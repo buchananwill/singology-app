@@ -1,6 +1,6 @@
 import { Anchor, Badge, Button, Group } from "@mantine/core";
 import type { DemoRole } from "@singology/shared";
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 const ROLE_LABEL: Record<DemoRole, string> = {
   student: "Student view",
@@ -16,11 +16,11 @@ export interface AppHeaderProps {
 export function AppHeader({ role }: AppHeaderProps) {
   return (
     <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-      <Anchor component={Link} to="/" fw={700} fz="xl" c="inherit" underline="never">
+      <Anchor component={Link} to={href("/")} fw={700} fz="xl" c="inherit" underline="never">
         Singology
       </Anchor>
       {role === null ? (
-        <Button component={Link} to="/demo" size="xs" variant="light">
+        <Button component={Link} to={href("/demo")} size="xs" variant="light">
           Try the demo
         </Button>
       ) : (
@@ -28,7 +28,7 @@ export function AppHeader({ role }: AppHeaderProps) {
           <Badge variant="light" data-testid="current-role">
             {ROLE_LABEL[role]}
           </Badge>
-          <Anchor component={Link} to="/demo" size="sm">
+          <Anchor component={Link} to={href("/demo")} size="sm">
             Switch view
           </Anchor>
         </Group>

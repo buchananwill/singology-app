@@ -2,17 +2,13 @@ import { Badge, Button, Card, Container, SimpleGrid, Stack, Text, Title } from "
 import { DemoRoleChoiceSchema, type DemoRole } from "@singology/shared";
 import { data, Form, redirect } from "react-router";
 
+import { HOME_FOR_ROLE } from "../components/shell/navItems";
 import { demoRoleContext } from "../context";
 import { serializeDemoRole } from "../demo/roleCookie.server";
 import { type ActionResult, parseInput } from "../lib/actionResult";
 import type { Route } from "./+types/demo";
 
 export const meta: Route.MetaFunction = () => [{ title: "Try the demo | Singology" }];
-
-const HOME_FOR_ROLE: Record<DemoRole, string> = {
-  student: "/student",
-  coach: "/coach",
-};
 
 export function loader({ context }: Route.LoaderArgs) {
   return { role: context.get(demoRoleContext) };

@@ -1,6 +1,6 @@
 import { Anchor, Badge, Container, Group, List, Stack, Text, Title } from "@mantine/core";
 import { type Assignment, RecordingUploadSchema } from "@singology/shared";
-import { data, Link } from "react-router";
+import { data, href, Link } from "react-router";
 
 import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { UploadPanel } from "../components/upload/UploadPanel";
@@ -154,7 +154,7 @@ export default function StudentExercise({ loaderData }: Route.ComponentProps) {
               {previousTakes.map((take) => (
                 <List.Item key={take.id}>
                   {take.reviewed ? (
-                    <Anchor component={Link} to={`/student/submissions/${take.id}`}>
+                    <Anchor component={Link} to={href("/student/submissions/:id", { id: take.id })}>
                       {formatDate(take.submittedAt)}: feedback ready
                     </Anchor>
                   ) : (

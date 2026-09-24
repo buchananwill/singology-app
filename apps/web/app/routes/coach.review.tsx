@@ -2,7 +2,7 @@ import { Anchor, Badge, Card, Container, Grid, Group, Stack, Text, Title } from 
 import type { Repositories } from "@singology/db";
 import { type RecordingUpload, reviewActionSchemaFor, type SendFeedback } from "@singology/shared";
 import { useReducer } from "react";
-import { data, Link, useFetcher } from "react-router";
+import { data, href, Link, useFetcher } from "react-router";
 
 import { CommentList } from "../components/player/CommentList";
 import { StandalonePlayer } from "../components/player/StandalonePlayer";
@@ -191,7 +191,7 @@ function ReviewWorkspace({
     <Container size="lg">
       <Stack gap="lg">
         <div>
-          <Anchor component={Link} to="/coach" size="sm">
+          <Anchor component={Link} to={href("/coach")} size="sm">
             ← Review queue
           </Anchor>
           <Title order={1}>Review: {student.displayName}</Title>

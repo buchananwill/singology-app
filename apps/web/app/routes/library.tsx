@@ -17,7 +17,7 @@ import {
   VOICE_TYPES,
   VoiceTypeSchema,
 } from "@singology/shared";
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 import { demoRoleContext, repositoriesContext } from "../context";
 import { CATEGORY_LABEL, VOICE_TYPE_LABEL } from "../lib/format";
@@ -47,7 +47,7 @@ function libraryHref(filter: LibraryFilter): string {
     params.set(PARAM.voiceType, filter.voiceType);
   }
   const query = params.toString();
-  return query ? `/library?${query}` : "/library";
+  return query ? `${href("/library")}?${query}` : href("/library");
 }
 
 export async function loader({ context, request }: Route.LoaderArgs) {
@@ -145,7 +145,11 @@ export default function Library({ loaderData }: Route.ComponentProps) {
               <Stack gap="xxs">
                 <Group justify="space-between" wrap="nowrap" align="flex-start">
                   {linkToExercises ? (
-                    <Anchor component={Link} to={`/student/exercises/${item.id}`} fw={600}>
+                    <Anchor
+                      component={Link}
+                      to={href("/student/exercises/:id", { id: item.id })}
+                      fw={600}
+                    >
                       {item.title}
                     </Anchor>
                   ) : (
@@ -170,7 +174,7 @@ export default function Library({ loaderData }: Route.ComponentProps) {
         {items.length === 0 && (
           <Text>
             No exercises match.{" "}
-            <Anchor component={Link} to="/library">
+            <Anchor component={Link} to={href("/library")}>
               Clear the filters
             </Anchor>
           </Text>

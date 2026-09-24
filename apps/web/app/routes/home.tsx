@@ -10,7 +10,7 @@ import {
   Title,
 } from "@mantine/core";
 import type { CoachOffer } from "@singology/shared";
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 import { CoachCard } from "../components/CoachCard";
 import { repositoriesContext } from "../context";
@@ -73,7 +73,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             comments pinned to the moments that matter.
           </Text>
           <Box>
-            <Button component={Link} to="/demo" size="md">
+            <Button component={Link} to={href("/demo")} size="md">
               Try the demo
             </Button>
           </Box>
@@ -148,7 +148,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             The demo uses sample data, so you can look around as a student or as a coach without
             signing up.
           </Text>
-          <Button component={Link} to="/demo">
+          <Button component={Link} to={href("/demo")}>
             Try the demo
           </Button>
         </Stack>

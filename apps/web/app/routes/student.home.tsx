@@ -1,6 +1,6 @@
 import { Anchor, Badge, Button, Card, Container, Group, Stack, Text, Title } from "@mantine/core";
 import { indexById } from "@singology/shared";
-import { data, Link } from "react-router";
+import { data, href, Link } from "react-router";
 
 import { repositoriesContext, studentIdContext } from "../context";
 import {
@@ -87,14 +87,22 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
             <Card key={assignment.id} withBorder padding="md" data-testid="assignment">
               <Group justify="space-between" wrap="nowrap" align="flex-start">
                 <Stack gap="xxs">
-                  <Anchor component={Link} to={`/student/exercises/${item.id}`} fw={600}>
+                  <Anchor
+                    component={Link}
+                    to={href("/student/exercises/:id", { id: item.id })}
+                    fw={600}
+                  >
                     {item.title}
                   </Anchor>
                   <Text size="sm" c="dimmed">
                     {CATEGORY_LABEL[item.category]} · set {formatDate(assignment.assignedAt)}
                   </Text>
                   {assignment.status === "feedback_ready" && submissionId !== undefined && (
-                    <Anchor component={Link} to={`/student/submissions/${submissionId}`} size="sm">
+                    <Anchor
+                      component={Link}
+                      to={href("/student/submissions/:id", { id: submissionId })}
+                      size="sm"
+                    >
                       Read the feedback
                     </Anchor>
                   )}
@@ -129,7 +137,7 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
                 <Group>
                   <Button
                     component={Link}
-                    to={`/student/submissions/${latestFeedback.submissionId}`}
+                    to={href("/student/submissions/:id", { id: latestFeedback.submissionId })}
                     size="sm"
                   >
                     Listen with comments

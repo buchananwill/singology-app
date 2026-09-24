@@ -1,7 +1,7 @@
 import { Box, Button, Card, Stack, Text, Textarea, Title } from "@mantine/core";
 import type { RecordingUpload, SendFeedback } from "@singology/shared";
 import type { Dispatch } from "react";
-import { Link, useFetcher } from "react-router";
+import { href, Link, useFetcher } from "react-router";
 
 import type { MessageResult } from "../../lib/actionResult";
 import { useActionNotification } from "../../lib/useActionNotification";
@@ -57,7 +57,7 @@ export function SendFeedbackCard({
         </Title>
         {sent ? (
           <SuccessState title="Feedback sent" message={result.message} testId="send-success">
-            <Button component={Link} to="/coach" variant="light">
+            <Button component={Link} to={href("/coach")} variant="light">
               Back to the review queue
             </Button>
           </SuccessState>

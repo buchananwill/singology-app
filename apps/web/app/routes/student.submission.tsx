@@ -10,7 +10,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { data, Link } from "react-router";
+import { data, href, Link } from "react-router";
 
 import { CommentList } from "../components/player/CommentList";
 import { StandalonePlayer } from "../components/player/StandalonePlayer";
@@ -67,7 +67,7 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
         <div>
           <Text size="sm" c="dimmed">
             {CATEGORY_LABEL[item.category]} ·{" "}
-            <Anchor component={Link} to={`/student/exercises/${item.id}`} size="sm">
+            <Anchor component={Link} to={href("/student/exercises/:id", { id: item.id })} size="sm">
               {item.title}
             </Anchor>
           </Text>
@@ -142,7 +142,7 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
             <List>
               {next.map((nextItem) => (
                 <List.Item key={nextItem.id}>
-                  <Anchor component={Link} to={`/student/exercises/${nextItem.id}`}>
+                  <Anchor component={Link} to={href("/student/exercises/:id", { id: nextItem.id })}>
                     {nextItem.title}
                   </Anchor>
                 </List.Item>

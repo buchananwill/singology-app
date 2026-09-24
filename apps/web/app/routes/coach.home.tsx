@@ -1,6 +1,6 @@
 import { Badge, Button, Card, Container, Group, List, Stack, Text, Title } from "@mantine/core";
 import { reviewSla, type ReviewSlaState } from "@singology/shared";
-import { data, Link } from "react-router";
+import { data, href, Link } from "react-router";
 
 import { PlainOrderedList } from "../components/PlainOrderedList";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
@@ -94,7 +94,11 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
                             turnaroundHours,
                           )}
                         </Text>
-                        <Button component={Link} to={`/coach/reviews/${submission.id}`} size="sm">
+                        <Button
+                          component={Link}
+                          to={href("/coach/reviews/:submissionId", { submissionId: submission.id })}
+                          size="sm"
+                        >
                           Review
                         </Button>
                       </Group>
