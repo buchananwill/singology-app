@@ -354,6 +354,16 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **Side effect:** Prettier reformatted `.claude/agents/*.md` (not in `.prettierignore`). This is layout only and accepted.
 - **Fix-cycle review of `cfc4eb5..356d201`:** all seven Wave 1 findings (S-B2, S-B3, S-B7, S-B8, S-B9, S-B10, S-N8) are **CLOSED by shape change**. The fixes introduced 5 new BLOCKING issues and 5 NOTEs, **which the lead accepted in full as Wave 1b** in [facade-review-fixes.md](./facade-review-fixes.md). The most important: the six superseded repository methods stayed on the interface the slice must implement.
 
+**F19. Review-fix waves 1b and 2 have landed** (`6fe3273` to `b235007`, 22 commits).
+- **Lead re-verification:** `pnpm test` passes 131 tests (24 + 8 + 48 + 51); lint is clean; the tree is clean. The delegate reports build and e2e passing 47 with 3 skipped after each wave.
+- **`WaveformPlayer.tsx` went from 356 to 126 lines** via `useWaveformInstance({ containerRef, mediaRef, asset, comments, loop, dispatch, height, theme })` plus `PlayerControls`. New primitives: `StandalonePlayer`, `useActionNotification(fetcher, successTitle)`, `readJson`, `MessageResult`, `indexById`. The six dead repository methods are deleted, and `zod` is now dev-only in `apps/web`.
+- **Accepted interpretations:**
+  - the waveform turns **teal (brand)** from default blue, a deliberate visible change per S-B15;
+  - new spacing tokens `xxs` (4 px) and `xxl` (48 px); 6 px gaps become 4 px;
+  - `mah={320}` stays on the video preview;
+  - `student.home` keeps a `flatMap` over assignments, **because two assignments can share one library item, so mapping over items would change the rows**. The fix-list wording was wrong here, and the implementer correctly preserved behaviour.
+- **Fix-cycle reviews (style and React) on `354b449..HEAD` are running.**
+
 **F17. The facade is deployed (2026-09-24), by the user, at `https://singology-facade.resort-reference-gallery.workers.dev`** (Worker `singology-facade`, version `d176313f-cfc4-448e-a052-070224027569`). Built from `facade` at the reviewed code; the commits since are notes only.
 - **Account facts** (read-only API inspection by the lead, token never printed):
   - the `workers.dev` subdomain is `resort-reference-gallery`, shared with the user's other Worker `resort-reference`;
