@@ -11,7 +11,7 @@ export interface WaveformTheme {
 
 // wavesurfer paints on a canvas, which cannot read CSS variables, so its colours are plain values.
 export function waveformTheme(theme: MantineTheme): WaveformTheme {
-  const brand = theme.colors[theme.primaryColor] ?? theme.colors.blue;
+  const brand = theme.colors.brand;
   const comment = theme.colors.orange[8];
   return {
     wave: theme.colors.gray[5],

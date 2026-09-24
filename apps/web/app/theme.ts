@@ -1,4 +1,10 @@
-import { createTheme, type MantineColorsTuple, rem } from "@mantine/core";
+import { createTheme, type DefaultMantineColor, type MantineColorsTuple, rem } from "@mantine/core";
+
+declare module "@mantine/core" {
+  export interface MantineThemeColorsOverride {
+    colors: Record<DefaultMantineColor | "brand", MantineColorsTuple>;
+  }
+}
 
 /**
  * Placeholder brand colour (a muted teal). Replace once the founder picks
