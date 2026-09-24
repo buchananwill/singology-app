@@ -342,6 +342,15 @@ It deploys to Workers (free) behind Cloudflare Access with an email-PIN allow-li
 - **singology-style-decomposition-reviewer** (the D34 agent's first run): 19 BLOCKING, 8 NOTE. The pattern is **cross-stage duplication**, where separate delegates solved the same problem independently, plus loaders doing record assembly and ownership checks that belong behind `Repositories`.
 **Lesson for future briefs: name the shared helpers (formatters, result types, test helpers) in every stage brief.** The arc-lead skill's "name shared primitives" rule was under-applied across stages 2 to 3b.
 
+**F17. The facade is deployed (2026-09-24), by the user, at `https://singology-facade.resort-reference-gallery.workers.dev`** (Worker `singology-facade`, version `d176313f-cfc4-448e-a052-070224027569`). Built from `facade` at the reviewed code; the commits since are notes only.
+- **Account facts** (read-only API inspection by the lead, token never printed):
+  - the `workers.dev` subdomain is `resort-reference-gallery`, shared with the user's other Worker `resort-reference`;
+  - the Zero Trust team domain is `aged-firefly-81d4.cloudflareaccess.com`;
+  - wrangler's OAuth token has no Access scope, so **Access must be configured in the dashboard**.
+- **Gating check right after deploy:** the facade returned `200` (public), so the existing Access policy is per-Worker, not account-wide. `resort-reference` still returned `302` to its Access login (unaffected). **The user is gating the facade with an email allow-list (the user plus the founder).** The subdomain separation is to be cleaned up later, by user decision.
+- **Bundle finding (updates pitfall 13):** the chunk over 500 kB is `hls.js` (575 kB minified, 179 kB gzip). It is already dynamically imported only when an HLS source plays, so it doesn't weigh on the audio-first student pages.
+- **Operational:** the agent auto-mode classifier refuses `wrangler deploy` from the lead, so **deploys are run by the user** (`! pnpm --filter @singology/web exec wrangler deploy` after `pnpm --filter @singology/web run build`). The "No projects matched the filters" warning is pitfall 5 (path case); the deploy still resolves the right build.
+
 **F15. Final facade verification by the lead (2026-09-24).** After a forced reinstall from the lockfile, the lead ran `pnpm test` (105 pass) and `pnpm test:e2e` (47 pass, 3 skipped by design) on the final tree. The lead reviewed screenshots of the landing page (375 px), the student feedback view (375 px) and the coach review workspace (1280 px): they are coherent, readable and on-message. The one new pitfall is chunks over 500 kB (pitfall 13), a slice concern.
 
 **F5. WP4 and WP5 differ slightly on CoachNow.** WP4 says there's no multi-coach payout from one sale. WP5 found that CoachNow Academy has Stripe Connect and multi-coach roles, but per-coach pricing is unverified. The lead's re-fetch confirms Academy includes "Invoicing and Billing through Stripe Connect" and "Flexible Multi-Coach Pricing Available". **The difference doesn't affect the plan:** the pilot takes payment through Stripe Payment Links outside the tool, and the build owns its DB either way.
