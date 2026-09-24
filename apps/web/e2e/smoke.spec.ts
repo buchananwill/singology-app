@@ -115,10 +115,12 @@ test("the landing page shows both coaches and the illustrative pricing", async (
   const pricing = page.getByTestId("pricing-table");
   await expect(pricing).toContainText("Illustrative pricing");
   await expect(pricing.getByRole("row", { name: /Singology founder/ })).toContainText(
-    "£80 a month",
+    "£80 a month for 4 reviews",
   );
   await expect(pricing.getByRole("row", { name: /Singology founder/ })).toContainText("£25");
-  await expect(pricing.getByRole("row", { name: /Standard coach/ })).toContainText("£45 a month");
+  await expect(pricing.getByRole("row", { name: /Standard coach/ })).toContainText(
+    "£45 a month for 4 reviews",
+  );
   await expect(pricing.getByRole("row", { name: /Standard coach/ })).toContainText("£12");
   await page.getByRole("link", { name: "Try the demo" }).first().click();
   await expect(page).toHaveURL(/\/demo$/);

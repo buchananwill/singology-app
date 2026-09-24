@@ -9,6 +9,7 @@ import {
   ThemeIcon,
   Title,
 } from "@mantine/core";
+import type { CoachOffer } from "@singology/shared";
 import { Link } from "react-router";
 
 import { CoachCard } from "../components/CoachCard";
@@ -35,6 +36,12 @@ export async function loader({ context }: Route.LoaderArgs) {
       single: offers.find((offer) => offer.billing === "single"),
     })),
   };
+}
+
+/** A monthly offer as `£80 a month for 4 reviews`. */
+function formatMonthlyOffer({ pricePence, submissionsPerPeriod }: CoachOffer): string {
+  const reviews = submissionsPerPeriod === 1 ? "review" : "reviews";
+  return `${formatPence(pricePence)} a month for ${submissionsPerPeriod} ${reviews}`;
 }
 
 const STEPS = [
@@ -114,7 +121,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Coach</Table.Th>
-                <Table.Th>Monthly, 4 reviews</Table.Th>
+                <Table.Th>Monthly plan</Table.Th>
                 <Table.Th>Single review</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -122,16 +129,15 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               {coaches.map(({ coach, monthly, single }) => (
                 <Table.Tr key={coach.id}>
                   <Table.Th scope="row">{coach.displayName}</Table.Th>
-                  <Table.Td>
-                    {monthly ? `${formatPence(monthly.pricePence)} a month` : "–"}
-                  </Table.Td>
+                  <Table.Td>{monthly ? formatMonthlyOffer(monthly) : "–"}</Table.Td>
                   <Table.Td>{single ? formatPence(single.pricePence) : "–"}</Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>
           </Table>
           <Text size="sm" c="dimmed">
-            A monthly plan includes four reviews a month. A single review is a way to try it once.
+            A monthly plan includes the number of reviews shown, every month. A single review is a
+            way to try it once.
           </Text>
         </Stack>
 
