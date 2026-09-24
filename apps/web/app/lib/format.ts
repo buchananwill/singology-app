@@ -35,8 +35,11 @@ export function formatTimestamp(seconds: number): string {
 
 const MINUTE_MS = 60 * 1000;
 
-/** Time since an event: `just now`, `12 min ago`, `26 hours ago`, `3 days ago`. */
-export function formatElapsed(ms: number): string {
+/**
+ * Time since an event: `just now`, `12 min ago`, `26 hours ago`, `3 days ago`.
+ * Counts in hours below `hoursUntilDays`, so a review window reads precisely.
+ */
+export function formatElapsed(ms: number, hoursUntilDays: number): string {
   const minutes = Math.floor(Math.max(0, ms) / MINUTE_MS);
   if (minutes < 1) {
     return "just now";
@@ -45,8 +48,7 @@ export function formatElapsed(ms: number): string {
     return `${minutes} min ago`;
   }
   const hours = Math.floor(minutes / 60);
-  // Hours across the whole 72-hour review window, so the queue reads precisely.
-  if (hours < 72) {
+  if (hours < hoursUntilDays) {
     return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
   }
   return `${Math.floor(hours / 24)} days ago`;

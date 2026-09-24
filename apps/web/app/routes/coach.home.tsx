@@ -92,7 +92,11 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
                     )}
                     <Group justify="space-between" align="center" wrap="wrap" gap="xs">
                       <Text size="sm" c="dimmed" data-testid="queue-submitted">
-                        Submitted {formatElapsed(now - new Date(submission.submittedAt).getTime())}
+                        Submitted{" "}
+                        {formatElapsed(
+                          now - new Date(submission.submittedAt).getTime(),
+                          turnaroundHours,
+                        )}
                       </Text>
                       <Button component={Link} to={`/coach/reviews/${submission.id}`} size="sm">
                         Review

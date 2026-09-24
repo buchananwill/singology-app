@@ -44,13 +44,14 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     throw data("Submission not found", { status: 404 });
   }
   const { submission, enrolment } = found;
-  const [student, item, take, reviewed] = await Promise.all([
+  const [coach, student, item, take, reviewed] = await Promise.all([
+    repositories.coaches.get(enrolment.coachId),
     repositories.students.get(enrolment.studentId),
     repositories.library.get(submission.libraryItemId),
     repositories.media.get(submission.mediaId),
     repositories.feedback.forSubmissionWithComments(submission.id),
   ]);
-  if (!student || !item || !take) {
+  if (!coach || !student || !item || !take) {
     throw data("Submission data not found", { status: 404 });
   }
   const [previous, library] = await Promise.all([
@@ -59,6 +60,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   ]);
   return {
     now: context.get(requestTimeContext).getTime(),
+    turnaroundHours: coach.turnaroundHours,
     submission,
     student,
     item,
@@ -157,6 +159,7 @@ type ReviewWorkspaceProps = Route.ComponentProps["loaderData"];
 
 function ReviewWorkspace({
   now,
+  turnaroundHours,
   submission,
   student,
   item,
@@ -187,7 +190,7 @@ function ReviewWorkspace({
           </Group>
           <Text size="sm" c="dimmed">
             Submitted {formatDate(submission.submittedAt)} (
-            {formatElapsed(now - new Date(submission.submittedAt).getTime())})
+            {formatElapsed(now - new Date(submission.submittedAt).getTime(), turnaroundHours)})
           </Text>
         </div>
 

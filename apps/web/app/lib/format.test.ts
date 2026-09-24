@@ -29,11 +29,19 @@ describe("format", () => {
 
   it("formats time since an event", () => {
     const minute = 60 * 1000;
-    expect(formatElapsed(20 * 1000)).toBe("just now");
-    expect(formatElapsed(12 * minute)).toBe("12 min ago");
-    expect(formatElapsed(60 * minute)).toBe("1 hour ago");
-    expect(formatElapsed(62 * 60 * minute)).toBe("62 hours ago");
-    expect(formatElapsed(12.5 * 24 * 60 * minute)).toBe("12 days ago");
+    expect(formatElapsed(20 * 1000, 72)).toBe("just now");
+    expect(formatElapsed(12 * minute, 72)).toBe("12 min ago");
+    expect(formatElapsed(60 * minute, 72)).toBe("1 hour ago");
+    expect(formatElapsed(62 * 60 * minute, 72)).toBe("62 hours ago");
+    expect(formatElapsed(12.5 * 24 * 60 * minute, 72)).toBe("12 days ago");
+  });
+
+  it("switches from hours to days at the given threshold", () => {
+    const hour = 60 * 60 * 1000;
+    expect(formatElapsed(47 * hour, 48)).toBe("47 hours ago");
+    expect(formatElapsed(48 * hour, 48)).toBe("2 days ago");
+    expect(formatElapsed(71 * hour, 72)).toBe("71 hours ago");
+    expect(formatElapsed(72 * hour, 72)).toBe("3 days ago");
   });
 
   it("formats time left before a deadline", () => {
