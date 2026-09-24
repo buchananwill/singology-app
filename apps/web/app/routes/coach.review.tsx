@@ -16,6 +16,7 @@ import { UploadPanel } from "../components/upload/UploadPanel";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import { type MessageResult, parseInput, readJson } from "../lib/actionResult";
 import { CATEGORY_LABEL, formatDate, formatElapsed } from "../lib/format";
+import { useNow } from "../lib/useNow";
 import type { Route } from "./+types/coach.review";
 
 export const meta: Route.MetaFunction = ({ loaderData }) => [
@@ -154,6 +155,18 @@ export default function CoachReview({ loaderData }: Route.ComponentProps) {
   return <ReviewWorkspace key={loaderData.submission.id} {...loaderData} />;
 }
 
+interface SubmittedAgoProps {
+  serverNow: number;
+  submittedAt: string;
+  turnaroundHours: number;
+}
+
+// Its own component, so the live clock re-renders only this text.
+function SubmittedAgo({ serverNow, submittedAt, turnaroundHours }: SubmittedAgoProps) {
+  const now = useNow(serverNow);
+  return formatElapsed(now - new Date(submittedAt).getTime(), turnaroundHours);
+}
+
 type ReviewWorkspaceProps = Route.ComponentProps["loaderData"];
 
 function ReviewWorkspace({
@@ -189,7 +202,12 @@ function ReviewWorkspace({
           </Group>
           <Text size="sm" c="dimmed">
             Submitted {formatDate(submission.submittedAt)} (
-            {formatElapsed(now - new Date(submission.submittedAt).getTime(), turnaroundHours)})
+            <SubmittedAgo
+              serverNow={now}
+              submittedAt={submission.submittedAt}
+              turnaroundHours={turnaroundHours}
+            />
+            )
           </Text>
         </div>
 
