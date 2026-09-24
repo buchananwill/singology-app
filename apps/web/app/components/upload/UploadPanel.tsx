@@ -1,21 +1,10 @@
-import {
-  Box,
-  Button,
-  Card,
-  Group,
-  Input,
-  List,
-  Progress,
-  Stack,
-  Text,
-  Textarea,
-  Title,
-} from "@mantine/core";
+import { Box, Button, Card, Input, Stack, Title } from "@mantine/core";
 import { useId } from "react";
 
-import { formatBytes, formatDuration } from "../../lib/format";
 import { useHydrated } from "../../lib/useHydrated";
 import { SuccessState } from "../SuccessState";
+import { PickedFilePanel } from "./PickedFilePanel";
+import { RecorderTips } from "./RecorderTips";
 import { useUploadPanel } from "./useUploadPanel";
 
 export interface UploadPanelProps {
@@ -75,15 +64,6 @@ export function UploadPanel({
   } = useUploadPanel({ successTitle, fields, action, fetcherKey });
   const succeeded = result?.ok === true;
 
-  const previewProps = {
-    src: picked?.url,
-    controls: true,
-    preload: "metadata",
-    onLoadedMetadata,
-    onError: onPreviewError,
-    "data-testid": "upload-preview",
-  } as const;
-
   return (
     <Card withBorder padding="lg" data-testid="upload-panel">
       <Stack gap="md">
@@ -120,84 +100,25 @@ export function UploadPanel({
               />
             </Input.Wrapper>
 
-            <Box c="dimmed" fz="sm">
-              <Text size="sm" fw={600} c="dimmed">
-                Recommended recorder
-              </Text>
-              <List size="sm">
-                <List.Item>
-                  iPhone: Voice Memos with Lossless turned on, or the Camera app.
-                </List.Item>
-                <List.Item>Android: the built-in voice recorder.</List.Item>
-              </List>
-            </Box>
+            <RecorderTips />
 
             {picked !== null && (
-              <Stack gap="sm" data-testid="upload-file">
-                <Group gap="lg" wrap="wrap">
-                  <Text size="sm" data-testid="upload-file-name" style={{ wordBreak: "break-all" }}>
-                    <strong>File:</strong> {picked.file.name}
-                  </Text>
-                  <Text size="sm" data-testid="upload-file-size">
-                    <strong>Size:</strong> {formatBytes(picked.file.size)}
-                  </Text>
-                  <Text size="sm" data-testid="upload-file-duration">
-                    <strong>Length:</strong>{" "}
-                    {durationSec !== null
-                      ? formatDuration(durationSec)
-                      : playable
-                        ? "reading…"
-                        : "unknown"}
-                  </Text>
-                </Group>
-                {picked.kind === "video" ? (
-                  <Box
-                    component="video"
-                    playsInline
-                    w="100%"
-                    bg="black"
-                    display="block"
-                    mah={320}
-                    {...previewProps}
-                  />
-                ) : (
-                  <audio style={{ width: "100%" }} {...previewProps} />
-                )}
-                {!playable && (
-                  <Text size="sm" c="red" role="alert">
-                    This file can't be played in the browser. Try a different recording.
-                  </Text>
-                )}
-                {noteLabel !== undefined && (
-                  <Textarea
-                    label={noteLabel}
-                    value={note}
-                    onChange={(event) => setNote(event.currentTarget.value)}
-                    maxLength={1000}
-                    autosize
-                    minRows={2}
-                    disabled={busy}
-                  />
-                )}
-                {uploading && (
-                  <Progress
-                    value={progress}
-                    aria-label="Upload progress"
-                    data-testid="upload-progress"
-                    animated
-                  />
-                )}
-                {result?.ok === false && (
-                  <Text size="sm" c="red" role="alert">
-                    {result.error}
-                  </Text>
-                )}
-                <Box>
-                  <Button onClick={onSubmit} disabled={durationSec === null} loading={busy}>
-                    {submitLabel}
-                  </Button>
-                </Box>
-              </Stack>
+              <PickedFilePanel
+                picked={picked}
+                durationSec={durationSec}
+                playable={playable}
+                note={note}
+                noteLabel={noteLabel}
+                uploading={uploading}
+                progress={progress}
+                error={result?.ok === false ? result.error : null}
+                busy={busy}
+                submitLabel={submitLabel}
+                setNote={setNote}
+                onLoadedMetadata={onLoadedMetadata}
+                onPreviewError={onPreviewError}
+                onSubmit={onSubmit}
+              />
             )}
           </>
         )}
