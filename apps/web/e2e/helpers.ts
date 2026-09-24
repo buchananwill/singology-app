@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { expect, type Locator, type Page, type Request } from "@playwright/test";
+import type { DemoRole } from "@singology/shared";
 
 const MEDIA_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public/media");
 
@@ -73,7 +74,7 @@ export async function settle(page: Page): Promise<void> {
 }
 
 /** Picks a view on `/demo` the way a visitor does, which sets the role cookie. */
-export async function chooseRole(page: Page, role: "student" | "coach"): Promise<void> {
+export async function chooseRole(page: Page, role: DemoRole): Promise<void> {
   watchManifestRequests(page);
   await page.goto("/demo");
   // Let hydration finish first: a submit clicked mid-hydration was occasionally lost in WebKit.
