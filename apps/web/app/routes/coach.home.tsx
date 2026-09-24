@@ -2,7 +2,7 @@ import { Badge, Button, Card, Container, Group, List, Stack, Text, Title } from 
 import { reviewSla, type ReviewSlaState } from "@singology/shared";
 import { data, Link } from "react-router";
 
-import { FULL_WIDTH_LIST_ITEMS } from "../components/fullWidthListItems";
+import { PlainOrderedList } from "../components/PlainOrderedList";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import { CATEGORY_LABEL, formatElapsed, formatTimeLeft, formatTurnaround } from "../lib/format";
 import { useNow } from "../lib/useNow";
@@ -52,7 +52,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
         {items.length === 0 ? (
           <Text>Nothing waiting for review. Well done.</Text>
         ) : (
-          <List type="ordered" listStyleType="none" spacing="sm" styles={FULL_WIDTH_LIST_ITEMS}>
+          <PlainOrderedList spacing="sm">
             {items.map(({ submission, student, item, mediaKind }) => {
               const sla = reviewSla(submission.submittedAt, now, turnaroundHours);
               return (
@@ -103,7 +103,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
                 </List.Item>
               );
             })}
-          </List>
+          </PlainOrderedList>
         )}
       </Stack>
     </Container>

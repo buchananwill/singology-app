@@ -2,7 +2,7 @@ import { List, Text, UnstyledButton } from "@mantine/core";
 import type { FeedbackComment } from "@singology/shared";
 
 import { formatTimestamp } from "../../lib/format";
-import { FULL_WIDTH_LIST_ITEMS } from "../fullWidthListItems";
+import { PlainOrderedList } from "../PlainOrderedList";
 import { usePlayer } from "./PlayerProvider";
 
 export interface CommentListProps {
@@ -13,7 +13,7 @@ export interface CommentListProps {
 export function CommentList({ comments }: CommentListProps) {
   const { handle } = usePlayer();
   return (
-    <List type="ordered" listStyleType="none" spacing="xxs" styles={FULL_WIDTH_LIST_ITEMS}>
+    <PlainOrderedList spacing="xxs">
       {comments.map((comment, index) => (
         <List.Item key={comment.id}>
           <UnstyledButton
@@ -35,6 +35,6 @@ export function CommentList({ comments }: CommentListProps) {
           </UnstyledButton>
         </List.Item>
       ))}
-    </List>
+    </PlainOrderedList>
   );
 }
