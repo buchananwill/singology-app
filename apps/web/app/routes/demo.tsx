@@ -35,7 +35,7 @@ export async function action({ request }: Route.ActionArgs) {
   });
 }
 
-interface RoleCardProps {
+export interface RoleCardProps {
   role: DemoRole;
   title: string;
   description: string;

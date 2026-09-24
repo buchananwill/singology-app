@@ -7,7 +7,7 @@ const ROLE_LABEL: Record<DemoRole, string> = {
   coach: "Coach view",
 };
 
-interface AppHeaderProps {
+export interface AppHeaderProps {
   /** The role picked on `/demo`, or `null` before one is picked. */
   role: DemoRole | null;
 }

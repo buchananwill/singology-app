@@ -3,7 +3,10 @@ import type { Coach } from "@singology/shared";
 
 import { COACH_TIER_LABEL, formatTurnaround } from "../lib/format";
 
-type CoachCardProps = Pick<Coach, "displayName" | "tier" | "bio" | "avatarSrc" | "turnaroundHours">;
+export type CoachCardProps = Pick<
+  Coach,
+  "displayName" | "tier" | "bio" | "avatarSrc" | "turnaroundHours"
+>;
 
 /** A coach's placeholder avatar, name, tier, bio and turnaround promise. */
 export function CoachCard({ displayName, tier, bio, avatarSrc, turnaroundHours }: CoachCardProps) {

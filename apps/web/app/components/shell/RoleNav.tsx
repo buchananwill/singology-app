@@ -34,7 +34,11 @@ const NAV_ITEMS: Record<DemoRole, readonly NavItem[]> = {
 };
 
 /** The section links for the current role. Short labels so all fit in one row at 375px. */
-export function RoleNav({ role }: { role: DemoRole }) {
+export interface RoleNavProps {
+  role: DemoRole;
+}
+
+export function RoleNav({ role }: RoleNavProps) {
   const { pathname } = useLocation();
   return (
     <nav aria-label="Main">

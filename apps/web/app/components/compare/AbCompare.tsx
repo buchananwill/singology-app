@@ -10,7 +10,7 @@ export interface AbTake {
   label: string;
 }
 
-interface AbCompareProps {
+export interface AbCompareProps {
   a: AbTake;
   b: AbTake;
 }

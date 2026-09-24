@@ -9,7 +9,11 @@ import { usePlayer } from "./PlayerProvider";
  * The coach's timestamped comments as a list under the waveform. Clicking one
  * seeks the nearest player there. Render inside the same `PlayerProvider`.
  */
-export function CommentList({ comments }: { comments: readonly FeedbackComment[] }) {
+export interface CommentListProps {
+  comments: readonly FeedbackComment[];
+}
+
+export function CommentList({ comments }: CommentListProps) {
   const { handle } = usePlayer();
   return (
     <List type="ordered" listStyleType="none" spacing="xxs" styles={FULL_WIDTH_LIST_ITEMS}>
