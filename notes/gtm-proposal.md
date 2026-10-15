@@ -16,7 +16,7 @@ Evidence is in five research briefs: [01 video hosting](./research/01-video-host
 
 - **Build and own** (D9). The founder's standing and established choirs are the moat. Agentic development removes the build cost that used to make buying rational. The choir pilot runs on our own MVP.
 - **Video: Bunny Stream** for all media, with Cloudflare R2 plus our own pipeline as the fallback (D11). **YouTube is ruled out:** its API policy forbids charging users to watch embedded videos (D10). Vimeo stops fitting at about 1,000 students.
-- **Infrastructure cost is not the constraint.** At 1,000 students, video costs roughly **$225/month (about $0.23 per student)** under our retention policy, against roughly £35k/month of subscription revenue. The real constraints are coach time per review and VAT structure.
+- **Infrastructure cost is not the constraint.** At 1,000 students, video costs roughly **\$225/month (about $0.23 per student)** under our retention policy, against roughly £35k/month of subscription revenue. The real constraints are coach time per review and VAT structure.
 - **Copyright: there is no educational carve-out for a paid platform.** Strictly one-to-one private submissions are probably not "communication to the public", which keeps the risk low, but not nil. Product rules keep it that way: no sharing, no public links, no original master recordings as backing tracks.
 - **Client: web-first is right, but not blind.** The native-iOS case is real and specific: singing along to a guide track in headphones. Web-first holds because students record in the phone's own recorder app and upload the file, which avoids the browser's audio stack entirely (D16, D28). A pre-agreed trigger list governs any move to a Capacitor shell.
 - **Backend: own a Supabase (Postgres) database in London; bill through Stripe Connect.** There is one subscription per student–coach pair, and card data never touches us (D8).
@@ -53,15 +53,15 @@ This pricing assumes a review takes a coach 10–15 minutes. That figure is unve
 
 ### Verdicts
 
-| Option | Verdict | Why |
-|---|---|---|
+| Option | Verdict | Why                                                                                                                                                                                                                                                                                                                       |
+|---|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **YouTube** | **No** | API Developer Policies III.F.3.a: "API Clients must not charge users to watch content in an embedded YouTube player" (verified). Unlisted links can't be access-controlled or revoked. YouTube's branding and ads can't be removed. Uploads of pop covers go through Content ID. Upload quota is 100 per day per project. |
-| **Vimeo** | Pilot only | Every self-serve plan has a 2 TB/month bandwidth threshold. At 1,000 students, delivery is 5–21 TB/month, which forces unpriced Enterprise. Ownership changed in November 2025 (Bending Spoons). |
-| **Cloudflare Stream, Mux, api.video** | Good products, wrong pricing shape | They bill per stored minute. Student uploads pile up, so these cost 10–20 times more than per-GB hosts. They are viable for the 20-hour library alone (a hybrid option). |
-| **Bunny Stream** | **Primary** | $0.01/GB storage, free encoding, delivery from $0.005/GB (verified). Token-authenticated playback, our own player, resumable (tus) uploads, webhooks, and the original file can be kept. |
-| **Cloudflare R2 DIY** | **Fallback** | Egress is free. We build and own transcoding and access control. It wins if we keep several quality versions and the originals. |
-| **Supabase Storage** | No, for media | Its egress costs 9 times Bunny's. Keep Supabase for data. |
-| **Vercel** | No | Its bandwidth pricing doesn't suit media. The frontend is on Cloudflare Workers (D17). |
+| **Vimeo** | Pilot only | Every self-serve plan has a 2 TB/month bandwidth threshold. At 1,000 students, delivery is 5–21 TB/month, which forces unpriced Enterprise. Ownership changed in November 2025 (Bending Spoons).                                                                                                                          |
+| **Cloudflare Stream, Mux, api.video** | Good products, wrong pricing shape | They bill per stored minute. Student uploads pile up, so these cost 10–20 times more than per-GB hosts. They are viable for the 20-hour library alone (a hybrid option).                                                                                                                                                  |
+| **Bunny Stream** | **Primary** | \$0.01/GB storage, free encoding, delivery from \$0.005/GB (verified). Token-authenticated playback, our own player, resumable (tus) uploads, webhooks, and the original file can be kept.                                                                                                                                |
+| **Cloudflare R2 DIY** | **Fallback** | Egress is free. We build and own transcoding and access control. It wins if we keep several quality versions and the originals.                                                                                                                                                                                           |
+| **Supabase Storage** | No, for media | Its egress costs 9 times Bunny's. Keep Supabase for data.                                                                                                                                                                                                                                                                 |
+| **Vercel** | No | Its bandwidth pricing doesn't suit media. The frontend is on Cloudflare Workers (D17).                                                                                                                                                                                                                                    |
 
 On the CTO's three concerns:
 - **(a) Access flexibility:** Bunny and R2 both act as a private video database behind our auth. Our backend mints short-lived playback tokens.
@@ -93,7 +93,7 @@ The model follows D3: 25 h of uploads per student per year, each watched twice (
 | Mux | $69,275 | $20,675 |
 | Cloudflare Stream | $141,870 | $40,590 |
 
-**Our policy lands near the cheap end.** Full-quality video is kept for 90 days; after that, only the audio track is kept for the life of the account (D12). Submissions default to audio-only, with video required per assignment (D14). **At 1,000 students, worst case (every submission at 720p): about $211/month for video plus about $14/month for the audio archive, roughly $2,700/year.** Mostly-audio submissions bring this well below that. At 10,000 students the same worst case is about $27,000/year.
+**Our policy lands near the cheap end.** Full-quality video is kept for 90 days; after that, only the audio track is kept for the life of the account (D12). Submissions default to audio-only, with video required per assignment (D14). **At 1,000 students, worst case (every submission at 720p): about \$211/month for video plus about \$14/month for the audio archive, roughly \$2,700/year.** Mostly-audio submissions bring this well below that. At 10,000 students the same worst case is about \$27,000/year.
 
 Adding several quality versions per video, kept originals, or a second storage region could multiply storage costs by 2–3 times. That is still an order of magnitude below the per-minute hosts.
 
@@ -167,7 +167,7 @@ What the native case does **not** win:
    - 10 or more requests a quarter for external-mic support;
    - Apple restricts home-screen web apps in the UK.
 
-**You need an iPhone even for web-first.** Playwright's WebKit engine is desktop WebKit, not iOS Safari, so a used iPhone (about £156) is a necessary test device, not a luxury. A Mac is not needed: if a native shell is ever built, it compiles in cloud CI (GitHub Actions macOS at about $1 per build, or Codemagic's free tier), plus the $99/year Apple developer fee.
+**You need an iPhone even for web-first.** Playwright's WebKit engine is desktop WebKit, not iOS Safari, so a used iPhone (about £156) is a necessary test device, not a luxury. A Mac is not needed: if a native shell is ever built, it compiles in cloud CI (GitHub Actions macOS at about \$1 per build, or Codemagic's free tier), plus the \$99/year Apple developer fee.
 
 **Kotlin Multiplatform is not pursued.** Compose for iOS has been stable since May 2025, but it shares nothing with a web frontend and still needs macOS CI. It would only make sense for an Android-first product, which this is not.
 
