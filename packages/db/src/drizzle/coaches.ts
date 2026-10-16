@@ -15,7 +15,8 @@ export function drizzleCoaches(db: UserDb): CoachRepository {
           .from(coaches)
           .innerJoin(profiles, eq(profiles.id, coaches.userId))
           .where(eq(coaches.active, true))
-          .orderBy(asc(coaches.createdAt), asc(coaches.userId));
+          // Founder tier first (the enum's order); coaches seeded together share created_at.
+          .orderBy(asc(coaches.tier), asc(coaches.createdAt), asc(coaches.userId));
         const offerRows = await tx
           .select()
           .from(coachOffers)
