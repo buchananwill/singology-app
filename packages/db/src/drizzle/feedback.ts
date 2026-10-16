@@ -4,8 +4,9 @@ import { authUid } from "drizzle-orm/supabase";
 import type { Transaction, UserDb } from "../client";
 import type { FeedbackRepository } from "../repositories";
 import { assignments, enrolments, feedback, feedbackComments, submissions } from "../schema";
+import { firstOrThrow } from "../orThrow";
 import { toFeedback, toFeedbackComment } from "./mappers";
-import { assertCallersMedia, firstOrThrow } from "./queries";
+import { assertCallersMedia, insertMany } from "./queries";
 
 async function commentsFor(tx: Transaction, feedbackId: string) {
   const rows = await tx
@@ -67,25 +68,24 @@ export function drizzleFeedback(db: UserDb): FeedbackRepository {
             .returning(),
           "The feedback was not created.",
         );
-        // An empty insert is a syntax error, not a no-op.
-        if (input.comments.length > 0) {
-          await tx
-            .insert(feedbackComments)
-            .values(input.comments.map((comment) => ({ ...comment, feedbackId: row.id })));
-        }
+        await insertMany(
+          tx,
+          feedbackComments,
+          input.comments.map((comment) => ({ ...comment, feedbackId: row.id })),
+        );
         await tx
           .update(submissions)
           .set({ status: "reviewed" })
           .where(eq(submissions.id, input.submissionId));
-        if (input.assignLibraryItemIds.length > 0) {
-          await tx.insert(assignments).values(
-            input.assignLibraryItemIds.map((libraryItemId) => ({
-              enrolmentId: target.enrolmentId,
-              libraryItemId,
-              feedbackId: row.id,
-            })),
-          );
-        }
+        await insertMany(
+          tx,
+          assignments,
+          input.assignLibraryItemIds.map((libraryItemId) => ({
+            enrolmentId: target.enrolmentId,
+            libraryItemId,
+            feedbackId: row.id,
+          })),
+        );
         return { feedback: toFeedback(row), comments: await commentsFor(tx, row.id) };
       }),
   };

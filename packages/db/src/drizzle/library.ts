@@ -5,6 +5,7 @@ import type { Transaction, UserDb } from "../client";
 import type { LibraryRepository } from "../repositories";
 import { collectionItems, collections, libraryItems, libraryItemTags, tags } from "../schema";
 import { toCollection, toLibraryItem, toTag } from "./mappers";
+import { whenAny } from "./queries";
 
 /** Active items matching `where`, each with its tags; `where` may reference `libraryItems`. */
 export async function libraryItemsWhere(
@@ -16,21 +17,19 @@ export async function libraryItemsWhere(
     .from(libraryItems)
     .where(and(eq(libraryItems.active, true), where))
     .orderBy(asc(libraryItems.category), asc(libraryItems.difficulty), asc(libraryItems.title));
-  // No items means no tag query.
-  const tagRows =
-    rows.length === 0
-      ? []
-      : await tx
-          .select({ itemId: libraryItemTags.libraryItemId, tag: tags })
-          .from(libraryItemTags)
-          .innerJoin(tags, eq(tags.id, libraryItemTags.tagId))
-          .where(
-            inArray(
-              libraryItemTags.libraryItemId,
-              rows.map((row) => row.id),
-            ),
-          )
-          .orderBy(asc(tags.position), asc(tags.label));
+  const tagRows = await whenAny(rows, () =>
+    tx
+      .select({ itemId: libraryItemTags.libraryItemId, tag: tags })
+      .from(libraryItemTags)
+      .innerJoin(tags, eq(tags.id, libraryItemTags.tagId))
+      .where(
+        inArray(
+          libraryItemTags.libraryItemId,
+          rows.map((row) => row.id),
+        ),
+      )
+      .orderBy(asc(tags.position), asc(tags.label)),
+  );
   const tagsByItem = groupBy(tagRows, (row) => row.itemId);
   return rows.map((row) =>
     toLibraryItem(
@@ -68,13 +67,12 @@ export function drizzleLibrary(db: UserDb): LibraryRepository {
         const [item] = await libraryItemsWhere(tx, eq(libraryItems.id, id));
         return item;
       }),
-    // No ids means no transaction at all.
     getMany: (ids) =>
-      ids.length === 0
-        ? Promise.resolve([])
-        : db(async (tx) =>
-            pickByIds(await libraryItemsWhere(tx, inArray(libraryItems.id, [...ids])), ids),
-          ),
+      whenAny(ids, () =>
+        db(async (tx) =>
+          pickByIds(await libraryItemsWhere(tx, inArray(libraryItems.id, [...ids])), ids),
+        ),
+      ),
     listCollections: () =>
       db(async (tx) => {
         const rows = await tx
@@ -82,20 +80,18 @@ export function drizzleLibrary(db: UserDb): LibraryRepository {
           .from(collections)
           .where(eq(collections.active, true))
           .orderBy(asc(collections.position), asc(collections.title));
-        // No collections means no item query.
-        const itemRows =
-          rows.length === 0
-            ? []
-            : await tx
-                .select()
-                .from(collectionItems)
-                .where(
-                  inArray(
-                    collectionItems.collectionId,
-                    rows.map((row) => row.id),
-                  ),
-                )
-                .orderBy(asc(collectionItems.position));
+        const itemRows = await whenAny(rows, () =>
+          tx
+            .select()
+            .from(collectionItems)
+            .where(
+              inArray(
+                collectionItems.collectionId,
+                rows.map((row) => row.id),
+              ),
+            )
+            .orderBy(asc(collectionItems.position)),
+        );
         const itemsByCollection = groupBy(itemRows, (item) => item.collectionId);
         return rows.map((row) =>
           toCollection(

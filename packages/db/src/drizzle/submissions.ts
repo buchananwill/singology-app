@@ -4,6 +4,7 @@ import { and, asc, desc, eq, inArray, lt } from "drizzle-orm";
 import { assertAssignmentMatches } from "../assertAssignmentMatches";
 import type { Transaction, UserDb } from "../client";
 import type { EnrolmentParty } from "../enrolmentParty";
+import { firstOrThrow } from "../orThrow";
 import type { CoachQueueItem, OwnedSubmission, SubmissionRepository } from "../repositories";
 import {
   assignments,
@@ -16,7 +17,7 @@ import {
 } from "../schema";
 import { libraryItemsWhere } from "./library";
 import { toEnrolment, toStudent, toSubmission } from "./mappers";
-import { assertCallersMedia, firstOrThrow } from "./queries";
+import { assertCallersMedia } from "./queries";
 
 async function ownedSubmission(
   tx: Transaction,

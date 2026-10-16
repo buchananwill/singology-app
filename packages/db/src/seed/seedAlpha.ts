@@ -6,6 +6,7 @@ import { inArray } from "drizzle-orm";
 import { connectionSettingsFromUrl, createAdminDb } from "../client";
 import { requireEnv, supabaseUrlFrom } from "../env";
 import { createFixtureData } from "../fixtures/data";
+import { firstOrThrow, getOrThrow } from "../orThrow";
 import {
   coaches,
   coachOffers,
@@ -34,14 +35,6 @@ const db = createAdminDb(connectionSettingsFromUrl(databaseUrl));
 const authAdmin = createClient(supabaseUrlFrom(databaseUrl), requireEnv("SUPABASE_SECRET_KEY"), {
   auth: { persistSession: false, autoRefreshToken: false },
 }).auth.admin;
-
-function getOrThrow<K, V>(map: ReadonlyMap<K, V>, key: K, message: string): V {
-  const value = map.get(key);
-  if (value === undefined) {
-    throw new Error(message);
-  }
-  return value;
-}
 
 const tagKey = (tag: Tag) => `${tag.kind}:${tag.slug}`;
 
@@ -142,14 +135,14 @@ await db.transaction(async (tx) => {
     ...new Map(fixtures.libraryItems.flatMap((i) => i.tags).map((t) => [tagKey(t), t])).values(),
   ];
   for (const [position, tag] of seededTags.entries()) {
-    const [row] = await tx
-      .insert(tags)
-      .values({ ...tag, position })
-      .onConflictDoUpdate({ target: [tags.kind, tags.slug], set: { label: tag.label, position } })
-      .returning({ id: tags.id });
-    if (row === undefined) {
-      throw new Error(`Tag ${tag.slug} was not upserted.`);
-    }
+    const row = firstOrThrow(
+      await tx
+        .insert(tags)
+        .values({ ...tag, position })
+        .onConflictDoUpdate({ target: [tags.kind, tags.slug], set: { label: tag.label, position } })
+        .returning({ id: tags.id }),
+      `Tag ${tag.slug} was not upserted.`,
+    );
     tagIds.set(tagKey(tag), row.id);
   }
 
