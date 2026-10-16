@@ -2,11 +2,11 @@
 select plan(5);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.collections), 1, 'the student sees the active collection only');
+select is((select count(*)::int from public.collections where tests.ours(id)), 1, 'the student sees the active collection only');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.collections), 1, 'the coach sees the active collection only');
+select is((select count(*)::int from public.collections where tests.ours(id)), 1, 'the coach sees the active collection only');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c2');
@@ -15,7 +15,7 @@ select is(
   0,
   'an unrelated coach does not see the inactive collection'
 );
-select is((select count(*)::int from public.collections), 1, 'an unrelated coach sees the active collection only');
+select is((select count(*)::int from public.collections where tests.ours(id)), 1, 'an unrelated coach sees the active collection only');
 reset role;
 
 select tests.act_as_anon();

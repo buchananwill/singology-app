@@ -3,7 +3,7 @@
 select plan(5);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.tags), 1, 'the student sees every tag');
+select is((select count(*)::int from public.tags where tests.ours(id)), 1, 'the student sees every tag');
 select throws_ok(
   $$insert into public.tags (kind, slug, label) values ('focus', 'mine', 'Mine')$$,
   '42501',
@@ -13,11 +13,11 @@ select throws_ok(
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.tags), 1, 'the coach sees every tag');
+select is((select count(*)::int from public.tags where tests.ours(id)), 1, 'the coach sees every tag');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c2');
-select is((select count(*)::int from public.tags), 1, 'an unrelated coach sees every tag');
+select is((select count(*)::int from public.tags where tests.ours(id)), 1, 'an unrelated coach sees every tag');
 reset role;
 
 select tests.act_as_anon();

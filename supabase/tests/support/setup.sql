@@ -17,6 +17,12 @@ create extension if not exists pgtap with schema extensions;
 create schema tests;
 grant usage on schema tests to anon, authenticated;
 
+-- Every row this setup creates has an id with this prefix, which the seed's version-5 ids never
+-- have, so counts scoped by tests.ours() hold on an empty and on a seeded database alike.
+create function tests.ours(id uuid) returns boolean language sql immutable as $$
+  select id::text like '00000000-0000-4000-8000-%'
+$$;
+
 create function tests.act_as(uid uuid) returns void language plpgsql as $$
 begin
   perform set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
@@ -66,7 +72,7 @@ insert into public.library_items (id, title, category, difficulty, voice_types, 
   ('00000000-0000-4000-8000-0000000000b2', 'Inactive item', 'range', 'advanced', '{mezzo}', '00000000-0000-4000-8000-0000000000d2', false);
 
 insert into public.tags (id, kind, slug, label) values
-  ('00000000-0000-4000-8000-000000000101', 'focus', 'legato', 'Legato');
+  ('00000000-0000-4000-8000-000000000101', 'focus', 'rlstest-legato', 'RLS test legato');
 
 insert into public.library_item_tags (library_item_id, tag_id) values
   ('00000000-0000-4000-8000-0000000000b1', '00000000-0000-4000-8000-000000000101');

@@ -2,11 +2,11 @@
 select plan(8);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.coach_offers), 1, 'the student sees only active offers');
+select is((select count(*)::int from public.coach_offers where tests.ours(id)), 1, 'the student sees only active offers');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.coach_offers), 2, 'the coach sees their own inactive offer and the active one');
+select is((select count(*)::int from public.coach_offers where tests.ours(id)), 2, 'the coach sees their own inactive offer and the active one');
 update public.coach_offers set name = 'Own offer' where id = '00000000-0000-4000-8000-0000000000f1';
 reset role;
 
@@ -16,12 +16,12 @@ select is(
   0,
   'an unrelated coach does not see another coach''s inactive offer'
 );
-select is((select count(*)::int from public.coach_offers), 1, 'an unrelated coach sees only their own offer');
+select is((select count(*)::int from public.coach_offers where tests.ours(id)), 1, 'an unrelated coach sees only their own offer');
 update public.coach_offers set name = 'Hacked' where id = '00000000-0000-4000-8000-0000000000f1';
 reset role;
 
 select tests.act_as_anon();
-select is((select count(*)::int from public.coach_offers), 1, 'anon sees the active offer');
+select is((select count(*)::int from public.coach_offers where tests.ours(id)), 1, 'anon sees the active offer');
 select is(
   (select count(*)::int from public.coach_offers where id = '00000000-0000-4000-8000-0000000000f1'),
   0,

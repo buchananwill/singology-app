@@ -2,7 +2,7 @@
 select plan(9);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.submissions), 2, 'the student sees their own submissions');
+select is((select count(*)::int from public.submissions where tests.ours(enrolment_id)), 2, 'the student sees their own submissions');
 select lives_ok(
   $$insert into public.submissions (enrolment_id, library_item_id, media_id)
     values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000b1', '00000000-0000-4000-8000-0000000000a0')$$,
@@ -24,12 +24,12 @@ select is(
   0,
   'an unrelated coach does not see the student''s submissions'
 );
-select is((select count(*)::int from public.submissions), 1, 'an unrelated coach sees only their own student''s submission');
+select is((select count(*)::int from public.submissions where tests.ours(enrolment_id)), 1, 'an unrelated coach sees only their own student''s submission');
 update public.submissions set status = 'failed' where id = '00000000-0000-4000-8000-000000000403';
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.submissions), 3, 'the coach sees their student''s submissions, the new one included');
+select is((select count(*)::int from public.submissions where tests.ours(enrolment_id)), 3, 'the coach sees their student''s submissions, the new one included');
 update public.submissions set status = 'reviewed' where id = '00000000-0000-4000-8000-000000000403';
 reset role;
 

@@ -2,7 +2,7 @@
 select plan(6);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.enrolments), 1, 'the student sees their own enrolment');
+select is((select count(*)::int from public.enrolments where tests.ours(id)), 1, 'the student sees their own enrolment');
 select throws_ok(
   $$insert into public.enrolments (student_id, coach_id, offer_id) values
     ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-0000000000c2', '00000000-0000-4000-8000-0000000000f2')$$,
@@ -13,7 +13,7 @@ select throws_ok(
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.enrolments), 1, 'the coach sees their own enrolment');
+select is((select count(*)::int from public.enrolments where tests.ours(id)), 1, 'the coach sees their own enrolment');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c2');
@@ -22,7 +22,7 @@ select is(
   0,
   'an unrelated coach does not see the enrolment'
 );
-select is((select count(*)::int from public.enrolments), 1, 'an unrelated coach sees only their own enrolment');
+select is((select count(*)::int from public.enrolments where tests.ours(id)), 1, 'an unrelated coach sees only their own enrolment');
 reset role;
 
 select tests.act_as_anon();

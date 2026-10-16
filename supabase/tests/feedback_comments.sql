@@ -3,7 +3,7 @@
 select plan(8);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.feedback_comments), 1, 'the student sees comments on their own feedback');
+select is((select count(*)::int from public.feedback_comments where tests.ours(feedback_id)), 1, 'the student sees comments on their own feedback');
 select throws_ok(
   $$insert into public.feedback_comments (feedback_id, t_seconds, body)
     values ('00000000-0000-4000-8000-000000000501', 1, 'Mine')$$,
@@ -19,7 +19,7 @@ select is(
   0,
   'an unrelated coach does not see the comment'
 );
-select is((select count(*)::int from public.feedback_comments), 1, 'an unrelated coach sees only comments on their own feedback');
+select is((select count(*)::int from public.feedback_comments where tests.ours(feedback_id)), 1, 'an unrelated coach sees only comments on their own feedback');
 select throws_ok(
   $$insert into public.feedback_comments (feedback_id, t_seconds, body)
     values ('00000000-0000-4000-8000-000000000501', 1, 'Mine')$$,
@@ -30,7 +30,7 @@ select throws_ok(
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.feedback_comments), 1, 'the coach sees comments on their own feedback');
+select is((select count(*)::int from public.feedback_comments where tests.ours(feedback_id)), 1, 'the coach sees comments on their own feedback');
 select lives_ok(
   $$insert into public.feedback_comments (feedback_id, t_seconds, body)
     values ('00000000-0000-4000-8000-000000000501', 9, 'And here.')$$,

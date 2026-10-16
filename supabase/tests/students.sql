@@ -2,12 +2,12 @@
 select plan(7);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.students), 1, 'the student sees only their own row');
+select is((select count(*)::int from public.students where tests.ours(user_id)), 1, 'the student sees only their own row');
 update public.students set voice_type = 'alto' where user_id = '00000000-0000-4000-8000-0000000000a1';
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.students), 1, 'the coach sees their enrolled student');
+select is((select count(*)::int from public.students where tests.ours(user_id)), 1, 'the coach sees their enrolled student');
 select is(
   (select count(*)::int from public.students where user_id = '00000000-0000-4000-8000-0000000000a1'),
   1,

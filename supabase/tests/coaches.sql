@@ -2,11 +2,11 @@
 select plan(8);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.coaches), 1, 'the student sees only active coaches');
+select is((select count(*)::int from public.coaches where tests.ours(user_id)), 1, 'the student sees only active coaches');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.coaches), 2, 'the coach sees their own inactive row and the active coach');
+select is((select count(*)::int from public.coaches where tests.ours(user_id)), 2, 'the coach sees their own inactive row and the active coach');
 update public.coaches set bio = 'Own bio' where user_id = '00000000-0000-4000-8000-0000000000c1';
 reset role;
 
@@ -16,12 +16,12 @@ select is(
   0,
   'an unrelated coach does not see an inactive coach'
 );
-select is((select count(*)::int from public.coaches), 1, 'an unrelated coach sees only themselves');
+select is((select count(*)::int from public.coaches where tests.ours(user_id)), 1, 'an unrelated coach sees only themselves');
 update public.coaches set bio = 'Hacked' where user_id = '00000000-0000-4000-8000-0000000000c1';
 reset role;
 
 select tests.act_as_anon();
-select is((select count(*)::int from public.coaches), 1, 'anon sees the active coach');
+select is((select count(*)::int from public.coaches where tests.ours(user_id)), 1, 'anon sees the active coach');
 select is(
   (select count(*)::int from public.coaches where user_id = '00000000-0000-4000-8000-0000000000c1'),
   0,

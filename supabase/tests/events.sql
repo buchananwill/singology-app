@@ -3,7 +3,7 @@
 select plan(7);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.events), 0, 'the student cannot read events, even their own');
+select is((select count(*)::int from public.events where tests.ours(user_id)), 0, 'the student cannot read events, even their own');
 select lives_ok(
   $$insert into public.events (user_id, kind) values ('00000000-0000-4000-8000-0000000000a1', 'feedback_viewed')$$,
   'the student records their own event'
@@ -17,11 +17,11 @@ select throws_ok(
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.events), 0, 'the coach cannot read their student''s events');
+select is((select count(*)::int from public.events where tests.ours(user_id)), 0, 'the coach cannot read their student''s events');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c2');
-select is((select count(*)::int from public.events), 0, 'an unrelated coach reads no events');
+select is((select count(*)::int from public.events where tests.ours(user_id)), 0, 'an unrelated coach reads no events');
 reset role;
 
 select tests.act_as_anon();
@@ -33,6 +33,6 @@ select throws_ok(
 );
 reset role;
 
-select is((select count(*)::int from public.events), 2, 'both events are stored');
+select is((select count(*)::int from public.events where tests.ours(user_id)), 2, 'both events are stored');
 
 select * from finish();

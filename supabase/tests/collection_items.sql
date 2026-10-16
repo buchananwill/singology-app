@@ -3,7 +3,7 @@
 select plan(5);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.collection_items), 2, 'the student sees every collection link');
+select is((select count(*)::int from public.collection_items where tests.ours(collection_id)), 2, 'the student sees every collection link');
 select throws_ok(
   $$insert into public.collection_items (collection_id, library_item_id, position)
     values ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-0000000000b2', 1)$$,
@@ -14,11 +14,11 @@ select throws_ok(
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.collection_items), 2, 'the coach sees every collection link');
+select is((select count(*)::int from public.collection_items where tests.ours(collection_id)), 2, 'the coach sees every collection link');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c2');
-select is((select count(*)::int from public.collection_items), 2, 'an unrelated coach sees every collection link');
+select is((select count(*)::int from public.collection_items where tests.ours(collection_id)), 2, 'an unrelated coach sees every collection link');
 reset role;
 
 select tests.act_as_anon();

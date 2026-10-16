@@ -3,7 +3,7 @@
 select plan(8);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.media_assets), 3, 'the student sees the library demo, their take and their coach''s reply');
+select is((select count(*)::int from public.media_assets where tests.ours(id)), 3, 'the student sees the library demo, their take and their coach''s reply');
 select lives_ok(
   $$insert into public.media_assets (kind, owner_user_id, store, store_key)
     values ('audio', '00000000-0000-4000-8000-0000000000a1', 'bunny_storage', 'takes/new.m4a')$$,
@@ -26,7 +26,7 @@ select throws_ok(
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.media_assets), 4, 'the coach sees the library demo, their student''s take and both their replies');
+select is((select count(*)::int from public.media_assets where tests.ours(id)), 4, 'the coach sees the library demo, their student''s take and both their replies');
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c2');
@@ -37,7 +37,7 @@ select is(
   0,
   'an unrelated coach sees none of the student''s or coach''s media, nor an inactive item''s'
 );
-select is((select count(*)::int from public.media_assets), 2, 'an unrelated coach sees the library demo and their own student''s take');
+select is((select count(*)::int from public.media_assets where tests.ours(id)), 2, 'an unrelated coach sees the library demo and their own student''s take');
 reset role;
 
 select tests.act_as_anon();

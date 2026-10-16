@@ -3,7 +3,7 @@
 select plan(9);
 
 select tests.act_as('00000000-0000-4000-8000-0000000000a1');
-select is((select count(*)::int from public.feedback), 1, 'the student sees feedback on their own submissions');
+select is((select count(*)::int from public.feedback where tests.ours(submission_id)), 1, 'the student sees feedback on their own submissions');
 select throws_ok(
   $$insert into public.feedback (submission_id, coach_id)
     values ('00000000-0000-4000-8000-000000000403', '00000000-0000-4000-8000-0000000000a1')$$,
@@ -19,7 +19,7 @@ select is(
   0,
   'an unrelated coach does not see the feedback'
 );
-select is((select count(*)::int from public.feedback), 1, 'an unrelated coach sees only their own feedback');
+select is((select count(*)::int from public.feedback where tests.ours(submission_id)), 1, 'an unrelated coach sees only their own feedback');
 select throws_ok(
   $$insert into public.feedback (submission_id, coach_id)
     values ('00000000-0000-4000-8000-000000000403', '00000000-0000-4000-8000-0000000000c2')$$,
@@ -30,7 +30,7 @@ select throws_ok(
 reset role;
 
 select tests.act_as('00000000-0000-4000-8000-0000000000c1');
-select is((select count(*)::int from public.feedback), 1, 'the coach sees feedback on their student''s submissions');
+select is((select count(*)::int from public.feedback where tests.ours(submission_id)), 1, 'the coach sees feedback on their student''s submissions');
 select throws_ok(
   $$insert into public.feedback (submission_id, coach_id)
     values ('00000000-0000-4000-8000-000000000403', '00000000-0000-4000-8000-0000000000c2')$$,
