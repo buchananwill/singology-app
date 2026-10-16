@@ -13,9 +13,9 @@ import { requireEnv } from "../src/seed/env";
 
 const TESTS_DIR = new URL("../../../supabase/tests/", import.meta.url);
 
-// The policy each file guards, loosened or dropped. Applied inside the test's own transaction, so
-// the rollback restores it.
-const MUTATIONS: Record<string, string> = {
+// The policies each file guards, loosened or dropped. Each is applied alone inside the test's own
+// transaction, so the rollback restores it, and each must make the file fail.
+const MUTATIONS: Record<string, string | string[]> = {
   assignments: "alter policy assignments_select_as_coach on public.assignments using (true)",
   coach_offers: "alter policy coach_offers_select_own on public.coach_offers using (true)",
   coaches: "alter policy coaches_select_own on public.coaches using (true)",
@@ -31,7 +31,10 @@ const MUTATIONS: Record<string, string> = {
   media_assets: "alter policy media_assets_select_own on public.media_assets using (true)",
   notifications:
     "create policy notifications_leak on public.notifications for select to authenticated using (true)",
-  profiles: "alter policy profiles_select_own on public.profiles using (true)",
+  profiles: [
+    "alter policy profiles_select_own on public.profiles using (true)",
+    "alter policy profiles_select_active_coach on public.profiles using (true)",
+  ],
   students: "alter policy students_select_by_coach on public.students using (true)",
   submissions: "alter policy submissions_select_as_coach on public.submissions using (true)",
   tags: "drop policy tags_select on public.tags",
@@ -117,18 +120,20 @@ try {
       console.log(`${isPass(clean) ? "PASS" : "FAIL"} ${name}: ${describe(clean)}`);
       continue;
     }
-    const mutation = MUTATIONS[name];
-    if (mutation === undefined) {
+    const mutations = [MUTATIONS[name] ?? []].flat();
+    if (mutations.length === 0) {
       allGood = false;
       console.log(`FAIL ${name}: no mutation is defined for this file`);
       continue;
     }
-    const mutated = await runFile(client, setup, test, mutation);
-    const convicted = !isPass(mutated) && mutated.error === undefined && isPass(clean);
-    allGood &&= convicted;
-    console.log(`${convicted ? "CONVICTED" : "NOT CONVICTED"} ${name}`);
-    console.log(`  mutated (${mutation}): ${describe(mutated)}`);
-    console.log(`  restored: ${describe(clean)}`);
+    for (const mutation of mutations) {
+      const mutated = await runFile(client, setup, test, mutation);
+      const convicted = !isPass(mutated) && mutated.error === undefined && isPass(clean);
+      allGood &&= convicted;
+      console.log(`${convicted ? "CONVICTED" : "NOT CONVICTED"} ${name}`);
+      console.log(`  mutated (${mutation}): ${describe(mutated)}`);
+      console.log(`  restored: ${describe(clean)}`);
+    }
   }
 } finally {
   await client.end();

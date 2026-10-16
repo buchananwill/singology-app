@@ -114,6 +114,15 @@ describe("reads", () => {
     }
   });
 
+  it("lists both active coaches, with their names, for anon", async () => {
+    const rows = await asAnon.coaches.listWithOffers();
+    expect(rows.map((row) => row.coach.id).sort()).toEqual([founderId, ctoId].sort());
+    expect(rows.map((row) => row.coach.displayName).sort()).toEqual([
+      "Singology CTO",
+      "Singology founder",
+    ]);
+  });
+
   it("gets a coach and a student", async () => {
     expect((await asCto.coaches.get(founderId))?.displayName).toBe("Singology founder");
     expect((await asFounder.students.get(ctoId))?.voiceType).toBeDefined();

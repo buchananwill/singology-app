@@ -15,6 +15,20 @@
       "when": 1792184437455,
       "tag": "20261016210037_private_triggers_and_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792186393412,
+      "tag": "20261016213313_profiles_of_active_coaches",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792186397905,
+      "tag": "20261016213317_grant_anon_profiles",
+      "breakpoints": true
     }
   ]
 }

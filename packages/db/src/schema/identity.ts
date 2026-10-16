@@ -27,6 +27,14 @@ export const profiles = pgTable(
       using: sql`profiles.id = ${authUid}`,
       withCheck: sql`profiles.id = ${authUid}`,
     }),
+    // The landing page's coach cards show an active coach's name to everyone.
+    pgPolicy("profiles_select_active_coach", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`exists (
+        select 1 from public.coaches c where c.user_id = profiles.id and c.active
+      )`,
+    }),
     pgPolicy("profiles_select_enrolment_counterpart", {
       for: "select",
       to: authenticatedRole,
