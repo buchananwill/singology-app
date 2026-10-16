@@ -80,18 +80,13 @@ Things to know about the toolchain:
 
 ## House rules
 
-These are fixed project decisions. The reviewer agent in `.claude/agents/singology-style-decomposition-reviewer.md` enforces them and is the detailed reference.
+The project's canonical style ruleset is the **`singology-style` skill** (`.claude/skills/singology-style/SKILL.md`). Load it before writing, changing or reviewing any code under `apps/`, `packages/`, `jobs/` or `supabase/`; every implementation brief says so and every reviewer loads it. It lives in a skill rather than here so that an agent working on one layer loads the rules on purpose instead of carrying all of them by default. The reviewer agent in `.claude/agents/singology-style-decomposition-reviewer.md` enforces them and is the detailed elaboration. The few rules below are the ones that bite before you have read the skill:
 
 - React Router v8 imports come only from `react-router` and `react-router/dom`. `react-router-dom` does not exist here; never add it. Deploy only through `@cloudflare/vite-plugin`.
 - No `any`. `@ts-ignore` / `@ts-expect-error` need a written reason on the same line. `consistent-type-imports` and `react-hooks/exhaustive-deps` are errors.
-- Routes and components never import fixture data or construct a data client. No ad-hoc `fetch` to the app's own routes.
-- Dates rendered on server and client go through the UTC helpers in `app/lib/format.ts`; live clocks go through `useNow` (`useSyncExternalStore`). No `Date.now()`, `new Date()` or `Math.random()` in render paths. Hydration mismatches here are a known failure class (pitfalls 9 and 12).
-- Mantine components over raw HTML; theme tokens over magic values. React Router links inside Mantine use a polymorphic component (`Anchor`, `Button`, `UnstyledButton` with `component={Link}`); `Title` is not polymorphic. Do not put block components (`Badge`, `Group`) inside `Text`.
-- Shared UI (the player, the upload panel) is reused through its public API, never copied.
-- Files: components `PascalCase`, hooks `useX.ts`, pure modules `camelCase`. One component per file. Tests sit beside their unit as `*.test.ts`, or in `apps/web/e2e/` for Playwright. No `index.ts` barrels inside `apps/web`.
-- Comments are kept to intent the code cannot express: one line of _why_, or an API contract. No JSDoc that restates a signature, no process narration, no section headers.
+- Routes and components never import fixture data or construct a data client; data comes through the repositories on the router context.
+- Comments are kept to intent the code cannot express. No JSDoc that restates a signature, no process narration, no pitfall or decision numbers in source.
 - Prettier (`printWidth: 100`) owns layout. Never spend effort or review findings on formatting.
-- Student surfaces must work at 375px width.
 
 ## Notes and process
 
