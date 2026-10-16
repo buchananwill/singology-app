@@ -1,4 +1,4 @@
-import type { DemoRole } from "@singology/shared";
+import type { DemoRole, Me } from "@singology/shared";
 import { href } from "react-router";
 
 export interface NavItem {
@@ -35,3 +35,11 @@ export const HOME_FOR_ROLE: Record<DemoRole, string> = {
   student: NAV_ITEMS.student[0].to,
   coach: NAV_ITEMS.coach[0].to,
 };
+
+/** A student who also coaches lands on the student home and reaches the queue from the nav. */
+export function homeFor(me: Me | null): string {
+  if (me === null) {
+    return href("/");
+  }
+  return me.student !== null ? HOME_FOR_ROLE.student : HOME_FOR_ROLE.coach;
+}

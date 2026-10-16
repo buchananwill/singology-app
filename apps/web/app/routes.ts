@@ -3,6 +3,9 @@ import { index, layout, route, type RouteConfig } from "@react-router/dev/routes
 export default [
   index("routes/home.tsx"),
   route("demo", "routes/demo.tsx"),
+  route("sign-in", "routes/sign-in.tsx"),
+  route("auth/confirm", "routes/auth.confirm.tsx"),
+  route("sign-out", "routes/sign-out.tsx"),
   layout("routes/student.layout.tsx", [
     route("student", "routes/student.home.tsx"),
     route("student/exercises/:id", "routes/student.exercise.tsx"),

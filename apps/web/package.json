@@ -19,6 +19,8 @@
     "@mantine/notifications": "9.6.2",
     "@singology/db": "workspace:^",
     "@singology/shared": "workspace:^",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.118.0",
     "hls.js": "1.7.3",
     "isbot": "5.1.40",
     "react": "19.3.0",

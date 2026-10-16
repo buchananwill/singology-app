@@ -28,10 +28,17 @@ import { DemoBanner } from "./components/shell/DemoBanner";
 import { RoleNav } from "./components/shell/RoleNav";
 import { demoRoleContext } from "./context";
 import { demoRoleMiddleware } from "./middleware/demoRole";
+import { meMiddleware } from "./middleware/me";
 import { repositoriesMiddleware } from "./middleware/repositories";
+import { sessionMiddleware } from "./middleware/session";
 import { theme } from "./theme";
 
-export const middleware: Route.MiddlewareFunction[] = [repositoriesMiddleware, demoRoleMiddleware];
+export const middleware: Route.MiddlewareFunction[] = [
+  sessionMiddleware,
+  repositoriesMiddleware,
+  meMiddleware,
+  demoRoleMiddleware,
+];
 
 export function loader({ context }: Route.LoaderArgs) {
   return { role: context.get(demoRoleContext) };
