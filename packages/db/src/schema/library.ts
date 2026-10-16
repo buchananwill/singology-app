@@ -6,6 +6,7 @@ import {
   integer,
   pgPolicy,
   pgTable,
+  type PgTableExtraConfigValue,
   primaryKey,
   text,
   unique,
@@ -39,7 +40,7 @@ export const libraryItems = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     check("library_items_voice_types_not_empty", sql`cardinality(${t.voiceTypes}) > 0`),
     index("library_items_demo_media_id_idx").on(t.demoMediaId),
     index("library_items_backing_track_media_id_idx").on(t.backingTrackMediaId),
@@ -48,7 +49,7 @@ export const libraryItems = pgTable(
     pgPolicy("library_items_select_active", {
       for: "select",
       to: authenticatedRole,
-      using: sql`library_items.active`,
+      using: sql`${t.active}`,
     }),
   ],
 );
@@ -66,13 +67,13 @@ export const collections = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     index("collections_owner_coach_id_idx").on(t.ownerCoachId),
     index("collections_active_idx").on(t.active),
     pgPolicy("collections_select_active", {
       for: "select",
       to: authenticatedRole,
-      using: sql`collections.active`,
+      using: sql`${t.active}`,
     }),
   ],
 );
@@ -89,7 +90,7 @@ export const collectionItems = pgTable(
     position: integer("position").notNull(),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     primaryKey({ columns: [t.collectionId, t.libraryItemId] }),
     unique("collection_items_collection_id_position_key").on(t.collectionId, t.position),
     index("collection_items_library_item_id_idx").on(t.libraryItemId),
@@ -101,7 +102,7 @@ export const collectionItems = pgTable(
   ],
 );
 
-/** `kind` is text checked against the shared `TAG_KINDS`, so a new facet is never a migration. */
+/** `kind` is text, checked against the shared `TAG_KINDS`. */
 export const tags = pgTable(
   "tags",
   {
@@ -113,7 +114,7 @@ export const tags = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     unique("tags_kind_slug_key").on(t.kind, t.slug),
     pgPolicy("tags_select", { for: "select", to: authenticatedRole, using: sql`true` }),
   ],
@@ -131,7 +132,7 @@ export const libraryItemTags = pgTable(
       .references(() => tags.id, { onDelete: "restrict" }),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     primaryKey({ columns: [t.libraryItemId, t.tagId] }),
     index("library_item_tags_tag_id_idx").on(t.tagId),
     pgPolicy("library_item_tags_select", {

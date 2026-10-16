@@ -1,3 +1,4 @@
+import type { EventKind, RecordEvent } from "@singology/shared";
 import { sql } from "drizzle-orm";
 import {
   bigint,
@@ -6,6 +7,7 @@ import {
   jsonb,
   pgPolicy,
   pgTable,
+  type PgTableExtraConfigValue,
   text,
   timestamp,
   uniqueIndex,
@@ -17,25 +19,25 @@ import { createdAt, id } from "./columns";
 import { notificationKind } from "./enums";
 import { profiles } from "./identity";
 
-/** Append-only. `kind` is text checked against the shared `EVENT_KINDS`, never an enum. */
+/** Append-only. `kind` is text, checked against the shared `EVENT_KINDS`. */
 export const events = pgTable(
   "events",
   {
     id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
     userId: uuid("user_id").references(() => profiles.id, { onDelete: "set null" }),
-    kind: text("kind").notNull(),
+    kind: text("kind").$type<EventKind>().notNull(),
     entityId: uuid("entity_id"),
-    meta: jsonb("meta").notNull().default({}),
+    meta: jsonb("meta").$type<NonNullable<RecordEvent["meta"]>>().notNull().default({}),
     at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     index("events_kind_at_idx").on(t.kind, t.at),
     index("events_user_id_at_idx").on(t.userId, t.at),
     pgPolicy("events_insert_own", {
       for: "insert",
       to: authenticatedRole,
-      withCheck: sql`events.user_id = ${authUid}`,
+      withCheck: sql`${t.userId} = ${authUid}`,
     }),
   ],
 );
@@ -57,7 +59,7 @@ export const notifications = pgTable(
     providerMessageId: text("provider_message_id"),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     index("notifications_user_id_idx").on(t.userId),
     uniqueIndex("notifications_once_per_entity")
       .on(t.kind, t.entityId)

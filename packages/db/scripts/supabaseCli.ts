@@ -1,8 +1,9 @@
-// Runs the Supabase CLI from the repo root against the alpha database. `db push` and
+// Runs the Supabase CLI from the repo root against the alpha database. `db push`, `db reset` and
 // `migration list` get `--db-url` from DATABASE_URL (the session pooler); `link` gets the project
 // ref from it. The CLI's JS launcher runs under node with no shell, so the URL is never parsed by
 // cmd.exe.
 //   pnpm --filter @singology/db supabase db push
+//   pnpm --filter @singology/db supabase db reset
 //   pnpm --filter @singology/db supabase migration list
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
@@ -19,7 +20,7 @@ const args = process.argv.slice(2);
 const command = args.slice(0, 2).join(" ");
 
 const extra =
-  command === "db push" || command === "migration list"
+  command === "db push" || command === "db reset" || command === "migration list"
     ? ["--db-url", databaseUrl]
     : args[0] === "link"
       ? ["--project-ref", projectRefFrom(databaseUrl)]

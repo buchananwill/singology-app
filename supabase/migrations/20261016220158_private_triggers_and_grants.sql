@@ -1,5 +1,5 @@
--- Helpers that are never exposed through the API (spec decisions 10 and 6), the auth.users trigger,
--- and explicit table grants so access does not depend on the project's default privileges.
+-- Helpers never exposed through the API (spec decisions 6 and 10), the auth.users trigger, and the
+-- table grants, which mirror the RLS policy matrix exactly.
 
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
@@ -69,9 +69,29 @@ create trigger touch_updated_at before update on public.tags
   for each row execute function private.touch_updated_at();
 --> statement-breakpoint
 
--- RLS decides which rows; these grants decide which statements. anon reads only the landing page's
--- two tables, and no role but postgres deletes anything.
+-- RLS decides which rows; these grants decide which statements, one grant per policy kind. Nothing
+-- is granted on notifications, and no role but postgres deletes.
 revoke all on all tables in schema public from anon, authenticated;
 grant usage on schema public to anon, authenticated;
-grant select on public.coaches, public.coach_offers to anon;
-grant select, insert, update on all tables in schema public to authenticated;
+--> statement-breakpoint
+
+grant select on public.coaches, public.coach_offers, public.profiles to anon;
+--> statement-breakpoint
+
+grant select on
+  public.profiles, public.coaches, public.coach_offers, public.students, public.enrolments,
+  public.library_items, public.collections, public.collection_items, public.tags,
+  public.library_item_tags, public.media_assets, public.assignments, public.submissions,
+  public.feedback, public.feedback_comments
+to authenticated;
+--> statement-breakpoint
+
+grant insert on
+  public.media_assets, public.submissions, public.feedback, public.feedback_comments,
+  public.assignments, public.events
+to authenticated;
+--> statement-breakpoint
+
+grant update on
+  public.profiles, public.coaches, public.coach_offers, public.students, public.submissions
+to authenticated;

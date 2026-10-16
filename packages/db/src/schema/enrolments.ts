@@ -1,5 +1,13 @@
 import { sql } from "drizzle-orm";
-import { index, pgPolicy, pgTable, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgPolicy,
+  pgTable,
+  type PgTableExtraConfigValue,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid } from "drizzle-orm/supabase";
 
 import { createdAt, id } from "./columns";
@@ -24,7 +32,7 @@ export const enrolments = pgTable(
     endedAt: timestamp("ended_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     index("enrolments_student_id_idx").on(t.studentId),
     index("enrolments_coach_id_idx").on(t.coachId),
     index("enrolments_offer_id_idx").on(t.offerId),
@@ -36,12 +44,12 @@ export const enrolments = pgTable(
     pgPolicy("enrolments_select_as_student", {
       for: "select",
       to: authenticatedRole,
-      using: sql`enrolments.student_id = ${authUid}`,
+      using: sql`${t.studentId} = ${authUid}`,
     }),
     pgPolicy("enrolments_select_as_coach", {
       for: "select",
       to: authenticatedRole,
-      using: sql`enrolments.coach_id = ${authUid}`,
+      using: sql`${t.coachId} = ${authUid}`,
     }),
   ],
 );

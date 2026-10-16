@@ -278,92 +278,95 @@ CREATE INDEX "library_items_owner_coach_id_idx" ON "library_items" USING btree (
 CREATE INDEX "library_items_active_idx" ON "library_items" USING btree ("active");--> statement-breakpoint
 CREATE INDEX "media_assets_owner_user_id_idx" ON "media_assets" USING btree ("owner_user_id");--> statement-breakpoint
 CREATE INDEX "media_assets_status_idx" ON "media_assets" USING btree ("status");--> statement-breakpoint
-CREATE POLICY "events_insert_own" ON "events" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (events.user_id = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "events_insert_own" ON "events" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ("events"."user_id" = (select auth.uid()));--> statement-breakpoint
 CREATE POLICY "assignments_insert_as_coach" ON "assignments" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (exists (
-    select 1 from public.enrolments e
-    where e.id = assignments.enrolment_id and e.coach_id = (select auth.uid())
+    select 1 from "enrolments"
+    where "enrolments"."id" = "assignments"."enrolment_id" and "enrolments"."coach_id" = (select auth.uid())
   ));--> statement-breakpoint
 CREATE POLICY "assignments_select_as_coach" ON "assignments" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-    select 1 from public.enrolments e
-    where e.id = assignments.enrolment_id and e.coach_id = (select auth.uid())
+    select 1 from "enrolments"
+    where "enrolments"."id" = "assignments"."enrolment_id" and "enrolments"."coach_id" = (select auth.uid())
   ));--> statement-breakpoint
 CREATE POLICY "assignments_select_as_student" ON "assignments" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-    select 1 from public.enrolments e
-    where e.id = assignments.enrolment_id and e.student_id = (select auth.uid())
+    select 1 from "enrolments"
+    where "enrolments"."id" = "assignments"."enrolment_id" and "enrolments"."student_id" = (select auth.uid())
   ));--> statement-breakpoint
-CREATE POLICY "feedback_insert_as_coach" ON "feedback" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (feedback.coach_id = (select auth.uid()) and exists (
-    select 1 from public.submissions s
-    join public.enrolments e on e.id = s.enrolment_id
-    where s.id = feedback.submission_id and e.coach_id = (select auth.uid())
-  ));--> statement-breakpoint
+CREATE POLICY "feedback_insert_as_coach" ON "feedback" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (("feedback"."coach_id" = (select auth.uid()) and exists (
+    select 1 from "submissions"
+    inner join "enrolments" on "enrolments"."id" = "submissions"."enrolment_id"
+    where "submissions"."id" = "feedback"."submission_id" and "enrolments"."coach_id" = (select auth.uid())
+  )));--> statement-breakpoint
 CREATE POLICY "feedback_select_as_coach" ON "feedback" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-    select 1 from public.submissions s
-    join public.enrolments e on e.id = s.enrolment_id
-    where s.id = feedback.submission_id and e.coach_id = (select auth.uid())
+    select 1 from "submissions"
+    inner join "enrolments" on "enrolments"."id" = "submissions"."enrolment_id"
+    where "submissions"."id" = "feedback"."submission_id" and "enrolments"."coach_id" = (select auth.uid())
   ));--> statement-breakpoint
 CREATE POLICY "feedback_select_as_student" ON "feedback" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-    select 1 from public.submissions s
-    join public.enrolments e on e.id = s.enrolment_id
-    where s.id = feedback.submission_id and e.student_id = (select auth.uid())
+    select 1 from "submissions"
+    inner join "enrolments" on "enrolments"."id" = "submissions"."enrolment_id"
+    where "submissions"."id" = "feedback"."submission_id" and "enrolments"."student_id" = (select auth.uid())
   ));--> statement-breakpoint
-CREATE POLICY "feedback_comments_select" ON "feedback_comments" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from public.feedback f where f.id = feedback_comments.feedback_id));--> statement-breakpoint
+CREATE POLICY "feedback_comments_select" ON "feedback_comments" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from "feedback" where "feedback"."id" = "feedback_comments"."feedback_id"));--> statement-breakpoint
 CREATE POLICY "feedback_comments_insert_as_coach" ON "feedback_comments" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (exists (
-        select 1 from public.feedback f
-        where f.id = feedback_comments.feedback_id and f.coach_id = (select auth.uid())
+        select 1 from "feedback"
+        where "feedback"."id" = "feedback_comments"."feedback_id" and "feedback"."coach_id" = (select auth.uid())
       ));--> statement-breakpoint
 CREATE POLICY "submissions_select_as_student" ON "submissions" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-    select 1 from public.enrolments e
-    where e.id = submissions.enrolment_id and e.student_id = (select auth.uid())
+    select 1 from "enrolments"
+    where "enrolments"."id" = "submissions"."enrolment_id" and "enrolments"."student_id" = (select auth.uid())
   ));--> statement-breakpoint
 CREATE POLICY "submissions_insert_as_student" ON "submissions" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (exists (
-        select 1 from public.enrolments e
-        where e.id = submissions.enrolment_id and e.student_id = (select auth.uid()) and e.status = 'active'
-      ));--> statement-breakpoint
+    select 1 from "enrolments"
+    where "enrolments"."id" = "submissions"."enrolment_id" and "enrolments"."student_id" = (select auth.uid()) and "enrolments"."status" = 'active'
+  ));--> statement-breakpoint
 CREATE POLICY "submissions_select_as_coach" ON "submissions" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-    select 1 from public.enrolments e
-    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())
+    select 1 from "enrolments"
+    where "enrolments"."id" = "submissions"."enrolment_id" and "enrolments"."coach_id" = (select auth.uid())
   ));--> statement-breakpoint
 CREATE POLICY "submissions_update_as_coach" ON "submissions" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (exists (
-    select 1 from public.enrolments e
-    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())
+    select 1 from "enrolments"
+    where "enrolments"."id" = "submissions"."enrolment_id" and "enrolments"."coach_id" = (select auth.uid())
   )) WITH CHECK (exists (
-    select 1 from public.enrolments e
-    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())
+    select 1 from "enrolments"
+    where "enrolments"."id" = "submissions"."enrolment_id" and "enrolments"."coach_id" = (select auth.uid())
   ));--> statement-breakpoint
-CREATE POLICY "enrolments_select_as_student" ON "enrolments" AS PERMISSIVE FOR SELECT TO "authenticated" USING (enrolments.student_id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "enrolments_select_as_coach" ON "enrolments" AS PERMISSIVE FOR SELECT TO "authenticated" USING (enrolments.coach_id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "coach_offers_select_active_anon" ON "coach_offers" AS PERMISSIVE FOR SELECT TO "anon" USING (coach_offers.active);--> statement-breakpoint
-CREATE POLICY "coach_offers_select_active" ON "coach_offers" AS PERMISSIVE FOR SELECT TO "authenticated" USING (coach_offers.active);--> statement-breakpoint
-CREATE POLICY "coach_offers_select_own" ON "coach_offers" AS PERMISSIVE FOR SELECT TO "authenticated" USING (coach_offers.coach_id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "coach_offers_update_own" ON "coach_offers" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (coach_offers.coach_id = (select auth.uid())) WITH CHECK (coach_offers.coach_id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "coaches_select_active_anon" ON "coaches" AS PERMISSIVE FOR SELECT TO "anon" USING (coaches.active);--> statement-breakpoint
-CREATE POLICY "coaches_select_active" ON "coaches" AS PERMISSIVE FOR SELECT TO "authenticated" USING (coaches.active);--> statement-breakpoint
-CREATE POLICY "coaches_select_own" ON "coaches" AS PERMISSIVE FOR SELECT TO "authenticated" USING (coaches.user_id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "coaches_update_own" ON "coaches" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (coaches.user_id = (select auth.uid())) WITH CHECK (coaches.user_id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "profiles_select_own" ON "profiles" AS PERMISSIVE FOR SELECT TO "authenticated" USING (profiles.id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "profiles_update_own" ON "profiles" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (profiles.id = (select auth.uid())) WITH CHECK (profiles.id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "profiles_select_enrolment_counterpart" ON "profiles" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-        select 1 from public.enrolments e
-        where (e.student_id = (select auth.uid()) and e.coach_id = profiles.id)
-           or (e.coach_id = (select auth.uid()) and e.student_id = profiles.id)
+CREATE POLICY "enrolments_select_as_student" ON "enrolments" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("enrolments"."student_id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "enrolments_select_as_coach" ON "enrolments" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("enrolments"."coach_id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "coach_offers_select_active" ON "coach_offers" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING ("coach_offers"."active");--> statement-breakpoint
+CREATE POLICY "coach_offers_select_own" ON "coach_offers" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("coach_offers"."coach_id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "coach_offers_update_own" ON "coach_offers" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ("coach_offers"."coach_id" = (select auth.uid())) WITH CHECK ("coach_offers"."coach_id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "coaches_select_active" ON "coaches" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING ("coaches"."active");--> statement-breakpoint
+CREATE POLICY "coaches_select_own" ON "coaches" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("coaches"."user_id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "coaches_update_own" ON "coaches" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ("coaches"."user_id" = (select auth.uid())) WITH CHECK ("coaches"."user_id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "profiles_select_own" ON "profiles" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("profiles"."id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "profiles_update_own" ON "profiles" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ("profiles"."id" = (select auth.uid())) WITH CHECK ("profiles"."id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "profiles_select_active_coach" ON "profiles" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING (exists (
+        select 1 from "coaches" where "coaches"."user_id" = "profiles"."id" and "coaches"."active"
       ));--> statement-breakpoint
-CREATE POLICY "students_select_own" ON "students" AS PERMISSIVE FOR SELECT TO "authenticated" USING (students.user_id = (select auth.uid()));--> statement-breakpoint
-CREATE POLICY "students_update_own" ON "students" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (students.user_id = (select auth.uid())) WITH CHECK (students.user_id = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "profiles_select_enrolment_counterpart" ON "profiles" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((exists (
+    select 1 from "enrolments"
+    where "enrolments"."coach_id" = "profiles"."id" and "enrolments"."student_id" = (select auth.uid())
+  ) or exists (
+    select 1 from "enrolments"
+    where "enrolments"."student_id" = "profiles"."id" and "enrolments"."coach_id" = (select auth.uid())
+  )));--> statement-breakpoint
+CREATE POLICY "students_select_own" ON "students" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("students"."user_id" = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "students_update_own" ON "students" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ("students"."user_id" = (select auth.uid())) WITH CHECK ("students"."user_id" = (select auth.uid()));--> statement-breakpoint
 CREATE POLICY "students_select_by_coach" ON "students" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-        select 1 from public.enrolments e
-        where e.student_id = students.user_id and e.coach_id = (select auth.uid())
-      ));--> statement-breakpoint
+    select 1 from "enrolments"
+    where "enrolments"."student_id" = "students"."user_id" and "enrolments"."coach_id" = (select auth.uid())
+  ));--> statement-breakpoint
 CREATE POLICY "collection_items_select" ON "collection_items" AS PERMISSIVE FOR SELECT TO "authenticated" USING (true);--> statement-breakpoint
-CREATE POLICY "collections_select_active" ON "collections" AS PERMISSIVE FOR SELECT TO "authenticated" USING (collections.active);--> statement-breakpoint
+CREATE POLICY "collections_select_active" ON "collections" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("collections"."active");--> statement-breakpoint
 CREATE POLICY "library_item_tags_select" ON "library_item_tags" AS PERMISSIVE FOR SELECT TO "authenticated" USING (true);--> statement-breakpoint
-CREATE POLICY "library_items_select_active" ON "library_items" AS PERMISSIVE FOR SELECT TO "authenticated" USING (library_items.active);--> statement-breakpoint
+CREATE POLICY "library_items_select_active" ON "library_items" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("library_items"."active");--> statement-breakpoint
 CREATE POLICY "tags_select" ON "tags" AS PERMISSIVE FOR SELECT TO "authenticated" USING (true);--> statement-breakpoint
-CREATE POLICY "media_assets_select_own" ON "media_assets" AS PERMISSIVE FOR SELECT TO "authenticated" USING (media_assets.owner_user_id = (select auth.uid()));--> statement-breakpoint
+CREATE POLICY "media_assets_select_own" ON "media_assets" AS PERMISSIVE FOR SELECT TO "authenticated" USING ("media_assets"."owner_user_id" = (select auth.uid()));--> statement-breakpoint
 CREATE POLICY "media_assets_select_library" ON "media_assets" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (
-        select 1 from public.library_items li
-        where li.active
-          and (li.demo_media_id = media_assets.id or li.backing_track_media_id = media_assets.id)
+        select 1 from "library_items"
+        where "library_items"."active"
+          and ("library_items"."demo_media_id" = "media_assets"."id" or "library_items"."backing_track_media_id" = "media_assets"."id")
       ));--> statement-breakpoint
-CREATE POLICY "media_assets_select_submission" ON "media_assets" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from public.submissions s where s.media_id = media_assets.id));--> statement-breakpoint
-CREATE POLICY "media_assets_select_feedback_reply" ON "media_assets" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from public.feedback f where f.reply_media_id = media_assets.id));--> statement-breakpoint
-CREATE POLICY "media_assets_insert_own_pending" ON "media_assets" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (media_assets.owner_user_id = (select auth.uid()) and media_assets.status = 'pending');
+CREATE POLICY "media_assets_select_submission" ON "media_assets" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from "submissions" where "submissions"."media_id" = "media_assets"."id"));--> statement-breakpoint
+CREATE POLICY "media_assets_select_feedback_reply" ON "media_assets" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from "feedback" where "feedback"."reply_media_id" = "media_assets"."id"));--> statement-breakpoint
+CREATE POLICY "media_assets_insert_own_pending" ON "media_assets" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ("media_assets"."owner_user_id" = (select auth.uid()) and "media_assets"."status" = 'pending');

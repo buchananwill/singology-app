@@ -1,5 +1,6 @@
 import type { AssignmentStatus, RecordEvent, Submission } from "@singology/shared";
 
+import type { EnrolmentParty } from "../enrolmentParty";
 import type { FixtureData } from "./data";
 
 /** One request's own copy of the fixtures, which its writes change. */
@@ -9,8 +10,6 @@ export interface FixtureState {
   pendingMediaIds: Set<string>;
   events: RecordEvent[];
 }
-
-export type EnrolmentParty = "studentId" | "coachId";
 
 export function enrolmentIdsFor(
   state: FixtureState,

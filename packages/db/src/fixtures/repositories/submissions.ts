@@ -2,7 +2,8 @@ import { indexById, type Submission } from "@singology/shared";
 
 import { assertAssignmentMatches } from "../../assertAssignmentMatches";
 import type { CoachQueueItem, OwnedSubmission, SubmissionRepository } from "../../repositories";
-import { type EnrolmentParty, enrolmentIdsFor, type FixtureState } from "../state";
+import type { EnrolmentParty } from "../../enrolmentParty";
+import { enrolmentIdsFor, type FixtureState } from "../state";
 
 export function fixtureSubmissions(state: FixtureState): SubmissionRepository {
   const { data } = state;

@@ -1,6 +1,6 @@
 {
-  "id": "32c8091d-b279-4302-822c-224f9708d730",
-  "prevId": "61b7734d-7f3f-4187-a640-471c27d45afa",
+  "id": "7090cacd-da9f-42a6-9c6e-1aed2d111c4e",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -14,15 +14,15 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
+            "type": "always",
             "name": "events_id_seq",
+            "schema": "public",
             "increment": "1",
+            "startWith": "1",
             "minValue": "1",
             "maxValue": "9223372036854775807",
-            "startWith": "1",
             "cache": "1",
-            "cycle": false,
-            "schema": "public",
-            "type": "always"
+            "cycle": false
           }
         },
         "user_id": {
@@ -83,9 +83,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "events_user_id_at_idx": {
           "name": "events_user_id_at_idx",
@@ -104,24 +104,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "events_user_id_profiles_id_fk": {
           "name": "events_user_id_profiles_id_fk",
           "tableFrom": "events",
+          "tableTo": "profiles",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "profiles",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -134,7 +134,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "events.user_id = (select auth.uid())"
+          "withCheck": "\"events\".\"user_id\" = (select auth.uid())"
         }
       },
       "checkConstraints": {},
@@ -209,9 +209,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "notifications_once_per_entity": {
           "name": "notifications_once_per_entity",
@@ -230,10 +230,10 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "entity_id is not null",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
         "notifications_once_per_period": {
           "name": "notifications_once_per_period",
@@ -258,25 +258,25 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "period_start is not null",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
         "notifications_user_id_profiles_id_fk": {
           "name": "notifications_user_id_profiles_id_fk",
           "tableFrom": "notifications",
+          "tableTo": "profiles",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "profiles",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -341,9 +341,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "assignments_library_item_id_idx": {
           "name": "assignments_library_item_id_idx",
@@ -356,9 +356,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "assignments_feedback_id_idx": {
           "name": "assignments_feedback_id_idx",
@@ -371,50 +371,50 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "assignments_enrolment_id_enrolments_id_fk": {
           "name": "assignments_enrolment_id_enrolments_id_fk",
           "tableFrom": "assignments",
+          "tableTo": "enrolments",
           "columnsFrom": [
             "enrolment_id"
           ],
-          "tableTo": "enrolments",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "assignments_library_item_id_library_items_id_fk": {
           "name": "assignments_library_item_id_library_items_id_fk",
           "tableFrom": "assignments",
+          "tableTo": "library_items",
           "columnsFrom": [
             "library_item_id"
           ],
-          "tableTo": "library_items",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         },
         "assignments_feedback_id_feedback_id_fk": {
           "name": "assignments_feedback_id_feedback_id_fk",
           "tableFrom": "assignments",
+          "tableTo": "feedback",
           "columnsFrom": [
             "feedback_id"
           ],
-          "tableTo": "feedback",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -427,7 +427,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "exists (\n    select 1 from public.enrolments e\n    where e.id = assignments.enrolment_id and e.coach_id = (select auth.uid())\n  )"
+          "withCheck": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"assignments\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         },
         "assignments_select_as_coach": {
           "name": "assignments_select_as_coach",
@@ -436,7 +436,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = assignments.enrolment_id and e.coach_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"assignments\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         },
         "assignments_select_as_student": {
           "name": "assignments_select_as_student",
@@ -445,7 +445,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = assignments.enrolment_id and e.student_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"assignments\".\"enrolment_id\" and \"enrolments\".\"student_id\" = (select auth.uid())\n  )"
         }
       },
       "checkConstraints": {},
@@ -514,9 +514,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "feedback_reply_media_id_idx": {
           "name": "feedback_reply_media_id_idx",
@@ -529,60 +529,60 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "feedback_submission_id_submissions_id_fk": {
           "name": "feedback_submission_id_submissions_id_fk",
           "tableFrom": "feedback",
+          "tableTo": "submissions",
           "columnsFrom": [
             "submission_id"
           ],
-          "tableTo": "submissions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "feedback_coach_id_coaches_user_id_fk": {
           "name": "feedback_coach_id_coaches_user_id_fk",
           "tableFrom": "feedback",
+          "tableTo": "coaches",
           "columnsFrom": [
             "coach_id"
           ],
-          "tableTo": "coaches",
           "columnsTo": [
             "user_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "feedback_reply_media_id_media_assets_id_fk": {
           "name": "feedback_reply_media_id_media_assets_id_fk",
           "tableFrom": "feedback",
+          "tableTo": "media_assets",
           "columnsFrom": [
             "reply_media_id"
           ],
-          "tableTo": "media_assets",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "feedback_submission_id_key": {
           "name": "feedback_submission_id_key",
+          "nullsNotDistinct": false,
           "columns": [
             "submission_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -593,7 +593,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "feedback.coach_id = (select auth.uid()) and exists (\n    select 1 from public.submissions s\n    join public.enrolments e on e.id = s.enrolment_id\n    where s.id = feedback.submission_id and e.coach_id = (select auth.uid())\n  )"
+          "withCheck": "(\"feedback\".\"coach_id\" = (select auth.uid()) and exists (\n    select 1 from \"submissions\"\n    inner join \"enrolments\" on \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\"\n    where \"submissions\".\"id\" = \"feedback\".\"submission_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  ))"
         },
         "feedback_select_as_coach": {
           "name": "feedback_select_as_coach",
@@ -602,7 +602,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.submissions s\n    join public.enrolments e on e.id = s.enrolment_id\n    where s.id = feedback.submission_id and e.coach_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"submissions\"\n    inner join \"enrolments\" on \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\"\n    where \"submissions\".\"id\" = \"feedback\".\"submission_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         },
         "feedback_select_as_student": {
           "name": "feedback_select_as_student",
@@ -611,7 +611,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.submissions s\n    join public.enrolments e on e.id = s.enrolment_id\n    where s.id = feedback.submission_id and e.student_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"submissions\"\n    inner join \"enrolments\" on \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\"\n    where \"submissions\".\"id\" = \"feedback\".\"submission_id\" and \"enrolments\".\"student_id\" = (select auth.uid())\n  )"
         }
       },
       "checkConstraints": {},
@@ -666,24 +666,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "feedback_comments_feedback_id_feedback_id_fk": {
           "name": "feedback_comments_feedback_id_feedback_id_fk",
           "tableFrom": "feedback_comments",
+          "tableTo": "feedback",
           "columnsFrom": [
             "feedback_id"
           ],
-          "tableTo": "feedback",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -696,7 +696,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (select 1 from public.feedback f where f.id = feedback_comments.feedback_id)"
+          "using": "exists (select 1 from \"feedback\" where \"feedback\".\"id\" = \"feedback_comments\".\"feedback_id\")"
         },
         "feedback_comments_insert_as_coach": {
           "name": "feedback_comments_insert_as_coach",
@@ -705,7 +705,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "exists (\n        select 1 from public.feedback f\n        where f.id = feedback_comments.feedback_id and f.coach_id = (select auth.uid())\n      )"
+          "withCheck": "exists (\n        select 1 from \"feedback\"\n        where \"feedback\".\"id\" = \"feedback_comments\".\"feedback_id\" and \"feedback\".\"coach_id\" = (select auth.uid())\n      )"
         }
       },
       "checkConstraints": {
@@ -797,9 +797,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "submissions_assignment_id_idx": {
           "name": "submissions_assignment_id_idx",
@@ -812,9 +812,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "submissions_library_item_id_idx": {
           "name": "submissions_library_item_id_idx",
@@ -827,9 +827,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "submissions_media_id_idx": {
           "name": "submissions_media_id_idx",
@@ -842,63 +842,63 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "submissions_enrolment_id_enrolments_id_fk": {
           "name": "submissions_enrolment_id_enrolments_id_fk",
           "tableFrom": "submissions",
+          "tableTo": "enrolments",
           "columnsFrom": [
             "enrolment_id"
           ],
-          "tableTo": "enrolments",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "submissions_assignment_id_assignments_id_fk": {
           "name": "submissions_assignment_id_assignments_id_fk",
           "tableFrom": "submissions",
+          "tableTo": "assignments",
           "columnsFrom": [
             "assignment_id"
           ],
-          "tableTo": "assignments",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         },
         "submissions_library_item_id_library_items_id_fk": {
           "name": "submissions_library_item_id_library_items_id_fk",
           "tableFrom": "submissions",
+          "tableTo": "library_items",
           "columnsFrom": [
             "library_item_id"
           ],
-          "tableTo": "library_items",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         },
         "submissions_media_id_media_assets_id_fk": {
           "name": "submissions_media_id_media_assets_id_fk",
           "tableFrom": "submissions",
+          "tableTo": "media_assets",
           "columnsFrom": [
             "media_id"
           ],
-          "tableTo": "media_assets",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -911,7 +911,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = submissions.enrolment_id and e.student_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"student_id\" = (select auth.uid())\n  )"
         },
         "submissions_insert_as_student": {
           "name": "submissions_insert_as_student",
@@ -920,7 +920,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "exists (\n        select 1 from public.enrolments e\n        where e.id = submissions.enrolment_id and e.student_id = (select auth.uid()) and e.status = 'active'\n      )"
+          "withCheck": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"student_id\" = (select auth.uid()) and \"enrolments\".\"status\" = 'active'\n  )"
         },
         "submissions_select_as_coach": {
           "name": "submissions_select_as_coach",
@@ -929,7 +929,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         },
         "submissions_update_as_coach": {
           "name": "submissions_update_as_coach",
@@ -938,8 +938,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())\n  )",
-          "withCheck": "exists (\n    select 1 from public.enrolments e\n    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )",
+          "withCheck": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         }
       },
       "checkConstraints": {},
@@ -1015,9 +1015,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "enrolments_coach_id_idx": {
           "name": "enrolments_coach_id_idx",
@@ -1030,9 +1030,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "enrolments_offer_id_idx": {
           "name": "enrolments_offer_id_idx",
@@ -1045,9 +1045,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "enrolments_status_idx": {
           "name": "enrolments_status_idx",
@@ -1060,9 +1060,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "enrolments_one_active_per_student": {
           "name": "enrolments_one_active_per_student",
@@ -1075,51 +1075,51 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "status = 'active'",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
         "enrolments_student_id_students_user_id_fk": {
           "name": "enrolments_student_id_students_user_id_fk",
           "tableFrom": "enrolments",
+          "tableTo": "students",
           "columnsFrom": [
             "student_id"
           ],
-          "tableTo": "students",
           "columnsTo": [
             "user_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         },
         "enrolments_coach_id_coaches_user_id_fk": {
           "name": "enrolments_coach_id_coaches_user_id_fk",
           "tableFrom": "enrolments",
+          "tableTo": "coaches",
           "columnsFrom": [
             "coach_id"
           ],
-          "tableTo": "coaches",
           "columnsTo": [
             "user_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         },
         "enrolments_offer_id_coach_offers_id_fk": {
           "name": "enrolments_offer_id_coach_offers_id_fk",
           "tableFrom": "enrolments",
+          "tableTo": "coach_offers",
           "columnsFrom": [
             "offer_id"
           ],
-          "tableTo": "coach_offers",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1132,7 +1132,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "enrolments.student_id = (select auth.uid())"
+          "using": "\"enrolments\".\"student_id\" = (select auth.uid())"
         },
         "enrolments_select_as_coach": {
           "name": "enrolments_select_as_coach",
@@ -1141,7 +1141,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "enrolments.coach_id = (select auth.uid())"
+          "using": "\"enrolments\".\"coach_id\" = (select auth.uid())"
         }
       },
       "checkConstraints": {},
@@ -1230,9 +1230,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "coach_offers_active_idx": {
           "name": "coach_offers_active_idx",
@@ -1245,46 +1245,38 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "coach_offers_coach_id_coaches_user_id_fk": {
           "name": "coach_offers_coach_id_coaches_user_id_fk",
           "tableFrom": "coach_offers",
+          "tableTo": "coaches",
           "columnsFrom": [
             "coach_id"
           ],
-          "tableTo": "coaches",
           "columnsTo": [
             "user_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "coach_offers_select_active_anon": {
-          "name": "coach_offers_select_active_anon",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "anon"
-          ],
-          "using": "coach_offers.active"
-        },
         "coach_offers_select_active": {
           "name": "coach_offers_select_active",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
+            "anon",
             "authenticated"
           ],
-          "using": "coach_offers.active"
+          "using": "\"coach_offers\".\"active\""
         },
         "coach_offers_select_own": {
           "name": "coach_offers_select_own",
@@ -1293,7 +1285,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "coach_offers.coach_id = (select auth.uid())"
+          "using": "\"coach_offers\".\"coach_id\" = (select auth.uid())"
         },
         "coach_offers_update_own": {
           "name": "coach_offers_update_own",
@@ -1302,8 +1294,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "coach_offers.coach_id = (select auth.uid())",
-          "withCheck": "coach_offers.coach_id = (select auth.uid())"
+          "using": "\"coach_offers\".\"coach_id\" = (select auth.uid())",
+          "withCheck": "\"coach_offers\".\"coach_id\" = (select auth.uid())"
         }
       },
       "checkConstraints": {
@@ -1388,46 +1380,38 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "coaches_user_id_profiles_id_fk": {
           "name": "coaches_user_id_profiles_id_fk",
           "tableFrom": "coaches",
+          "tableTo": "profiles",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "profiles",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "coaches_select_active_anon": {
-          "name": "coaches_select_active_anon",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "anon"
-          ],
-          "using": "coaches.active"
-        },
         "coaches_select_active": {
           "name": "coaches_select_active",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
+            "anon",
             "authenticated"
           ],
-          "using": "coaches.active"
+          "using": "\"coaches\".\"active\""
         },
         "coaches_select_own": {
           "name": "coaches_select_own",
@@ -1436,7 +1420,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "coaches.user_id = (select auth.uid())"
+          "using": "\"coaches\".\"user_id\" = (select auth.uid())"
         },
         "coaches_update_own": {
           "name": "coaches_update_own",
@@ -1445,8 +1429,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "coaches.user_id = (select auth.uid())",
-          "withCheck": "coaches.user_id = (select auth.uid())"
+          "using": "\"coaches\".\"user_id\" = (select auth.uid())",
+          "withCheck": "\"coaches\".\"user_id\" = (select auth.uid())"
         }
       },
       "checkConstraints": {
@@ -1493,16 +1477,16 @@
         "profiles_id_users_id_fk": {
           "name": "profiles_id_users_id_fk",
           "tableFrom": "profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
           "columnsFrom": [
             "id"
           ],
-          "tableTo": "users",
-          "schemaTo": "auth",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1515,7 +1499,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "profiles.id = (select auth.uid())"
+          "using": "\"profiles\".\"id\" = (select auth.uid())"
         },
         "profiles_update_own": {
           "name": "profiles_update_own",
@@ -1524,8 +1508,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "profiles.id = (select auth.uid())",
-          "withCheck": "profiles.id = (select auth.uid())"
+          "using": "\"profiles\".\"id\" = (select auth.uid())",
+          "withCheck": "\"profiles\".\"id\" = (select auth.uid())"
         },
         "profiles_select_active_coach": {
           "name": "profiles_select_active_coach",
@@ -1535,7 +1519,7 @@
             "anon",
             "authenticated"
           ],
-          "using": "exists (\n        select 1 from public.coaches c where c.user_id = profiles.id and c.active\n      )"
+          "using": "exists (\n        select 1 from \"coaches\" where \"coaches\".\"user_id\" = \"profiles\".\"id\" and \"coaches\".\"active\"\n      )"
         },
         "profiles_select_enrolment_counterpart": {
           "name": "profiles_select_enrolment_counterpart",
@@ -1544,7 +1528,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n        select 1 from public.enrolments e\n        where (e.student_id = (select auth.uid()) and e.coach_id = profiles.id)\n           or (e.coach_id = (select auth.uid()) and e.student_id = profiles.id)\n      )"
+          "using": "(exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"coach_id\" = \"profiles\".\"id\" and \"enrolments\".\"student_id\" = (select auth.uid())\n  ) or exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"student_id\" = \"profiles\".\"id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  ))"
         }
       },
       "checkConstraints": {},
@@ -1587,15 +1571,15 @@
         "students_user_id_profiles_id_fk": {
           "name": "students_user_id_profiles_id_fk",
           "tableFrom": "students",
+          "tableTo": "profiles",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "profiles",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1608,7 +1592,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "students.user_id = (select auth.uid())"
+          "using": "\"students\".\"user_id\" = (select auth.uid())"
         },
         "students_update_own": {
           "name": "students_update_own",
@@ -1617,8 +1601,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "students.user_id = (select auth.uid())",
-          "withCheck": "students.user_id = (select auth.uid())"
+          "using": "\"students\".\"user_id\" = (select auth.uid())",
+          "withCheck": "\"students\".\"user_id\" = (select auth.uid())"
         },
         "students_select_by_coach": {
           "name": "students_select_by_coach",
@@ -1627,7 +1611,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n        select 1 from public.enrolments e\n        where e.student_id = students.user_id and e.coach_id = (select auth.uid())\n      )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"student_id\" = \"students\".\"user_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         }
       },
       "checkConstraints": {},
@@ -1675,37 +1659,37 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "collection_items_collection_id_collections_id_fk": {
           "name": "collection_items_collection_id_collections_id_fk",
           "tableFrom": "collection_items",
+          "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
           ],
-          "tableTo": "collections",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "collection_items_library_item_id_library_items_id_fk": {
           "name": "collection_items_library_item_id_library_items_id_fk",
           "tableFrom": "collection_items",
+          "tableTo": "library_items",
           "columnsFrom": [
             "library_item_id"
           ],
-          "tableTo": "library_items",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -1720,11 +1704,11 @@
       "uniqueConstraints": {
         "collection_items_collection_id_position_key": {
           "name": "collection_items_collection_id_position_key",
+          "nullsNotDistinct": false,
           "columns": [
             "collection_id",
             "position"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -1812,9 +1796,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "collections_active_idx": {
           "name": "collections_active_idx",
@@ -1827,24 +1811,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "collections_owner_coach_id_coaches_user_id_fk": {
           "name": "collections_owner_coach_id_coaches_user_id_fk",
           "tableFrom": "collections",
+          "tableTo": "coaches",
           "columnsFrom": [
             "owner_coach_id"
           ],
-          "tableTo": "coaches",
           "columnsTo": [
             "user_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1857,7 +1841,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "collections.active"
+          "using": "\"collections\".\"active\""
         }
       },
       "checkConstraints": {},
@@ -1899,37 +1883,37 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "library_item_tags_library_item_id_library_items_id_fk": {
           "name": "library_item_tags_library_item_id_library_items_id_fk",
           "tableFrom": "library_item_tags",
+          "tableTo": "library_items",
           "columnsFrom": [
             "library_item_id"
           ],
-          "tableTo": "library_items",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "library_item_tags_tag_id_tags_id_fk": {
           "name": "library_item_tags_tag_id_tags_id_fk",
           "tableFrom": "library_item_tags",
+          "tableTo": "tags",
           "columnsFrom": [
             "tag_id"
           ],
-          "tableTo": "tags",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -2053,9 +2037,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "library_items_backing_track_media_id_idx": {
           "name": "library_items_backing_track_media_id_idx",
@@ -2068,9 +2052,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "library_items_owner_coach_id_idx": {
           "name": "library_items_owner_coach_id_idx",
@@ -2083,9 +2067,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "library_items_active_idx": {
           "name": "library_items_active_idx",
@@ -2098,50 +2082,50 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "library_items_demo_media_id_media_assets_id_fk": {
           "name": "library_items_demo_media_id_media_assets_id_fk",
           "tableFrom": "library_items",
+          "tableTo": "media_assets",
           "columnsFrom": [
             "demo_media_id"
           ],
-          "tableTo": "media_assets",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         },
         "library_items_backing_track_media_id_media_assets_id_fk": {
           "name": "library_items_backing_track_media_id_media_assets_id_fk",
           "tableFrom": "library_items",
+          "tableTo": "media_assets",
           "columnsFrom": [
             "backing_track_media_id"
           ],
-          "tableTo": "media_assets",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         },
         "library_items_owner_coach_id_coaches_user_id_fk": {
           "name": "library_items_owner_coach_id_coaches_user_id_fk",
           "tableFrom": "library_items",
+          "tableTo": "coaches",
           "columnsFrom": [
             "owner_coach_id"
           ],
-          "tableTo": "coaches",
           "columnsTo": [
             "user_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -2154,7 +2138,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "library_items.active"
+          "using": "\"library_items\".\"active\""
         }
       },
       "checkConstraints": {
@@ -2222,11 +2206,11 @@
       "uniqueConstraints": {
         "tags_kind_slug_key": {
           "name": "tags_kind_slug_key",
+          "nullsNotDistinct": false,
           "columns": [
             "kind",
             "slug"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -2364,9 +2348,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "media_assets_status_idx": {
           "name": "media_assets_status_idx",
@@ -2379,24 +2363,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "media_assets_owner_user_id_profiles_id_fk": {
           "name": "media_assets_owner_user_id_profiles_id_fk",
           "tableFrom": "media_assets",
+          "tableTo": "profiles",
           "columnsFrom": [
             "owner_user_id"
           ],
-          "tableTo": "profiles",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -2409,7 +2393,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "media_assets.owner_user_id = (select auth.uid())"
+          "using": "\"media_assets\".\"owner_user_id\" = (select auth.uid())"
         },
         "media_assets_select_library": {
           "name": "media_assets_select_library",
@@ -2418,7 +2402,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n        select 1 from public.library_items li\n        where li.active\n          and (li.demo_media_id = media_assets.id or li.backing_track_media_id = media_assets.id)\n      )"
+          "using": "exists (\n        select 1 from \"library_items\"\n        where \"library_items\".\"active\"\n          and (\"library_items\".\"demo_media_id\" = \"media_assets\".\"id\" or \"library_items\".\"backing_track_media_id\" = \"media_assets\".\"id\")\n      )"
         },
         "media_assets_select_submission": {
           "name": "media_assets_select_submission",
@@ -2427,7 +2411,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (select 1 from public.submissions s where s.media_id = media_assets.id)"
+          "using": "exists (select 1 from \"submissions\" where \"submissions\".\"media_id\" = \"media_assets\".\"id\")"
         },
         "media_assets_select_feedback_reply": {
           "name": "media_assets_select_feedback_reply",
@@ -2436,7 +2420,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (select 1 from public.feedback f where f.reply_media_id = media_assets.id)"
+          "using": "exists (select 1 from \"feedback\" where \"feedback\".\"reply_media_id\" = \"media_assets\".\"id\")"
         },
         "media_assets_insert_own_pending": {
           "name": "media_assets_insert_own_pending",
@@ -2445,7 +2429,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "media_assets.owner_user_id = (select auth.uid()) and media_assets.status = 'pending'"
+          "withCheck": "\"media_assets\".\"owner_user_id\" = (select auth.uid()) and \"media_assets\".\"status\" = 'pending'"
         }
       },
       "checkConstraints": {
@@ -2566,10 +2550,10 @@
     }
   },
   "schemas": {},
-  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
+  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

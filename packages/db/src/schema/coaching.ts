@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { and, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   check,
@@ -6,6 +6,7 @@ import {
   index,
   pgPolicy,
   pgTable,
+  type PgTableExtraConfigValue,
   text,
   timestamp,
   uuid,
@@ -18,12 +19,7 @@ import { submissionStatus } from "./enums";
 import { coaches } from "./identity";
 import { libraryItems } from "./library";
 import { mediaAssets } from "./media";
-
-const enrolmentIsCallers = (role: "student_id" | "coach_id", enrolmentIdColumn: string) =>
-  sql.raw(`exists (
-    select 1 from public.enrolments e
-    where e.id = ${enrolmentIdColumn} and e.${role} = (select auth.uid())
-  )`);
+import { enrolmentIsCallers, submissionIsCallers } from "./policies";
 
 export const assignments = pgTable(
   "assignments",
@@ -42,24 +38,24 @@ export const assignments = pgTable(
     }),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     index("assignments_enrolment_id_idx").on(t.enrolmentId),
     index("assignments_library_item_id_idx").on(t.libraryItemId),
     index("assignments_feedback_id_idx").on(t.feedbackId),
     pgPolicy("assignments_insert_as_coach", {
       for: "insert",
       to: authenticatedRole,
-      withCheck: enrolmentIsCallers("coach_id", "assignments.enrolment_id"),
+      withCheck: enrolmentIsCallers("coachId", t.enrolmentId),
     }),
     pgPolicy("assignments_select_as_coach", {
       for: "select",
       to: authenticatedRole,
-      using: enrolmentIsCallers("coach_id", "assignments.enrolment_id"),
+      using: enrolmentIsCallers("coachId", t.enrolmentId),
     }),
     pgPolicy("assignments_select_as_student", {
       for: "select",
       to: authenticatedRole,
-      using: enrolmentIsCallers("student_id", "assignments.enrolment_id"),
+      using: enrolmentIsCallers("studentId", t.enrolmentId),
     }),
   ],
 );
@@ -86,7 +82,7 @@ export const submissions = pgTable(
     status: submissionStatus("status").notNull().default("processing"),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     index("submissions_enrolment_id_idx").on(t.enrolmentId),
     index("submissions_assignment_id_idx").on(t.assignmentId),
     index("submissions_library_item_id_idx").on(t.libraryItemId),
@@ -94,42 +90,31 @@ export const submissions = pgTable(
     pgPolicy("submissions_select_as_student", {
       for: "select",
       to: authenticatedRole,
-      using: enrolmentIsCallers("student_id", "submissions.enrolment_id"),
+      using: enrolmentIsCallers("studentId", t.enrolmentId),
     }),
     pgPolicy("submissions_insert_as_student", {
       for: "insert",
       to: authenticatedRole,
-      withCheck: sql`exists (
-        select 1 from public.enrolments e
-        where e.id = submissions.enrolment_id and e.student_id = ${authUid} and e.status = 'active'
-      )`,
+      withCheck: enrolmentIsCallers("studentId", t.enrolmentId, { activeOnly: true }),
     }),
     pgPolicy("submissions_select_as_coach", {
       for: "select",
       to: authenticatedRole,
-      using: enrolmentIsCallers("coach_id", "submissions.enrolment_id"),
+      using: enrolmentIsCallers("coachId", t.enrolmentId),
     }),
     pgPolicy("submissions_update_as_coach", {
       for: "update",
       to: authenticatedRole,
-      using: enrolmentIsCallers("coach_id", "submissions.enrolment_id"),
-      withCheck: enrolmentIsCallers("coach_id", "submissions.enrolment_id"),
+      using: enrolmentIsCallers("coachId", t.enrolmentId),
+      withCheck: enrolmentIsCallers("coachId", t.enrolmentId),
     }),
   ],
 );
-
-const submissionIsCallers = (role: "student_id" | "coach_id", submissionIdColumn: string) =>
-  sql.raw(`exists (
-    select 1 from public.submissions s
-    join public.enrolments e on e.id = s.enrolment_id
-    where s.id = ${submissionIdColumn} and e.${role} = (select auth.uid())
-  )`);
 
 export const feedback = pgTable(
   "feedback",
   {
     id: id(),
-    // Unique: one feedback per submission is a database fact.
     submissionId: uuid("submission_id")
       .notNull()
       .unique("feedback_submission_id_key")
@@ -144,23 +129,26 @@ export const feedback = pgTable(
     sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     index("feedback_coach_id_idx").on(t.coachId),
     index("feedback_reply_media_id_idx").on(t.replyMediaId),
     pgPolicy("feedback_insert_as_coach", {
       for: "insert",
       to: authenticatedRole,
-      withCheck: sql`feedback.coach_id = ${authUid} and ${submissionIsCallers("coach_id", "feedback.submission_id")}`,
+      withCheck: and(
+        sql`${t.coachId} = ${authUid}`,
+        submissionIsCallers("coachId", t.submissionId),
+      ),
     }),
     pgPolicy("feedback_select_as_coach", {
       for: "select",
       to: authenticatedRole,
-      using: submissionIsCallers("coach_id", "feedback.submission_id"),
+      using: submissionIsCallers("coachId", t.submissionId),
     }),
     pgPolicy("feedback_select_as_student", {
       for: "select",
       to: authenticatedRole,
-      using: submissionIsCallers("student_id", "feedback.submission_id"),
+      using: submissionIsCallers("studentId", t.submissionId),
     }),
   ],
 );
@@ -176,7 +164,7 @@ export const feedbackComments = pgTable(
     body: text("body").notNull(),
     createdAt: createdAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     check("feedback_comments_t_seconds_nonnegative", sql`${t.tSeconds} >= 0`),
     check("feedback_comments_body_not_empty", sql`${t.body} <> ''`),
     index("feedback_comments_feedback_id_idx").on(t.feedbackId),
@@ -184,14 +172,14 @@ export const feedbackComments = pgTable(
     pgPolicy("feedback_comments_select", {
       for: "select",
       to: authenticatedRole,
-      using: sql`exists (select 1 from public.feedback f where f.id = feedback_comments.feedback_id)`,
+      using: sql`exists (select 1 from ${feedback} where ${feedback.id} = ${t.feedbackId})`,
     }),
     pgPolicy("feedback_comments_insert_as_coach", {
       for: "insert",
       to: authenticatedRole,
       withCheck: sql`exists (
-        select 1 from public.feedback f
-        where f.id = feedback_comments.feedback_id and f.coach_id = ${authUid}
+        select 1 from ${feedback}
+        where ${feedback.id} = ${t.feedbackId} and ${feedback.coachId} = ${authUid}
       )`,
     }),
   ],

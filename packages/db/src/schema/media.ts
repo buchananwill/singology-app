@@ -6,14 +6,17 @@ import {
   index,
   pgPolicy,
   pgTable,
+  type PgTableExtraConfigValue,
   text,
   uuid,
 } from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid } from "drizzle-orm/supabase";
 
+import { feedback, submissions } from "./coaching";
 import { createdAt, id, updatedAt } from "./columns";
 import { mediaKind, mediaStatus, mediaStore } from "./enums";
 import { profiles } from "./identity";
+import { libraryItems } from "./library";
 
 export const mediaAssets = pgTable(
   "media_assets",
@@ -36,9 +39,8 @@ export const mediaAssets = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     check("media_assets_duration_sec_positive", sql`${t.durationSec} > 0`),
-    // What makes the ready projection (the domain MediaAsset) total.
     check(
       "media_assets_ready_is_playable",
       sql`${t.status} <> 'ready' or (${t.src} is not null and ${t.peaksSrc} is not null and ${t.durationSec} is not null)`,
@@ -48,31 +50,31 @@ export const mediaAssets = pgTable(
     pgPolicy("media_assets_select_own", {
       for: "select",
       to: authenticatedRole,
-      using: sql`media_assets.owner_user_id = ${authUid}`,
+      using: sql`${t.ownerUserId} = ${authUid}`,
     }),
     pgPolicy("media_assets_select_library", {
       for: "select",
       to: authenticatedRole,
       using: sql`exists (
-        select 1 from public.library_items li
-        where li.active
-          and (li.demo_media_id = media_assets.id or li.backing_track_media_id = media_assets.id)
+        select 1 from ${libraryItems}
+        where ${libraryItems.active}
+          and (${libraryItems.demoMediaId} = ${t.id} or ${libraryItems.backingTrackMediaId} = ${t.id})
       )`,
     }),
     pgPolicy("media_assets_select_submission", {
       for: "select",
       to: authenticatedRole,
-      using: sql`exists (select 1 from public.submissions s where s.media_id = media_assets.id)`,
+      using: sql`exists (select 1 from ${submissions} where ${submissions.mediaId} = ${t.id})`,
     }),
     pgPolicy("media_assets_select_feedback_reply", {
       for: "select",
       to: authenticatedRole,
-      using: sql`exists (select 1 from public.feedback f where f.reply_media_id = media_assets.id)`,
+      using: sql`exists (select 1 from ${feedback} where ${feedback.replyMediaId} = ${t.id})`,
     }),
     pgPolicy("media_assets_insert_own_pending", {
       for: "insert",
       to: authenticatedRole,
-      withCheck: sql`media_assets.owner_user_id = ${authUid} and media_assets.status = 'pending'`,
+      withCheck: sql`${t.ownerUserId} = ${authUid} and ${t.status} = 'pending'`,
     }),
   ],
 );

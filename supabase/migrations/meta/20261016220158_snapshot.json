@@ -1,6 +1,6 @@
 {
-  "id": "cd71a460-90de-4e10-96a4-615e499d2716",
-  "prevId": "6c453f17-fe97-43a1-beab-9a177efbeba2",
+  "id": "cbdc18b9-5274-4f15-b8e4-04603bc9a290",
+  "prevId": "7090cacd-da9f-42a6-9c6e-1aed2d111c4e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -134,7 +134,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "events.user_id = (select auth.uid())"
+          "withCheck": "\"events\".\"user_id\" = (select auth.uid())"
         }
       },
       "checkConstraints": {},
@@ -427,7 +427,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "exists (\n    select 1 from public.enrolments e\n    where e.id = assignments.enrolment_id and e.coach_id = (select auth.uid())\n  )"
+          "withCheck": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"assignments\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         },
         "assignments_select_as_coach": {
           "name": "assignments_select_as_coach",
@@ -436,7 +436,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = assignments.enrolment_id and e.coach_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"assignments\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         },
         "assignments_select_as_student": {
           "name": "assignments_select_as_student",
@@ -445,7 +445,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = assignments.enrolment_id and e.student_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"assignments\".\"enrolment_id\" and \"enrolments\".\"student_id\" = (select auth.uid())\n  )"
         }
       },
       "checkConstraints": {},
@@ -593,7 +593,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "feedback.coach_id = (select auth.uid()) and exists (\n    select 1 from public.submissions s\n    join public.enrolments e on e.id = s.enrolment_id\n    where s.id = feedback.submission_id and e.coach_id = (select auth.uid())\n  )"
+          "withCheck": "(\"feedback\".\"coach_id\" = (select auth.uid()) and exists (\n    select 1 from \"submissions\"\n    inner join \"enrolments\" on \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\"\n    where \"submissions\".\"id\" = \"feedback\".\"submission_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  ))"
         },
         "feedback_select_as_coach": {
           "name": "feedback_select_as_coach",
@@ -602,7 +602,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.submissions s\n    join public.enrolments e on e.id = s.enrolment_id\n    where s.id = feedback.submission_id and e.coach_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"submissions\"\n    inner join \"enrolments\" on \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\"\n    where \"submissions\".\"id\" = \"feedback\".\"submission_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         },
         "feedback_select_as_student": {
           "name": "feedback_select_as_student",
@@ -611,7 +611,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.submissions s\n    join public.enrolments e on e.id = s.enrolment_id\n    where s.id = feedback.submission_id and e.student_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"submissions\"\n    inner join \"enrolments\" on \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\"\n    where \"submissions\".\"id\" = \"feedback\".\"submission_id\" and \"enrolments\".\"student_id\" = (select auth.uid())\n  )"
         }
       },
       "checkConstraints": {},
@@ -696,7 +696,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (select 1 from public.feedback f where f.id = feedback_comments.feedback_id)"
+          "using": "exists (select 1 from \"feedback\" where \"feedback\".\"id\" = \"feedback_comments\".\"feedback_id\")"
         },
         "feedback_comments_insert_as_coach": {
           "name": "feedback_comments_insert_as_coach",
@@ -705,7 +705,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "exists (\n        select 1 from public.feedback f\n        where f.id = feedback_comments.feedback_id and f.coach_id = (select auth.uid())\n      )"
+          "withCheck": "exists (\n        select 1 from \"feedback\"\n        where \"feedback\".\"id\" = \"feedback_comments\".\"feedback_id\" and \"feedback\".\"coach_id\" = (select auth.uid())\n      )"
         }
       },
       "checkConstraints": {
@@ -911,7 +911,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = submissions.enrolment_id and e.student_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"student_id\" = (select auth.uid())\n  )"
         },
         "submissions_insert_as_student": {
           "name": "submissions_insert_as_student",
@@ -920,7 +920,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "exists (\n        select 1 from public.enrolments e\n        where e.id = submissions.enrolment_id and e.student_id = (select auth.uid()) and e.status = 'active'\n      )"
+          "withCheck": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"student_id\" = (select auth.uid()) and \"enrolments\".\"status\" = 'active'\n  )"
         },
         "submissions_select_as_coach": {
           "name": "submissions_select_as_coach",
@@ -929,7 +929,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         },
         "submissions_update_as_coach": {
           "name": "submissions_update_as_coach",
@@ -938,8 +938,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n    select 1 from public.enrolments e\n    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())\n  )",
-          "withCheck": "exists (\n    select 1 from public.enrolments e\n    where e.id = submissions.enrolment_id and e.coach_id = (select auth.uid())\n  )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )",
+          "withCheck": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"id\" = \"submissions\".\"enrolment_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         }
       },
       "checkConstraints": {},
@@ -1132,7 +1132,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "enrolments.student_id = (select auth.uid())"
+          "using": "\"enrolments\".\"student_id\" = (select auth.uid())"
         },
         "enrolments_select_as_coach": {
           "name": "enrolments_select_as_coach",
@@ -1141,7 +1141,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "enrolments.coach_id = (select auth.uid())"
+          "using": "\"enrolments\".\"coach_id\" = (select auth.uid())"
         }
       },
       "checkConstraints": {},
@@ -1268,23 +1268,15 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "coach_offers_select_active_anon": {
-          "name": "coach_offers_select_active_anon",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "anon"
-          ],
-          "using": "coach_offers.active"
-        },
         "coach_offers_select_active": {
           "name": "coach_offers_select_active",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
+            "anon",
             "authenticated"
           ],
-          "using": "coach_offers.active"
+          "using": "\"coach_offers\".\"active\""
         },
         "coach_offers_select_own": {
           "name": "coach_offers_select_own",
@@ -1293,7 +1285,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "coach_offers.coach_id = (select auth.uid())"
+          "using": "\"coach_offers\".\"coach_id\" = (select auth.uid())"
         },
         "coach_offers_update_own": {
           "name": "coach_offers_update_own",
@@ -1302,8 +1294,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "coach_offers.coach_id = (select auth.uid())",
-          "withCheck": "coach_offers.coach_id = (select auth.uid())"
+          "using": "\"coach_offers\".\"coach_id\" = (select auth.uid())",
+          "withCheck": "\"coach_offers\".\"coach_id\" = (select auth.uid())"
         }
       },
       "checkConstraints": {
@@ -1411,23 +1403,15 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "coaches_select_active_anon": {
-          "name": "coaches_select_active_anon",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "anon"
-          ],
-          "using": "coaches.active"
-        },
         "coaches_select_active": {
           "name": "coaches_select_active",
           "as": "PERMISSIVE",
           "for": "SELECT",
           "to": [
+            "anon",
             "authenticated"
           ],
-          "using": "coaches.active"
+          "using": "\"coaches\".\"active\""
         },
         "coaches_select_own": {
           "name": "coaches_select_own",
@@ -1436,7 +1420,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "coaches.user_id = (select auth.uid())"
+          "using": "\"coaches\".\"user_id\" = (select auth.uid())"
         },
         "coaches_update_own": {
           "name": "coaches_update_own",
@@ -1445,8 +1429,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "coaches.user_id = (select auth.uid())",
-          "withCheck": "coaches.user_id = (select auth.uid())"
+          "using": "\"coaches\".\"user_id\" = (select auth.uid())",
+          "withCheck": "\"coaches\".\"user_id\" = (select auth.uid())"
         }
       },
       "checkConstraints": {
@@ -1515,7 +1499,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "profiles.id = (select auth.uid())"
+          "using": "\"profiles\".\"id\" = (select auth.uid())"
         },
         "profiles_update_own": {
           "name": "profiles_update_own",
@@ -1524,8 +1508,18 @@
           "to": [
             "authenticated"
           ],
-          "using": "profiles.id = (select auth.uid())",
-          "withCheck": "profiles.id = (select auth.uid())"
+          "using": "\"profiles\".\"id\" = (select auth.uid())",
+          "withCheck": "\"profiles\".\"id\" = (select auth.uid())"
+        },
+        "profiles_select_active_coach": {
+          "name": "profiles_select_active_coach",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "anon",
+            "authenticated"
+          ],
+          "using": "exists (\n        select 1 from \"coaches\" where \"coaches\".\"user_id\" = \"profiles\".\"id\" and \"coaches\".\"active\"\n      )"
         },
         "profiles_select_enrolment_counterpart": {
           "name": "profiles_select_enrolment_counterpart",
@@ -1534,7 +1528,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n        select 1 from public.enrolments e\n        where (e.student_id = (select auth.uid()) and e.coach_id = profiles.id)\n           or (e.coach_id = (select auth.uid()) and e.student_id = profiles.id)\n      )"
+          "using": "(exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"coach_id\" = \"profiles\".\"id\" and \"enrolments\".\"student_id\" = (select auth.uid())\n  ) or exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"student_id\" = \"profiles\".\"id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  ))"
         }
       },
       "checkConstraints": {},
@@ -1598,7 +1592,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "students.user_id = (select auth.uid())"
+          "using": "\"students\".\"user_id\" = (select auth.uid())"
         },
         "students_update_own": {
           "name": "students_update_own",
@@ -1607,8 +1601,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "students.user_id = (select auth.uid())",
-          "withCheck": "students.user_id = (select auth.uid())"
+          "using": "\"students\".\"user_id\" = (select auth.uid())",
+          "withCheck": "\"students\".\"user_id\" = (select auth.uid())"
         },
         "students_select_by_coach": {
           "name": "students_select_by_coach",
@@ -1617,7 +1611,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n        select 1 from public.enrolments e\n        where e.student_id = students.user_id and e.coach_id = (select auth.uid())\n      )"
+          "using": "exists (\n    select 1 from \"enrolments\"\n    where \"enrolments\".\"student_id\" = \"students\".\"user_id\" and \"enrolments\".\"coach_id\" = (select auth.uid())\n  )"
         }
       },
       "checkConstraints": {},
@@ -1847,7 +1841,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "collections.active"
+          "using": "\"collections\".\"active\""
         }
       },
       "checkConstraints": {},
@@ -2144,7 +2138,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "library_items.active"
+          "using": "\"library_items\".\"active\""
         }
       },
       "checkConstraints": {
@@ -2399,7 +2393,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "media_assets.owner_user_id = (select auth.uid())"
+          "using": "\"media_assets\".\"owner_user_id\" = (select auth.uid())"
         },
         "media_assets_select_library": {
           "name": "media_assets_select_library",
@@ -2408,7 +2402,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (\n        select 1 from public.library_items li\n        where li.active\n          and (li.demo_media_id = media_assets.id or li.backing_track_media_id = media_assets.id)\n      )"
+          "using": "exists (\n        select 1 from \"library_items\"\n        where \"library_items\".\"active\"\n          and (\"library_items\".\"demo_media_id\" = \"media_assets\".\"id\" or \"library_items\".\"backing_track_media_id\" = \"media_assets\".\"id\")\n      )"
         },
         "media_assets_select_submission": {
           "name": "media_assets_select_submission",
@@ -2417,7 +2411,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (select 1 from public.submissions s where s.media_id = media_assets.id)"
+          "using": "exists (select 1 from \"submissions\" where \"submissions\".\"media_id\" = \"media_assets\".\"id\")"
         },
         "media_assets_select_feedback_reply": {
           "name": "media_assets_select_feedback_reply",
@@ -2426,7 +2420,7 @@
           "to": [
             "authenticated"
           ],
-          "using": "exists (select 1 from public.feedback f where f.reply_media_id = media_assets.id)"
+          "using": "exists (select 1 from \"feedback\" where \"feedback\".\"reply_media_id\" = \"media_assets\".\"id\")"
         },
         "media_assets_insert_own_pending": {
           "name": "media_assets_insert_own_pending",
@@ -2435,7 +2429,7 @@
           "to": [
             "authenticated"
           ],
-          "withCheck": "media_assets.owner_user_id = (select auth.uid()) and media_assets.status = 'pending'"
+          "withCheck": "\"media_assets\".\"owner_user_id\" = (select auth.uid()) and \"media_assets\".\"status\" = 'pending'"
         }
       },
       "checkConstraints": {

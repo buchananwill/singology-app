@@ -3,6 +3,7 @@ import { and, asc, desc, eq, inArray, lt } from "drizzle-orm";
 
 import { assertAssignmentMatches } from "../assertAssignmentMatches";
 import type { Transaction, UserDb } from "../client";
+import type { EnrolmentParty } from "../enrolmentParty";
 import type { CoachQueueItem, OwnedSubmission, SubmissionRepository } from "../repositories";
 import {
   assignments,
@@ -19,24 +20,24 @@ import { assertCallersMedia, firstOrThrow } from "./queries";
 
 async function ownedSubmission(
   tx: Transaction,
-  owner: typeof enrolments.studentId | typeof enrolments.coachId,
-  ownerId: string,
+  party: EnrolmentParty,
+  partyId: string,
   submissionId: string,
 ): Promise<OwnedSubmission | undefined> {
   const [row] = await tx
     .select({ submission: submissions, enrolment: enrolments })
     .from(submissions)
     .innerJoin(enrolments, eq(enrolments.id, submissions.enrolmentId))
-    .where(and(eq(submissions.id, submissionId), eq(owner, ownerId)));
+    .where(and(eq(submissions.id, submissionId), eq(enrolments[party], partyId)));
   return row && { submission: toSubmission(row.submission), enrolment: toEnrolment(row.enrolment) };
 }
 
 export function drizzleSubmissions(db: UserDb): SubmissionRepository {
   return {
     getForStudent: (studentId, submissionId) =>
-      db((tx) => ownedSubmission(tx, enrolments.studentId, studentId, submissionId)),
+      db((tx) => ownedSubmission(tx, "studentId", studentId, submissionId)),
     getForCoach: (coachId, submissionId) =>
-      db((tx) => ownedSubmission(tx, enrolments.coachId, coachId, submissionId)),
+      db((tx) => ownedSubmission(tx, "coachId", coachId, submissionId)),
     forStudent: (studentId) =>
       db(async (tx) => {
         const rows = await tx

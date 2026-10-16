@@ -1,9 +1,20 @@
-import { sql } from "drizzle-orm";
-import { boolean, check, index, integer, pgPolicy, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { or, sql } from "drizzle-orm";
+import {
+  boolean,
+  check,
+  index,
+  integer,
+  pgPolicy,
+  pgTable,
+  type PgTableExtraConfigValue,
+  text,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { anonRole, authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 
 import { createdAt, id, updatedAt } from "./columns";
 import { coachTier, offerBilling, voiceType } from "./enums";
+import { isEnrolledWithCaller } from "./policies";
 
 export const profiles = pgTable(
   "profiles",
@@ -15,34 +26,33 @@ export const profiles = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  () => [
+  (t): PgTableExtraConfigValue[] => [
     pgPolicy("profiles_select_own", {
       for: "select",
       to: authenticatedRole,
-      using: sql`profiles.id = ${authUid}`,
+      using: sql`${t.id} = ${authUid}`,
     }),
     pgPolicy("profiles_update_own", {
       for: "update",
       to: authenticatedRole,
-      using: sql`profiles.id = ${authUid}`,
-      withCheck: sql`profiles.id = ${authUid}`,
+      using: sql`${t.id} = ${authUid}`,
+      withCheck: sql`${t.id} = ${authUid}`,
     }),
     // The landing page's coach cards show an active coach's name to everyone.
     pgPolicy("profiles_select_active_coach", {
       for: "select",
       to: [anonRole, authenticatedRole],
       using: sql`exists (
-        select 1 from public.coaches c where c.user_id = profiles.id and c.active
+        select 1 from ${coaches} where ${coaches.userId} = ${t.id} and ${coaches.active}
       )`,
     }),
     pgPolicy("profiles_select_enrolment_counterpart", {
       for: "select",
       to: authenticatedRole,
-      using: sql`exists (
-        select 1 from public.enrolments e
-        where (e.student_id = ${authUid} and e.coach_id = profiles.id)
-           or (e.coach_id = ${authUid} and e.student_id = profiles.id)
-      )`,
+      using: or(
+        isEnrolledWithCaller("studentId", "coachId", t.id),
+        isEnrolledWithCaller("coachId", "studentId", t.id),
+      ),
     }),
   ],
 );
@@ -61,29 +71,24 @@ export const coaches = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     check("coaches_turnaround_hours_positive", sql`${t.turnaroundHours} > 0`),
     index("coaches_active_idx").on(t.active),
-    pgPolicy("coaches_select_active_anon", {
-      for: "select",
-      to: anonRole,
-      using: sql`coaches.active`,
-    }),
     pgPolicy("coaches_select_active", {
       for: "select",
-      to: authenticatedRole,
-      using: sql`coaches.active`,
+      to: [anonRole, authenticatedRole],
+      using: sql`${t.active}`,
     }),
     pgPolicy("coaches_select_own", {
       for: "select",
       to: authenticatedRole,
-      using: sql`coaches.user_id = ${authUid}`,
+      using: sql`${t.userId} = ${authUid}`,
     }),
     pgPolicy("coaches_update_own", {
       for: "update",
       to: authenticatedRole,
-      using: sql`coaches.user_id = ${authUid}`,
-      withCheck: sql`coaches.user_id = ${authUid}`,
+      using: sql`${t.userId} = ${authUid}`,
+      withCheck: sql`${t.userId} = ${authUid}`,
     }),
   ],
 );
@@ -104,31 +109,26 @@ export const coachOffers = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (t): PgTableExtraConfigValue[] => [
     check("coach_offers_price_pence_nonnegative", sql`${t.pricePence} >= 0`),
     check("coach_offers_submissions_per_period_positive", sql`${t.submissionsPerPeriod} > 0`),
     index("coach_offers_coach_id_idx").on(t.coachId),
     index("coach_offers_active_idx").on(t.active),
-    pgPolicy("coach_offers_select_active_anon", {
-      for: "select",
-      to: anonRole,
-      using: sql`coach_offers.active`,
-    }),
     pgPolicy("coach_offers_select_active", {
       for: "select",
-      to: authenticatedRole,
-      using: sql`coach_offers.active`,
+      to: [anonRole, authenticatedRole],
+      using: sql`${t.active}`,
     }),
     pgPolicy("coach_offers_select_own", {
       for: "select",
       to: authenticatedRole,
-      using: sql`coach_offers.coach_id = ${authUid}`,
+      using: sql`${t.coachId} = ${authUid}`,
     }),
     pgPolicy("coach_offers_update_own", {
       for: "update",
       to: authenticatedRole,
-      using: sql`coach_offers.coach_id = ${authUid}`,
-      withCheck: sql`coach_offers.coach_id = ${authUid}`,
+      using: sql`${t.coachId} = ${authUid}`,
+      withCheck: sql`${t.coachId} = ${authUid}`,
     }),
   ],
 );
@@ -143,25 +143,22 @@ export const students = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  () => [
+  (t): PgTableExtraConfigValue[] => [
     pgPolicy("students_select_own", {
       for: "select",
       to: authenticatedRole,
-      using: sql`students.user_id = ${authUid}`,
+      using: sql`${t.userId} = ${authUid}`,
     }),
     pgPolicy("students_update_own", {
       for: "update",
       to: authenticatedRole,
-      using: sql`students.user_id = ${authUid}`,
-      withCheck: sql`students.user_id = ${authUid}`,
+      using: sql`${t.userId} = ${authUid}`,
+      withCheck: sql`${t.userId} = ${authUid}`,
     }),
     pgPolicy("students_select_by_coach", {
       for: "select",
       to: authenticatedRole,
-      using: sql`exists (
-        select 1 from public.enrolments e
-        where e.student_id = students.user_id and e.coach_id = ${authUid}
-      )`,
+      using: isEnrolledWithCaller("coachId", "studentId", t.userId),
     }),
   ],
 );
