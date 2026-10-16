@@ -1,6 +1,5 @@
--- Decision 45, and the active-coach policy (pitfall 20). Callers: student S (...0a1), their coach C
--- (...0c1, inactive), unrelated coach U (...0c2, active, so public), anon.
-select plan(13);
+-- Decision 45 and the active-coach profiles policy.
+select plan(14);
 
 select set_config(
   'tests.active_coach_ids',
@@ -9,47 +8,53 @@ select set_config(
 );
 
 select is(
-  (select display_name from public.profiles where id = '00000000-0000-4000-8000-0000000000a1'),
+  (select display_name from public.profiles where id = tests.id('student')),
   'Student',
   'handle_new_user takes the display name from the user metadata'
 );
 select is(
-  (select display_name from public.profiles where id = '00000000-0000-4000-8000-0000000000c2'),
+  (select display_name from public.profiles where id = tests.id('other_coach')),
   'other-coach',
   'handle_new_user falls back to the email''s local part'
 );
 
-select tests.act_as('00000000-0000-4000-8000-0000000000a1');
+select tests.act_as(tests.id('student'));
 select is(
   (select count(*)::int from public.profiles where tests.ours(id)),
   3,
   'the student sees their own profile, their coach''s and the active coach''s'
 );
 select is(
-  (select count(*)::int from public.profiles where id = '00000000-0000-4000-8000-0000000000c1'),
+  (select count(*)::int from public.profiles where id = tests.id('coach')),
   1,
   'the student sees their (inactive) coach across the enrolment'
 );
-update public.profiles set display_name = 'Stu' where id = '00000000-0000-4000-8000-0000000000a1';
+update public.profiles set display_name = 'Stu' where id = tests.id('student');
+select throws_ok(
+  $$delete from public.profiles where id = tests.id('student')$$,
+  '42501',
+  'permission denied for table profiles',
+  'nobody signed in deletes a profile'
+);
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c1');
+select tests.act_as(tests.id('coach'));
 select is(
   (select count(*)::int from public.profiles where tests.ours(id)),
   3,
   'the coach sees their own profile, their student''s and the active coach''s'
 );
 select is(
-  (select count(*)::int from public.profiles where id = '00000000-0000-4000-8000-0000000000a1'),
+  (select count(*)::int from public.profiles where id = tests.id('student')),
   1,
   'the coach sees their student across the enrolment'
 );
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c2');
+select tests.act_as(tests.id('other_coach'));
 select is(
   (select count(*)::int from public.profiles
-   where id in ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-0000000000c1')),
+   where id in (tests.id('student'), tests.id('coach'))),
   0,
   'an unrelated coach sees neither the student nor their inactive coach'
 );
@@ -58,16 +63,16 @@ select is(
   2,
   'an unrelated coach sees only their own side'
 );
-update public.profiles set display_name = 'Hacked' where id = '00000000-0000-4000-8000-0000000000a1';
+update public.profiles set display_name = 'Hacked' where id = tests.id('student');
 reset role;
 
 select is(
-  (select display_name from public.profiles where id = '00000000-0000-4000-8000-0000000000a1'),
+  (select display_name from public.profiles where id = tests.id('student')),
   'Stu',
   'the student updated their own profile and the unrelated coach changed nothing'
 );
 select is(
-  (select display_name from public.profiles where id = '00000000-0000-4000-8000-0000000000c1'),
+  (select display_name from public.profiles where id = tests.id('coach')),
   'Coach',
   'nobody else''s profile changed'
 );
@@ -84,7 +89,7 @@ select is(
   'anon sees the active test coach and no student or inactive coach'
 );
 select throws_ok(
-  $$update public.profiles set display_name = 'Anon' where id = '00000000-0000-4000-8000-0000000000c2'$$,
+  $$update public.profiles set display_name = 'Anon' where id = tests.id('other_coach')$$,
   '42501',
   'permission denied for table profiles',
   'anon cannot update a profile'

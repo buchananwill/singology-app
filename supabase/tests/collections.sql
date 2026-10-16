@@ -1,17 +1,23 @@
--- Decision 49. Collection ...201 is active; ...202 is inactive and must be invisible to every caller.
-select plan(5);
+-- Decision 49: collections.
+select plan(6);
 
-select tests.act_as('00000000-0000-4000-8000-0000000000a1');
+select tests.act_as(tests.id('student'));
 select is((select count(*)::int from public.collections where tests.ours(id)), 1, 'the student sees the active collection only');
+select throws_ok(
+  $$insert into public.collections (title) values ('Mine')$$,
+  '42501',
+  'permission denied for table collections',
+  'nobody but the seed writes collections'
+);
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c1');
+select tests.act_as(tests.id('coach'));
 select is((select count(*)::int from public.collections where tests.ours(id)), 1, 'the coach sees the active collection only');
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c2');
+select tests.act_as(tests.id('other_coach'));
 select is(
-  (select count(*)::int from public.collections where id = '00000000-0000-4000-8000-000000000202'),
+  (select count(*)::int from public.collections where id = tests.id('inactive_collection')),
   0,
   'an unrelated coach does not see the inactive collection'
 );

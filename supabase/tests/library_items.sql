@@ -1,24 +1,24 @@
--- Decision 49. Item ...0b1 is active; ...0b2 is inactive and must be invisible to every caller.
+-- Decision 49: library items.
 select plan(6);
 
-select tests.act_as('00000000-0000-4000-8000-0000000000a1');
+select tests.act_as(tests.id('student'));
 select is((select count(*)::int from public.library_items where tests.ours(id)), 1, 'the student sees the active item only');
 select throws_ok(
   $$insert into public.library_items (title, category, difficulty, voice_types, demo_media_id)
-    values ('Mine', 'breath', 'beginner', '{mezzo}', '00000000-0000-4000-8000-0000000000d1')$$,
+    values ('Mine', 'breath', 'beginner', '{mezzo}', tests.id('demo_media'))$$,
   '42501',
-  'new row violates row-level security policy for table "library_items"',
+  'permission denied for table library_items',
   'nobody but the seed writes the library'
 );
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c1');
+select tests.act_as(tests.id('coach'));
 select is((select count(*)::int from public.library_items where tests.ours(id)), 1, 'the coach sees the active item only');
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c2');
+select tests.act_as(tests.id('other_coach'));
 select is(
-  (select count(*)::int from public.library_items where id = '00000000-0000-4000-8000-0000000000b2'),
+  (select count(*)::int from public.library_items where id = tests.id('inactive_library_item')),
   0,
   'an unrelated coach does not see the inactive item'
 );

@@ -1,22 +1,21 @@
--- Decision 49: tags carry nothing private, so every signed-in caller sees every row and anon sees
--- none. There is no row an unrelated coach must not see; the failing case is anon and writes.
+-- Decision 49: tags, public to signed-in callers, so the failing cases are anon and writes.
 select plan(5);
 
-select tests.act_as('00000000-0000-4000-8000-0000000000a1');
+select tests.act_as(tests.id('student'));
 select is((select count(*)::int from public.tags where tests.ours(id)), 1, 'the student sees every tag');
 select throws_ok(
   $$insert into public.tags (kind, slug, label) values ('focus', 'mine', 'Mine')$$,
   '42501',
-  'new row violates row-level security policy for table "tags"',
+  'permission denied for table tags',
   'nobody but the seed writes tags'
 );
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c1');
+select tests.act_as(tests.id('coach'));
 select is((select count(*)::int from public.tags where tests.ours(id)), 1, 'the coach sees every tag');
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c2');
+select tests.act_as(tests.id('other_coach'));
 select is((select count(*)::int from public.tags where tests.ours(id)), 1, 'an unrelated coach sees every tag');
 reset role;
 

@@ -1,1 +1,1 @@
-create policy events_leak on public.events for select to authenticated using (true);
+alter policy events_insert_own on public.events with check (true);

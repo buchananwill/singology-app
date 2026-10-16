@@ -1,1 +1,1 @@
-create policy notifications_leak on public.notifications for select to authenticated using (true);
+grant select on public.notifications to authenticated;

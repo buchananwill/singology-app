@@ -1,24 +1,24 @@
--- Decision 48. Enrolment ...0e1 is S with C; ...0e2 is S2 with U.
+-- Decision 48.
 select plan(6);
 
-select tests.act_as('00000000-0000-4000-8000-0000000000a1');
+select tests.act_as(tests.id('student'));
 select is((select count(*)::int from public.enrolments where tests.ours(id)), 1, 'the student sees their own enrolment');
 select throws_ok(
   $$insert into public.enrolments (student_id, coach_id, offer_id) values
-    ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-0000000000c2', '00000000-0000-4000-8000-0000000000f2')$$,
+    (tests.id('student'), tests.id('other_coach'), tests.id('other_offer'))$$,
   '42501',
-  'new row violates row-level security policy for table "enrolments"',
+  'permission denied for table enrolments',
   'a student cannot enrol themselves'
 );
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c1');
+select tests.act_as(tests.id('coach'));
 select is((select count(*)::int from public.enrolments where tests.ours(id)), 1, 'the coach sees their own enrolment');
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c2');
+select tests.act_as(tests.id('other_coach'));
 select is(
-  (select count(*)::int from public.enrolments where id = '00000000-0000-4000-8000-0000000000e1'),
+  (select count(*)::int from public.enrolments where id = tests.id('enrolment')),
   0,
   'an unrelated coach does not see the enrolment'
 );

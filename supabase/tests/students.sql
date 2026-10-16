@@ -1,24 +1,30 @@
--- Decision 47. S (...0a1) is enrolled with C (...0c1); S2 (...0a2) with U (...0c2).
-select plan(7);
+-- Decision 47.
+select plan(8);
 
-select tests.act_as('00000000-0000-4000-8000-0000000000a1');
+select tests.act_as(tests.id('student'));
 select is((select count(*)::int from public.students where tests.ours(user_id)), 1, 'the student sees only their own row');
-update public.students set voice_type = 'alto' where user_id = '00000000-0000-4000-8000-0000000000a1';
+update public.students set voice_type = 'alto' where user_id = tests.id('student');
+select throws_ok(
+  $$delete from public.students where user_id = tests.id('student')$$,
+  '42501',
+  'permission denied for table students',
+  'nobody signed in deletes a student'
+);
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c1');
+select tests.act_as(tests.id('coach'));
 select is((select count(*)::int from public.students where tests.ours(user_id)), 1, 'the coach sees their enrolled student');
 select is(
-  (select count(*)::int from public.students where user_id = '00000000-0000-4000-8000-0000000000a1'),
+  (select count(*)::int from public.students where user_id = tests.id('student')),
   1,
-  'the coach''s visible student is S'
+  'the coach''s visible student is their own'
 );
-update public.students set voice_type = 'bass' where user_id = '00000000-0000-4000-8000-0000000000a1';
+update public.students set voice_type = 'bass' where user_id = tests.id('student');
 reset role;
 
-select tests.act_as('00000000-0000-4000-8000-0000000000c2');
+select tests.act_as(tests.id('other_coach'));
 select is(
-  (select count(*)::int from public.students where user_id = '00000000-0000-4000-8000-0000000000a1'),
+  (select count(*)::int from public.students where user_id = tests.id('student')),
   0,
   'an unrelated coach does not see the student'
 );
@@ -34,12 +40,12 @@ select throws_ok(
 reset role;
 
 select is(
-  (select voice_type::text from public.students where user_id = '00000000-0000-4000-8000-0000000000a1'),
+  (select voice_type::text from public.students where user_id = tests.id('student')),
   'alto',
   'the student updates their own row and their coach cannot'
 );
 select is(
-  (select voice_type::text from public.students where user_id = '00000000-0000-4000-8000-0000000000a2'),
+  (select voice_type::text from public.students where user_id = tests.id('other_student')),
   'bass',
   'no other student row changed'
 );
