@@ -14,6 +14,12 @@
    same counts after each run.
 6. `pnpm --filter @singology/db test:rls`, `test:rls --mutate` and `test:db` must pass.
 
+## Signing in during alpha
+
+Until S6 wires Resend, `pnpm -s --filter @singology/db sign-in-link <email> [--origin <app origin>]` prints a single-use sign-in URL for a seeded user (dev by default, `SINGOLOGY_ENV=test` for the test project).
+
+## Day to day
+
 Day to day: change the schema, `generate`, then `supabase db push`. Never `drizzle-kit push` or
 `drizzle-kit migrate`. pgTAP files in `tests/` run only through `test:rls`; each
 `<table>.mutation*.sql` beside a test must make it fail.
