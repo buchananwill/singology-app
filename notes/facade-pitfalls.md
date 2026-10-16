@@ -135,3 +135,10 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** None taken. `src/seed/seedAlpha.ts` follows decision 73 and reads a fourth key, `SUPABASE_SECRET_KEY`, from `packages/db/.env`; the project URL is derived from the pooler user name, so no other key is added. It has not run (pitfall 15 blocks every database step anyway). The lead rules on whether 77 gains the key or 73 changes.
 - **Affects.** The slice (the seed, and with it the integration and pgTAP tests that need the alpha users). Not the founder demo.
 - **Evidence.** Spec decisions 73 and 77; `@supabase/supabase-js` 2.118 `auth.admin.createUser` is documented as requiring the secret or `service_role` key.
+
+## 17. `supabase test db --linked` needs Docker, so pgTAP runs through a Node runner
+
+- **What happened.** Decision 76 asks the implementer to check whether `supabase test db --linked` runs on Windows without a local stack. It does not: the CLI connects to the database first, then runs `pg_prove` from the Docker image `supabase/pg_prove:3.36`, which is named in the CLI binary. This machine has no Docker.
+- **Workaround.** This is decision 76's own fallback. `packages/db/scripts/runRlsTests.ts` (`pnpm --filter @singology/db test:rls`) runs each `supabase/tests/*.sql` over `DATABASE_URL` in one transaction: `supabase/tests/support/setup.sql` first, then the file, then a rollback. It parses the TAP rows and fails on any `not ok`, an error, or a count that does not match the plan. `--mutate` runs each file again with its policy loosened or dropped inside the same rolled-back transaction, and requires that run to fail. The files have no `begin`/`rollback` of their own, so they run only through this runner, not through `pg_prove`.
+- **Affects.** The slice's test tooling only. Not the founder demo.
+- **Evidence.** `pnpm exec supabase test db --db-url postgresql://postgres:dummy@127.0.0.1:1/postgres` → `Connecting to remote database...` then `DbConnectError` (it connects before anything else); `grep -a` over `@supabase/cli-windows-x64@2.121.0/bin/supabase-go.exe` finds `supabase/pg_prove:3.36`.
