@@ -19,7 +19,11 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 - `coach_offers` — a coach's illustrative price offers, read by the landing page; where Stripe prices attach later.
 - `students` — role row keyed by `user_id`; voice type.
 - `enrolments` — a student with a coach under an offer; the RLS anchor for everything below it.
-- `library_items` — the exercise library; demo and backing-track media.
+- `library_items` — the exercise library; category, difficulty, demo and backing-track media.
+- `collections` — a named, ordered grouping of exercises (the founder's programmes); an item may sit in several.
+- `collection_items` — the ordered join from `collections` to `library_items`.
+- `tags` — the master list of open-ended labels, each under a `kind` (the first kind is `focus`, the technical-focus facet).
+- `library_item_tags` — the join from `library_items` to `tags`.
 - `media_assets` — every uploaded or seeded file: which store holds it, processing status, playback URLs, peaks, duration.
 - `assignments` — an exercise set for an enrolment; status is derived, never stored.
 - `submissions` — a student's take of an exercise, referencing one media asset.
@@ -30,7 +34,7 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 
 **Postgres enums (one `pgEnum` each, values from the `packages/shared` constant arrays)**
 
-- `coach_tier`, `offer_billing`, `voice_type`, `library_category`, `media_kind`, `enrolment_status`, `submission_status`, `media_store`, `media_status`, `notification_kind`.
+- `coach_tier`, `offer_billing`, `voice_type`, `library_category`, `difficulty`, `media_kind`, `enrolment_status`, `submission_status`, `media_store`, `media_status`, `notification_kind`.
 
 **Postgres, schema `private` (helpers never exposed through the API)**
 
@@ -42,6 +46,8 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 - `EnrolmentSchema` — before: `{ id, studentId, coachId, offerId, status, currentPeriodEnd, submissionsUsed }` → after: `{ id, studentId, coachId, offerId, status, startedAt }`.
 - `SUBMISSION_STATUSES` — before: `["awaiting_review", "reviewed"]` → after: `["processing", "awaiting_review", "reviewed", "failed"]`.
 - `MEDIA_STORES`, `MEDIA_STATUSES`, `EVENT_KINDS`, `NOTIFICATION_KINDS` — new constant arrays, with their Zod enums and inferred types.
+- `LibraryItemSchema` — before: `{ id, title, category, voiceTypes, instructions, demoMediaId, backingTrackMediaId? }` → after: the same plus `difficulty: Difficulty` and `tags: Tag[]`.
+- `DIFFICULTIES`, `TAG_KINDS`, `TagSchema` (`{ kind, slug, label }`), `CollectionSchema` (`{ id, title, description, position, itemIds }`) — new.
 - `MediaAssetSchema` — unchanged in shape; it is the **ready** projection of a `media_assets` row.
 - `CreateSubmission`, `SendFeedback` (exists), `RecordEvent` — the write DTOs the repositories accept.
 
@@ -97,7 +103,7 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 
 ### Library and media
 
-19. **`library_items`:** `id`, `title text not null`, `category library_category not null`, `voice_types voice_type[] not null check (cardinality(voice_types) > 0)`, `instructions text not null default ''`, `demo_media_id references media_assets(id) on delete restrict`, `backing_track_media_id references media_assets(id) on delete restrict` (nullable), `owner_coach_id references coaches(user_id)` (nullable; null is platform-owned), `active boolean not null default true`, timestamps.
+19. **`library_items`:** `id`, `title text not null`, `category library_category not null`, `difficulty difficulty not null`, `voice_types voice_type[] not null check (cardinality(voice_types) > 0)`, `instructions text not null default ''`, `demo_media_id references media_assets(id) on delete restrict`, `backing_track_media_id references media_assets(id) on delete restrict` (nullable), `owner_coach_id references coaches(user_id)` (nullable; null is platform-owned), `active boolean not null default true`, timestamps.
 20. **`voice_types` is an enum array, not a join table**, because the library is small, the filter is `voice_type = any(voice_types)`, and a join table would add a type and two queries for no reader.
 21. **`media_assets`:** `id`, `kind media_kind not null`, `owner_user_id references profiles(id)` (nullable; null for seeded library media), `store media_store not null`, `store_key text not null` (the Bunny video id, the Storage path, or the local public path), `status media_status not null default 'pending'`, `src text`, `hls_src text`, `peaks_src text`, `duration_sec double precision check (duration_sec > 0)`, `original_file_name text not null default ''`, `size_bytes bigint`, `mime_type text`, `failure_reason text`, timestamps.
 22. **`media_store` is `'local' | 'bunny_stream' | 'bunny_storage'`** and `media_status` is `'pending' | 'ready' | 'failed'`; `'local'` is the facade's `/media/*` path and is what every seeded asset uses until Bunny is switched on, so the player needs no change before S4.
@@ -136,7 +142,7 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 46. **`coaches` and `coach_offers`:** `authenticated` selects where `active`, plus a coach selects and updates their own `coaches` row and their own offers; no insert policy, because coaches are created by the admin seed.
 47. **`students`:** a student selects and updates their own row; a coach selects students who have an enrolment with them.
 48. **`enrolments`:** a student selects rows where `student_id = (select auth.uid())`; a coach selects rows where `coach_id = (select auth.uid())`; no insert, update or delete policy, because enrolment changes are an admin operation in alpha.
-49. **`library_items`:** `authenticated` selects where `active`; no write policies, because library authoring is by the admin seed in alpha.
+49. **`library_items`, `collections`, `collection_items`, `tags` and `library_item_tags`:** `authenticated` selects (`library_items` and `collections` where `active`; the join and tag tables unconditionally, since they carry nothing private); no write policies, because library authoring is by the admin seed in alpha.
 50. **`media_assets`:** `authenticated` selects a row when `owner_user_id = (select auth.uid())`, or the row is referenced by an active `library_items` row (demo or backing track), or it is referenced by a `submissions` or `feedback` row the caller can select (an `exists` against those tables, which themselves apply their own policies); `authenticated` inserts a row only with `owner_user_id = (select auth.uid())` and `status = 'pending'`; no update or delete policy, because status is the job's.
 51. **`submissions`:** a student selects rows whose enrolment is theirs and inserts rows whose enrolment is theirs and `active`; a coach selects rows whose enrolment is theirs; a coach updates rows whose enrolment is theirs (the `reviewed` flip inside `feedback.send`); no delete policy.
 52. **`feedback` and `feedback_comments`:** a coach inserts rows for submissions whose enrolment is theirs and selects them; a student selects rows for submissions whose enrolment is theirs; comments inherit through `feedback_id`; no update or delete policy, because sent feedback is immutable in alpha.
@@ -201,11 +207,23 @@ export interface Repositories {
 70. **Migrations are applied with the Supabase CLI against the linked alpha project**; `drizzle-kit push` and `drizzle-kit migrate` are never run against a shared database, because the CLI's migration table is the one record of what has been applied.
 71. **Alpha migrations may be squashed:** until the first beta account exists, the implementer may delete the alpha database's `supabase/migrations/*` and regenerate one initial migration; after that, every migration is additive and data-preserving.
 72. **The `public` schema is removed from the Data API's exposed schemas** in the Supabase project settings, so PostgREST serves nothing and the publishable key can read nothing.
-73. **`seedAlpha.ts` runs with `adminDb` and the Supabase admin auth API**: it creates the alpha users (the founder as a coach, the CTO as a student and as a second coach for testing), their profiles, roles, one enrolment, and inserts the existing `createFixtureData` library items and media assets with `store = 'local'` and `status = 'ready'`, so the alpha starts with the facade's library and playable media.
+73. **`seedAlpha.ts` runs with `adminDb` and the Supabase admin auth API**: it creates the alpha users (the founder as a coach, the CTO as a student and as a second coach for testing), their profiles, roles, one enrolment, and inserts the existing `createFixtureData` library items (each given a difficulty, focus tags and a collection in the fixture data) and media assets with `store = 'local'` and `status = 'ready'`, so the alpha starts with the facade's library and playable media.
 74. **The seed is idempotent** (upserts on natural keys: email for users, the fixture ids for library and media), so it can be re-run after a squash without manual cleanup.
 75. **`pnpm --filter @singology/db` gains the scripts `generate` (drizzle-kit), `seed` and `test:rls`**, and the root `pnpm test` keeps excluding the RLS tests because they need a database.
 76. **pgTAP tests run against the alpha database without Docker**, through `supabase test db --linked` if that command runs on Windows without a local stack, and otherwise through a small Node runner that executes `supabase/tests/*.sql` over the direct connection and checks the TAP output; the implementer verifies which and records it in the pitfalls log.
 77. **Secrets are `DATABASE_URL` (direct, for migrations, seed and tests) and the `HYPERDRIVE` binding (for the Worker)**, in `apps/web/.dev.vars` and `packages/db/.env` locally, both ignored; no secret appears in a committed file.
+
+### Collections, tags and the extension rule
+
+78. **The extension rule, for every later "where does this attribute live" question:** a **single-valued attribute from a closed set** is a column (an enum, like `category` and `difficulty`); a **multi-valued attribute from a closed set** is an enum array column (like `voice_types`); a **multi-valued, open-ended label** is rows in `tags` under a `kind` plus a row per link in the join table (like focus); a **thing with its own attributes or lifecycle** is its own table (like `collections`). Each later addition names which of the four it is, and beta tests the boundary deliberately (decision 86).
+79. **`difficulty` is a `pgEnum` `('beginner', 'improver', 'intermediate', 'advanced')`**, a required column on `library_items`, because it is single-valued and ordered, and a sort by difficulty must not need a join; the labels live in `packages/shared` next to the category labels.
+80. **`tags`:** `id`, `kind text not null`, `slug text not null`, `label text not null`, `position integer not null default 0`, timestamps, with `unique (kind, slug)`; **`kind` is `text` checked against the shared `TAG_KINDS` constant**, not an enum, so a new facet is a new row value and never a migration.
+81. **`TAG_KINDS` is `['focus']` in alpha**: the technical-focus facet (for example `legato`, `register-transition`, `vowel-shape`), with the founder's vocabulary entered through the seed.
+82. **`library_item_tags`:** `library_item_id references library_items(id) on delete cascade`, `tag_id references tags(id) on delete restrict`, `primary key (library_item_id, tag_id)`, with an index on `tag_id`; a tag in use cannot be deleted, it is relabelled.
+83. **`collections`:** `id`, `title text not null`, `description text not null default ''`, `owner_coach_id references coaches(user_id)` (nullable; null is platform-owned), `position integer not null default 0`, `active boolean not null default true`, timestamps.
+84. **`collection_items`:** `collection_id references collections(id) on delete cascade`, `library_item_id references library_items(id) on delete cascade`, `position integer not null`, `primary key (collection_id, library_item_id)`, `unique (collection_id, position)`, with an index on `library_item_id`; an item may belong to several collections.
+85. **`LibraryItem` gains `difficulty` and `tags`** (each tag as `{ kind, slug, label }`, so the UI renders labels without a lookup), `LibraryRepository` gains `listCollections(): Promise<Collection[]>` returning collections with their ordered `itemIds`, and `LibraryFilter` gains optional `difficulty` and `tag` (a slug); the library page grouping by collection is UI work for a later package, not this one.
+86. **Beta's planned test of the extension rule is to fold `category` into `tags` as `kind = 'category'`** and compare the filter code and queries before and after; until that test is run and ruled on, `category` stays a column.
 
 ## 3. Deferred (explicitly out of scope)
 
