@@ -10,8 +10,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "test:db": "vitest run --config vitest.db.config.ts",
-    "test:rls": "tsx scripts/runRlsTests.ts",
+    "test:db": "SINGOLOGY_ENV=test vitest run --config vitest.db.config.ts",
+    "test:rls": "SINGOLOGY_ENV=test tsx scripts/runRlsTests.ts",
     "generate": "drizzle-kit generate",
     "generate:private": "tsx scripts/privateMigration.ts",
     "supabase": "tsx scripts/supabaseCli.ts",
