@@ -1,6 +1,7 @@
 // Diagnostic: row counts per public table and alpha users, e.g. to show a seed re-run adds nothing.
 import pg from "pg";
 
+import { connectionSettingsFromUrl } from "../src/client";
 import { requireEnv } from "../src/seed/env";
 
 const TABLES = [
@@ -22,7 +23,7 @@ const TABLES = [
   "events",
 ] as const;
 
-const client = new pg.Client({ connectionString: requireEnv("DATABASE_URL") });
+const client = new pg.Client(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
 await client.connect();
 try {
   const counts: string[] = [];

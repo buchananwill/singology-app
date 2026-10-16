@@ -4,12 +4,13 @@ import { randomUUID } from "node:crypto";
 
 import pg from "pg";
 
+import { connectionSettingsFromUrl } from "../src/client";
 import { requireEnv } from "../src/seed/env";
 
-const connectionString = requireEnv("DATABASE_URL");
+const settings = connectionSettingsFromUrl(requireEnv("DATABASE_URL"));
 
 const sub = randomUUID();
-const client = new pg.Client({ connectionString });
+const client = new pg.Client(settings);
 await client.connect();
 try {
   await client.query("begin");

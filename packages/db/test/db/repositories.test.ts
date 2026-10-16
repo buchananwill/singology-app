@@ -12,7 +12,7 @@ import {
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { afterAll, assert, beforeAll, describe, expect, it } from "vitest";
 
-import { createAdminDb, createUserDb, type Db } from "../../src/client";
+import { connectionSettingsFromUrl, createAdminDb, createUserDb, type Db } from "../../src/client";
 import { createDrizzleRepositories } from "../../src/drizzle/createDrizzleRepositories";
 import type { Repositories } from "../../src/repositories";
 import { assignments, events, feedback, mediaAssets, submissions } from "../../src/schema";
@@ -20,7 +20,7 @@ import { ALPHA_ENROLMENT, CTO_EMAIL, FOUNDER_EMAIL } from "../../src/seed/alphaC
 import { requireEnv } from "../../src/seed/env";
 import { fixtureUuid } from "../../src/seed/fixtureUuid";
 
-const databaseUrl = requireEnv("DATABASE_URL");
+const settings = connectionSettingsFromUrl(requireEnv("DATABASE_URL"));
 const now = new Date();
 const lib = (fixtureId: string) => fixtureUuid(fixtureId);
 
@@ -71,15 +71,12 @@ async function userId(email: string): Promise<string> {
 }
 
 beforeAll(async () => {
-  admin = createAdminDb(databaseUrl);
+  admin = createAdminDb(settings);
   founderId = await userId(FOUNDER_EMAIL);
   ctoId = await userId(CTO_EMAIL);
   const repos = (sub?: string) =>
     createDrizzleRepositories(
-      createUserDb(
-        databaseUrl,
-        sub === undefined ? { role: "anon" } : { role: "authenticated", sub },
-      ),
+      createUserDb(settings, sub === undefined ? { role: "anon" } : { role: "authenticated", sub }),
       { now },
     );
   asFounder = repos(founderId);

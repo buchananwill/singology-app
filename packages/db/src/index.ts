@@ -1,5 +1,12 @@
 export type * from "./repositories";
-export { type Claims, createUserDb, type Transaction, type UserDb } from "./client";
+export {
+  type Claims,
+  type ConnectionSettings,
+  connectionSettingsFromUrl,
+  createUserDb,
+  type Transaction,
+  type UserDb,
+} from "./client";
 export { countActiveCoaches } from "./drizzle/countActiveCoaches";
 export { createDrizzleRepositories } from "./drizzle/createDrizzleRepositories";
 export { createFixtureRepositories } from "./fixtures/createFixtureRepositories";

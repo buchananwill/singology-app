@@ -9,6 +9,7 @@ import { readdir, readFile } from "node:fs/promises";
 
 import pg from "pg";
 
+import { connectionSettingsFromUrl } from "../src/client";
 import { requireEnv } from "../src/seed/env";
 
 const TESTS_DIR = new URL("../../../supabase/tests/", import.meta.url);
@@ -108,7 +109,7 @@ const names = (await readdir(TESTS_DIR))
   .filter((name) => only.size === 0 || only.has(name))
   .sort();
 
-const client = new pg.Client({ connectionString: requireEnv("DATABASE_URL") });
+const client = new pg.Client(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
 await client.connect();
 let allGood = true;
 try {

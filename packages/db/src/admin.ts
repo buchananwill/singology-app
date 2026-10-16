@@ -1,1 +1,1 @@
-export { createAdminDb, type Db } from "./client";
+export { connectionSettingsFromUrl, createAdminDb, type Db } from "./client";

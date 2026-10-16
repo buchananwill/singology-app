@@ -2,7 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { inArray, sql } from "drizzle-orm";
 
-import { createAdminDb } from "../client";
+import { connectionSettingsFromUrl, createAdminDb } from "../client";
 import { createFixtureData } from "../fixtures/data";
 import {
   coaches,
@@ -28,7 +28,7 @@ import { requireEnv, supabaseUrlFrom } from "./env";
 import { fixtureUuid } from "./fixtureUuid";
 
 const databaseUrl = requireEnv("DATABASE_URL");
-const db = createAdminDb(databaseUrl);
+const db = createAdminDb(connectionSettingsFromUrl(databaseUrl));
 const authAdmin = createClient(supabaseUrlFrom(databaseUrl), requireEnv("SUPABASE_SECRET_KEY"), {
   auth: { persistSession: false, autoRefreshToken: false },
 }).auth.admin;
