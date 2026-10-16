@@ -14,5 +14,5 @@
   },
   // `singology-dev-db`, created with caching disabled (spec decision 57). Locally, `wrangler dev`
   // uses WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE from .dev.vars instead of this id.
-  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REPLACE_WITH_HYPERDRIVE_ID" }],
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "997b46ccb23e49e394a600075a67e994" }],
 }
