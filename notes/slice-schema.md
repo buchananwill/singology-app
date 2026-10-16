@@ -69,7 +69,8 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 
 **`apps/web`, touched only at the seam**
 
-- `app/middleware/repositories.ts` — swaps `createFixtureRepositories` for `createDrizzleRepositories` over a per-request `UserDb`; unchanged otherwise.
+- `app/middleware/repositories.ts` — **untouched until S3**: the swap to `createDrizzleRepositories` over a per-request `UserDb` needs real user ids, which arrive with Supabase Auth; the fixtures and the demo role stay until then.
+- `app/routes/lab.db.tsx` — an unlinked lab route (like `/lab/player`) whose loader runs one `anon` RLS transaction through the `HYPERDRIVE` binding and renders the count of active coaches; the Worker-to-Postgres proof.
 - `wrangler.jsonc` — gains the `HYPERDRIVE` binding.
 
 ## 2. Decisions
@@ -170,7 +171,7 @@ export function createAdminDb(connectionString: string): Db;
 ```
 
 61. **`adminDb` is permitted only in webhook resource routes (`app/routes/api.*`), the media job, the notification sender and the seed**, enforced by an ESLint `no-restricted-imports` rule on `@singology/db/admin` outside those paths, because one form per privilege level is what makes a privileged call visible in review.
-62. **`createDrizzleRepositories(db, options)` implements the existing `Repositories` interface unchanged** and accepts `RepositoryOptions` for the `now` argument the fixture implementation needs, ignoring it, so root middleware swaps one factory call.
+62. **`createDrizzleRepositories(db, options)` implements the existing `Repositories` interface unchanged** and accepts `RepositoryOptions` for the `now` argument the fixture implementation needs, ignoring it, so root middleware swaps one factory call when S3 wires real sessions; until then its correctness is proven by integration tests in `packages/db` that run against the alpha database (`pnpm --filter @singology/db test:db`, excluded from the root `pnpm test`).
 63. **`Repositories` gains these write methods**, each a single transaction with the ownership check inside it and each returning the domain object it created:
 
 ```ts
