@@ -193,7 +193,7 @@ export interface FeedbackRepository {
 }
 export interface MediaRepository {
   // existing methods unchanged
-  register(input: RegisterMedia): Promise<{ id: string }>;
+  register(input: RegisterMedia): Promise<Pick<MediaAsset, "id">>;
 }
 export interface EventRepository {
   record(input: RecordEvent): Promise<void>;
