@@ -14,7 +14,9 @@ import {
 } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
+import type { mediaAssets, tags } from "../schema";
 import {
+  type Row,
   toAssignment,
   toCoach,
   toCoachOffer,
@@ -35,11 +37,11 @@ const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0
 
 const readyMedia = {
   id: uuid(1),
-  kind: "audio" as const,
+  kind: "audio",
   ownerUserId: null,
-  store: "local" as const,
+  store: "local",
   storeKey: "/media/take.m4a",
-  status: "ready" as const,
+  status: "ready",
   src: "/media/take.m4a",
   hlsSrc: null,
   peaksSrc: "/media/take.peaks.json",
@@ -49,7 +51,7 @@ const readyMedia = {
   mimeType: null,
   failureReason: null,
   ...timestamps,
-};
+} satisfies Row<typeof mediaAssets>;
 
 const tagRow = {
   id: uuid(2),
@@ -58,7 +60,7 @@ const tagRow = {
   label: "Legato",
   position: 0,
   ...timestamps,
-};
+} satisfies Row<typeof tags>;
 
 describe("mappers", () => {
   it("project identity rows onto the shared schemas", () => {

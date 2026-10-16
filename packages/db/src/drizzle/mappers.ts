@@ -30,7 +30,7 @@ import type {
   tags,
 } from "../schema";
 
-type Row<T extends { $inferSelect: unknown }> = T["$inferSelect"];
+export type Row<T extends { $inferSelect: unknown }> = T["$inferSelect"];
 
 const iso = (date: Date) => date.toISOString();
 const optional = <T>(value: T | null): T | undefined => value ?? undefined;
@@ -102,9 +102,13 @@ export function toCollection(row: Row<typeof collections>, itemIds: string[]): C
   };
 }
 
-/** Only for `ready` rows, which the `media_assets_ready_is_playable` check makes complete. */
 export function toMediaAsset(row: Row<typeof mediaAssets>): MediaAsset {
-  if (row.status !== "ready" || row.src === null || row.peaksSrc === null || !row.durationSec) {
+  if (
+    row.status !== "ready" ||
+    row.src === null ||
+    row.peaksSrc === null ||
+    row.durationSec === null
+  ) {
     throw new Error(`Media asset ${row.id} is not ready.`);
   }
   return {

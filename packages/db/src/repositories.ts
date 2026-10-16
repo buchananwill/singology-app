@@ -45,12 +45,11 @@ export interface LibraryRepository {
   listCollections(): Promise<Collection[]>;
 }
 
-/** Reads return ready assets only: a pending or failed upload has nothing to play yet. */
 export interface MediaRepository {
   get(id: string): Promise<MediaAsset | undefined>;
   getMany(ids: readonly string[]): Promise<MediaAsset[]>;
   /** Registers the caller's upload as `pending`; only the media job makes it ready. */
-  register(input: RegisterMedia): Promise<{ id: string }>;
+  register(input: RegisterMedia): Promise<Pick<MediaAsset, "id">>;
 }
 
 export interface EventRepository {
