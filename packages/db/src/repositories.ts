@@ -11,6 +11,7 @@ import type {
   LibraryItem,
   MediaAsset,
   MediaKind,
+  Me,
   RecordEvent,
   RegisterMedia,
   SendFeedbackInput,
@@ -26,6 +27,11 @@ export interface CoachWithOffers {
 export interface CoachRepository {
   listWithOffers(): Promise<CoachWithOffers[]>;
   get(id: string): Promise<Coach | undefined>;
+}
+
+export interface MeRepository {
+  /** `null` when the caller is anonymous or has no profile row. */
+  get(): Promise<Me | null>;
 }
 
 export interface StudentRepository {
@@ -110,6 +116,7 @@ export interface RepositoryOptions {
 
 /** The data seam: fixtures in the facade, Drizzle in the slice. */
 export interface Repositories {
+  me: MeRepository;
   coaches: CoachRepository;
   students: StudentRepository;
   enrolments: EnrolmentRepository;

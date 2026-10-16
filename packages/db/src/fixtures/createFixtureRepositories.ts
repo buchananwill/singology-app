@@ -6,6 +6,7 @@ import { fixtureEnrolments } from "./repositories/enrolments";
 import { fixtureEvents } from "./repositories/events";
 import { fixtureFeedback } from "./repositories/feedback";
 import { fixtureLibrary } from "./repositories/library";
+import { fixtureMe } from "./repositories/me";
 import { fixtureMedia } from "./repositories/media";
 import { fixtureStudents } from "./repositories/students";
 import { fixtureSubmissions } from "./repositories/submissions";
@@ -20,6 +21,7 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
     events: [],
   };
   return {
+    me: fixtureMe(),
     coaches: fixtureCoaches(state),
     students: fixtureStudents(state),
     enrolments: fixtureEnrolments(state),

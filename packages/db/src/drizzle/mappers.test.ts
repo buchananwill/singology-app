@@ -8,6 +8,7 @@ import {
   FeedbackSchema,
   LibraryItemSchema,
   MediaAssetSchema,
+  MeSchema,
   StudentSchema,
   SubmissionSchema,
   TagSchema,
@@ -25,6 +26,7 @@ import {
   toFeedback,
   toFeedbackComment,
   toLibraryItem,
+  toMe,
   toMediaAsset,
   toStudent,
   toSubmission,
@@ -93,6 +95,23 @@ describe("mappers", () => {
 
     const student = toStudent({ userId: uuid(5), voiceType: "mezzo", ...timestamps }, "Ada");
     expect(StudentSchema.parse(student)).toEqual(student);
+
+    const profileRow = { id: uuid(5), displayName: "Ada", ...timestamps };
+    const me = toMe(profileRow, { userId: uuid(5), voiceType: "mezzo", ...timestamps }, null);
+    expect(MeSchema.parse(me)).toEqual(me);
+    expect(me).toEqual({ profile: { id: uuid(5), displayName: "Ada" }, student, coach: null });
+    const coachOnly = toMe(profileRow, null, {
+      userId: uuid(5),
+      tier: "standard",
+      bio: "",
+      avatarSrc: "/avatars/coach-standard.svg",
+      turnaroundHours: 72,
+      active: false,
+      ...timestamps,
+    });
+    expect(MeSchema.parse(coachOnly)).toEqual(coachOnly);
+    expect(coachOnly.coach?.displayName).toBe("Ada");
+    expect(coachOnly.student).toBeNull();
 
     const enrolment = toEnrolment({
       id: uuid(6),

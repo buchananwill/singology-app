@@ -111,6 +111,21 @@ export const StudentSchema = z.object({
 });
 export type Student = z.infer<typeof StudentSchema>;
 
+/** The signed-in user's own profile row. */
+export const ProfileSchema = StudentSchema.pick({ id: true, displayName: true });
+export type Profile = z.infer<typeof ProfileSchema>;
+
+/** Who is signed in, and which roles they hold; a user may hold both. */
+export const MeSchema = z.object({
+  profile: ProfileSchema,
+  student: StudentSchema.nullable(),
+  coach: CoachSchema.nullable(),
+});
+export type Me = z.infer<typeof MeSchema>;
+
+export const SignInSchema = z.object({ email: z.email("Enter an email address.") });
+export type SignIn = z.infer<typeof SignInSchema>;
+
 export const EnrolmentStatusSchema = z.enum(ENROLMENT_STATUSES);
 export type EnrolmentStatus = z.infer<typeof EnrolmentStatusSchema>;
 

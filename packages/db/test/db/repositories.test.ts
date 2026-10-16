@@ -6,6 +6,7 @@ import {
   EnrolmentSchema,
   LibraryItemSchema,
   MediaAssetSchema,
+  MeSchema,
   type RegisterMedia,
   SubmissionSchema,
 } from "@singology/shared";
@@ -97,6 +98,18 @@ afterAll(async () => {
 });
 
 describe("reads", () => {
+  it("reads the caller's own profile and roles, and nothing for anon", async () => {
+    const cto = await asCto.me.get();
+    expect(MeSchema.parse(cto)).toEqual(cto);
+    expect(cto?.profile).toEqual({ id: ctoId, displayName: "Singology CTO" });
+    expect(cto?.student?.id).toBe(ctoId);
+    expect(cto?.coach?.id).toBe(ctoId);
+    const founder = await asFounder.me.get();
+    expect(founder?.student).toBeNull();
+    expect(founder?.coach?.displayName).toBe("Singology founder");
+    expect(await asAnon.me.get()).toBeNull();
+  });
+
   it("lists active coaches with their offers", async () => {
     const rows = await asCto.coaches.listWithOffers();
     expect(rows.map((row) => row.coach.id).sort()).toEqual([founderId, ctoId].sort());

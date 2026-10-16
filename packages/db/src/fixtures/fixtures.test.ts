@@ -288,6 +288,10 @@ describe("review queue against the turnaround promise", () => {
 });
 
 describe("createFixtureRepositories", () => {
+  it("has no signed-in caller", async () => {
+    expect(await createFixtureRepositories({ now: TEST_NOW }).me.get()).toBeNull();
+  });
+
   it("lists coaches with their offers", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const rows = await repos.coaches.listWithOffers();

@@ -9,6 +9,8 @@ import {
   type FeedbackComment,
   type LibraryItem,
   type MediaAsset,
+  type Me,
+  type Profile,
   type Student,
   type Submission,
   type Tag,
@@ -25,6 +27,7 @@ import type {
   feedbackComments,
   libraryItems,
   mediaAssets,
+  profiles,
   students,
   submissions,
   tags,
@@ -60,6 +63,22 @@ export function toCoachOffer(row: Row<typeof coachOffers>): CoachOffer {
 
 export function toStudent(row: Row<typeof students>, displayName: string): Student {
   return { id: row.userId, displayName, voiceType: row.voiceType };
+}
+
+export function toProfile(row: Row<typeof profiles>): Profile {
+  return { id: row.id, displayName: row.displayName };
+}
+
+export function toMe(
+  profile: Row<typeof profiles>,
+  student: Row<typeof students> | null,
+  coach: Row<typeof coaches> | null,
+): Me {
+  return {
+    profile: toProfile(profile),
+    student: student && toStudent(student, profile.displayName),
+    coach: coach && toCoach(coach, profile.displayName),
+  };
 }
 
 export function toEnrolment(row: Row<typeof enrolments>): Enrolment {
