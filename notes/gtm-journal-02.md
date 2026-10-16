@@ -56,7 +56,8 @@ Carried from journal 1 §3 by reference, plus:
 - **Founder and accountant questions** carried from journal 1 §5 unchanged (adults only; VAT agency or principal; choir size and pricing). None blocks the alpha.
 - **Containers pricing and plan requirement** (journal 1 D21, unverified). Checked in S4 before the job is built; the fallback is ruled then.
 - **Whether Hyperdrive reaches Supabase's IPv6-only direct connection** (journal 1 D22). The first S2 spike answers it.
-- **Billing out of alpha (D43)** is the lead's reading of the user's priorities. The user may pull Stripe into the arc.
+- ~~**Billing out of alpha (D43)** is the lead's reading of the user's priorities. The user may pull Stripe into the arc.~~ *CLOSED 2026-10-16:* confirmed by the user; Stripe is a later arc.
+- **Who pays for the cloud accounts:** the founder handles payment setup for the platforms (user, 2026-10-16). See F23 for which tiers suffice for alpha.
 
 ## Decisions
 
@@ -67,7 +68,7 @@ Carried from journal 1 §3 by reference, plus:
 - *User:* "Stabilize the core database schema so that migrations in beta-testing and onwards are minimal, and definitely non-destructive. Alpha-stage permits throwaway migrations of any scale. Beta will close the gate on that." **Lead's ruling:** the gate is the first beta account. Until then the alpha database may be reset. The schema is designed from the start as if the gate were closed (journal 1 D15 already requires forward-only, data-preserving migrations for the pilot cohort).
 - *User:* "Smoke test all the core coaching functions: video upload, audio upload, feedback annotation, nudge emails." **Lead's ruling on "nudge emails":** three emails define the function for alpha: feedback-ready to the student, new-submission to the coach, and a practice reminder to a student with no submission in the current week. Transport is Resend (journal 1 D27). Nothing else is sent in alpha.
 - *User:* "Day One design is approved as web-page only, leaning on external recording and upload to page to ensure content quality. No native apps. Assume no record to page directly." This confirms journal 1 D16 (upload-first) and D28, and removes in-page recording from the arc entirely.
-- **Lead's ruling: billing is out of the alpha arc.** The user's priorities name four functions and none is payment. Alpha testers are the founder and the CTO. Enrolments exist without subscriptions; the schema names where Stripe state attaches (nullable columns or a separate table, decided in D48's spec) but no Stripe code is written. *Open to reversal by the user (§5).*
+- **Lead's ruling: billing is out of the alpha arc.** The user's priorities name four functions and none is payment. Alpha testers are the founder and the CTO. Enrolments exist without subscriptions; the schema names where Stripe state attaches (nullable columns or a separate table, decided in D48's spec) but no Stripe code is written. *CONFIRMED by the user 2026-10-16:* "Stripe outside this slice. Land the MVP, then get the cash till working." The three-email definition of nudges was also endorsed ("perfect").
 
 **44. The arc's branch is `slice`, cut from `main` at `1047be2`.** The naming follows the repo's precedent (`facade`, `facade-review-fixes`). Delegates work on `slice` or on short branches cut from it and merged back into it. Nothing merges to `main` until the arc closes, with the full suite green and the user's agreement. `main` is not touched meanwhile except by the user.
 
@@ -92,5 +93,12 @@ Each package lands as many small commits on `slice`, passes `pnpm typecheck`, `l
 **48. The schema is specified before any Drizzle code is written.** `notes/slice-schema.md` is a decision spec (the planning-session format) that reconciles two sources: the facade's `packages/shared` Zod schemas, which are the proven shape of what the UI needs, and journal 1 WP4 §3's data model sketch, which has the relational and RLS shape. It drops what alpha does not need (guardians, consent, billing, audit) but names where each attaches, keeps the `events` table from journal 1 D27 from day one, and states the RLS rule for every table in prose before any policy is written. *Reason:* the user's second priority is schema stability; a schema that emerges from implementation is the opposite of that.
 
 ## Findings
+
+**F23. Free tiers for the alpha, checked against the vendors' own pricing pages on 2026-10-16.** The founder pays for the platforms (user). What the alpha needs costs about $6 a month, all of it on Cloudflare and Bunny:
+- **Supabase Free suffices:** 2 active projects, 500 MB database, 1 GB file storage, 50,000 MAU. "Free projects are paused after 1 week of inactivity"; the founder resumes them from the dashboard, and the data is kept. Branching is Pro-only and is not needed in alpha (one project, throwaway migrations, D43). Pro ($25) becomes necessary at beta for no pausing, backups and Branching (journal 1 D17 cost note).
+- **Cloudflare Workers Free covers hosting and Hyperdrive** ("Hyperdrive is included in both the Free and Paid Workers plans", 100,000 queries a day). **Containers need Workers Paid ($5 a month):** the pricing page lists the Free column as N/A for CPU, memory and disk, and the included allowances (375 vCPU-minutes, 25 GiB-hours, 200 GB-hours, 1 TB egress) sit inside the Paid plan. Alpha usage stays inside those allowances. This settles journal 1 D21's "whether Workers Paid covers them": it does.
+- **Bunny has no free tier:** a 14-day trial with no credit card, then a $1 monthly minimum with usage billed per GB. Alpha media volume is pennies above the minimum.
+- **Resend Free suffices:** 3,000 emails a month, 100 a day, 3 custom domains, 30-day retention, 1 webhook endpoint. Three nudge emails for two testers is nowhere near it.
+- *Lead's understanding, not re-verified:* Cron Triggers for the weekly reminder (S6) are available on Workers Free.
 
 **F22. State at bootstrap, 2026-10-16.** Measured by the lead on `main` at `8cbe3c4` before cutting `slice`: 140 unit tests pass, typecheck and lint clean, tree clean. Journal 1's close-of-session figure was also 140, so nothing drifted. `origin` now exists and `main` is pushed (journal 1 §3 said "no remote yet"; that line is stale). Toolchain as in §2.
