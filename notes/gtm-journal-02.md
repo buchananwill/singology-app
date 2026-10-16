@@ -102,6 +102,8 @@ Each package lands as many small commits on `slice`, passes `pnpm typecheck`, `l
 
 **51. Cloud resource naming and boundaries.** A new Supabase organisation **`Singology`**, separate from the user's prototype projects, because the organisation is the billing boundary and the founder takes it over at beta. Projects are named by environment: **`singology-dev`** (alpha; Free; London `eu-west-2`; reset at will) now, and **`singology-prod`** (Pro) created at beta, so no project is ever renamed. The Hyperdrive config is **`singology-dev-db`**; later Bunny resources are `singology-dev` (Stream library) and `singology-dev-media` (Storage zone); the Resend domain is whatever the founder's sending domain is. The Worker keeps its facade name until S7 rules the alpha deployment name. Database passwords live in the user's password manager and in the ignored env files only.
 
+**52. S2 is dispatched (2026-10-16) to an Opus delegate against [slice-schema.md](./slice-schema.md) as the contract.** Order in the brief: connectivity spike through the session pooler first; shared types; Drizzle schema and migrations applied with the Supabase CLI; data layer and mappers; idempotent seed; pgTAP convicted by mutation per table; integration tests behind `test:db`; the `/lab/db` route with a placeholder Hyperdrive id until the user's id arrives. The app's middleware stays on fixtures until S3 (spec roster, amended `9c734b6`). *Reason:* S3 is when real user ids exist; swapping earlier would need demo ids that are not uuids.
+
 ## Findings
 
 **F23. Free tiers for the alpha, checked against the vendors' own pricing pages on 2026-10-16.** The founder pays for the platforms (user). What the alpha needs costs about $6 a month, all of it on Cloudflare and Bunny:
