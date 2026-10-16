@@ -1,7 +1,7 @@
 ---
 title: "Slice Schema: Fixed Design Decisions"
 type: decision-spec
-status: proposed
+status: implemented
 ---
 
 # Slice Schema

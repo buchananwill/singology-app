@@ -34,12 +34,19 @@ pnpm 9 workspace, Node 22+. Run from the repo root unless noted. On Windows open
 | Built Worker in workerd  | `pnpm preview` (port 4173)                                                                                                                           |
 | Build                    | `pnpm build`                                                                                                                                         |
 | Regenerate fixture media | `pnpm --filter @singology/media-jobs generate`, then `peaks` (needs ffmpeg on PATH)                                                                  |
+| RLS tests (pgTAP)        | `pnpm --filter @singology/db test:rls`, and `test:rls -- --mutate` to prove each policy's test can fail                                              |
+| Repository integration   | `pnpm --filter @singology/db test:db`                                                                                                                |
+| Schema change            | edit `packages/db/src/schema`, `pnpm --filter @singology/db generate`, then `pnpm --filter @singology/db supabase db push`                           |
+| Seed the alpha database  | `pnpm --filter @singology/db seed` (idempotent), `seed:counts` to inspect                                                                            |
 
-Before any commit that touches code: `pnpm typecheck`, `pnpm lint`, `pnpm test` must all pass (spec decision 5). Run `pnpm test:e2e` when a route, component or Worker handler changed.
+Before any commit that touches code: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test` must all pass. Run `pnpm test:e2e` when a route, component or Worker handler changed, and `test:rls` plus `test:db` when the schema, a policy, a repository or the seed changed. The database suites run against the alpha Supabase project and are excluded from the root `pnpm test`; run them on a seeded database.
 
 Things to know about the toolchain:
 
 - `apps/web` typecheck runs `wrangler types` and `react-router typegen` before `tsc -b`. On a fresh clone the `./+types/*` route imports and `Env` do not resolve until `pnpm typecheck` has run once.
+- **Secrets** live in `packages/db/.env` (`DATABASE_URL`, the Supabase session-pooler string, and `SUPABASE_SECRET_KEY`) and `apps/web/.dev.vars` (`CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`, the same string). Both are ignored. `pnpm dev` and the e2e server load `.dev.vars` into the process environment and cannot start without it. The db scripts let `.env` override an inherited environment variable of the same name. Never print or commit a value from either file.
+- **Migrations** are drizzle-kit output in `supabase/migrations`, applied with the Supabase CLI through `pnpm --filter @singology/db supabase` (it adds `--db-url`). Never `drizzle-kit push` or `migrate`. The custom migration (private schema, triggers, grants) is generated from the schema by `generate:private`, never hand-edited. The alpha reset procedure is in `supabase/README.md`.
+- **Privileged database access** (`createAdminDb`, from `@singology/db/admin`) is allowed only inside `packages/db`, webhook routes and jobs; ESLint enforces it. Everything else goes through `createUserDb`, which runs every call inside one RLS transaction.
 - E2E always rebuilds and starts the built Worker under `wrangler dev` (not `vite preview`, whose Node proxy exhausts Windows ephemeral ports). It needs port 4173 free. If a run was interrupted, kill the leftover `workerd.exe` and the `node.exe` whose command line contains `singology-app`, and nothing else: many unrelated `node.exe` processes run on this machine.
 - Vitest in `apps/web` uses its own `vitest.config.ts` without the React Router and Cloudflare plugins; it covers `app/**`, `workers/**` and `test/**`.
 - TypeScript is pinned to `~6.0.3` in every package because `typescript-eslint` does not support 7. Do not bump it.
@@ -50,7 +57,7 @@ Things to know about the toolchain:
 ### Package levels (strict, acyclic)
 
 1. `packages/shared` (`@singology/shared`): Zod 4 schemas, the domain types inferred from them, constants (roles, tiers, categories), and pure functions (`groupBy`, `indexById`, SLA arithmetic). Imports no workspace package. Every domain type in the repo comes from `z.infer` here; never hand-write a parallel interface.
-2. `packages/db` (`@singology/db`): the `Repositories` interface (`src/repositories.ts`) and `createFixtureRepositories({ now })`, which implements it over in-module fixture data. All methods are async and return `@singology/shared` types. This is the seam the slice will re-implement with Drizzle.
+2. `packages/db` (`@singology/db`): the `Repositories` interface (`src/repositories.ts`) with two implementations, `createFixtureRepositories({ now })` over in-module fixture data (tests, the seed's source, `/lab/player`) and `createDrizzleRepositories(userDb, options)` over Postgres, one module per repository under `src/drizzle/` mirrored by `src/fixtures/repositories/`. The Drizzle schema in `src/schema/` is the single source of the database shape, with RLS policies declared beside each table and shared policy helpers in `src/schema/policies.ts`. All methods are async and return `@singology/shared` types. The row-to-domain mappers in `src/drizzle/mappers.ts` are the only place a database row becomes a domain type. The design decisions are in `notes/slice-schema.md`.
 3. `apps/web` and `jobs/media`: applications. They import downward only and never each other. Always import a package through its public entry (`@singology/db`), never `@singology/db/src/...`.
 
 ### Request flow in `apps/web`
