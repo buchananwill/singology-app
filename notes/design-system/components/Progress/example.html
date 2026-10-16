@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-GB" data-theme="light">
+<head><meta charset="utf-8"><title>Progress — example</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/singology.css">
+<script>if (/[?&]theme=dark/.test(location.search)) document.documentElement.setAttribute("data-theme", "dark");</script>
+</head>
+<body style="margin:0">
+<div class="sg-root" style="padding:24px">
+<div style="display:grid; gap:24px; max-width:480px">
+  <div class="sg-progress">
+    <div class="sg-progress__top">
+      <span class="sg-progress__label" id="p1">Practice this week</span>
+      <span class="sg-progress__value">45 of 60 minutes</span>
+    </div>
+    <div class="sg-progress__track" role="progressbar" aria-labelledby="p1" aria-valuemin="0" aria-valuemax="60" aria-valuenow="45" aria-valuetext="45 of 60 minutes">
+      <div class="sg-progress__fill" style="width:75%"></div>
+    </div>
+  </div>
+  <div class="sg-progress">
+    <div class="sg-progress__top">
+      <span class="sg-progress__label" id="p2">Song learnt: <em>Steal Away</em></span>
+      <span class="sg-progress__value">2 of 5 sections</span>
+    </div>
+    <div class="sg-progress__track" role="progressbar" aria-labelledby="p2" aria-valuemin="0" aria-valuemax="5" aria-valuenow="2" aria-valuetext="2 of 5 sections">
+      <div class="sg-progress__fill" style="width:40%"></div>
+    </div>
+  </div>
+</div>
+</div>
+</body>
+</html>

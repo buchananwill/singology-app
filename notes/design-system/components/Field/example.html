@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en-GB" data-theme="light">
+<head><meta charset="utf-8"><title>Field — example</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/singology.css">
+<script>if (/[?&]theme=dark/.test(location.search)) document.documentElement.setAttribute("data-theme", "dark");</script>
+</head>
+<body style="margin:0">
+<div class="sg-root" style="padding:24px">
+<div style="display:grid; gap:20px; max-width:440px">
+  <div class="sg-field">
+    <label class="sg-field__label" for="f-goal">What would you like to work on?</label>
+    <input class="sg-field__input" id="f-goal" placeholder="e.g. hitting higher notes without strain" aria-describedby="f-goal-help">
+    <span class="sg-field__help" id="f-goal-help">Your coach reads this before your first session.</span>
+  </div>
+  <div class="sg-field sg-field--invalid">
+    <label class="sg-field__label" for="f-email">Email</label>
+    <input class="sg-field__input" id="f-email" value="numberone@singology" aria-invalid="true" aria-describedby="f-email-err">
+    <span class="sg-field__error" id="f-email-err">Error: that email address looks incomplete.</span>
+  </div>
+</div>
+</div>
+</body>
+</html>

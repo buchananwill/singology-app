@@ -1,0 +1,104 @@
+/* Singology 1:1 — generated from tokens.json. Edit tokens.json, not this file. */
+
+:root, [data-theme="light"] {
+  --green-500: #4fdb6d;
+  --green-300: #80e596;
+  --green-700: #1c7a34;
+  --navy-700: #373b4d;
+  --navy-600: #35465c;
+  --navy-900: #1f2230;
+  --olive-500: #9db946;
+  --olive-700: #5b7020;
+  --lime-100: #e4efb8;
+  --charcoal-700: #494947;
+  --grey-600: #696969;
+  --paper-100: #f0f0f0;
+  --paper-0: #ffffff;
+  --surface: var(--paper-0);
+  --surface-alt: var(--paper-100);
+  --surface-raised: var(--paper-0);
+  --surface-stage: var(--navy-700);
+  --surface-brand: var(--green-500);
+  --surface-tint: var(--lime-100);
+  --line: #d9dbe0;
+  --line-strong: #80869a;
+  --ink: var(--charcoal-700);
+  --ink-strong: var(--navy-700);
+  --ink-muted: var(--grey-600);
+  --ink-on-stage: var(--paper-0);
+  --ink-on-stage-muted: #c9cdd6;
+  --ink-on-brand: var(--navy-700);
+  --accent-text: var(--green-700);
+  --accent-olive: var(--olive-700);
+  --action-primary: var(--green-500);
+  --action-primary-hover: #3fc95c;
+  --on-action-primary: var(--navy-700);
+  --action-coach: var(--olive-700);
+  --on-action-coach: var(--paper-0);
+  --focus: var(--navy-700);
+  --focus-on-stage: var(--green-500);
+  --focus-on-brand: var(--navy-900);
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+  --shadow-raised: 0 1px 2px rgba(31, 34, 48, 0.08), 0 4px 16px rgba(31, 34, 48, 0.06);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --surface: var(--navy-900);
+  --surface-alt: #2a2d3b;
+  --surface-raised: #2a2d3b;
+  --surface-stage: var(--navy-700);
+  --surface-brand: var(--green-500);
+  --surface-tint: #2f3720;
+  --line: #3d4256;
+  --line-strong: #80869a;
+  --ink: #eef0f3;
+  --ink-strong: var(--paper-0);
+  --ink-muted: #b8bcc8;
+  --ink-on-stage: var(--paper-0);
+  --ink-on-brand: var(--navy-700);
+  --accent-text: var(--green-500);
+  --accent-olive: var(--olive-500);
+  --action-primary: var(--green-500);
+  --on-action-primary: var(--navy-700);
+  --action-coach: var(--olive-500);
+  --on-action-coach: var(--navy-900);
+  --focus: var(--green-500);
+  --focus-on-stage: var(--green-500);
+  --focus-on-brand: var(--navy-900);
+  --danger: #ffb4ab;
+  --danger-soft: #43201e;
+  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+  --font-sans: Jost, "Futura PT", Futura, "Avenir Next", Avenir, system-ui, sans-serif;
+  --font-serif: "Bodoni Moda", Didot, "Bodoni 72", "Times New Roman", serif;
+}
+
+/* Type styles: add the class to any element. */
+.display { font-family: var(--font-sans); font-size: 72px; line-height: 0.9; font-weight: 700; letter-spacing: -0.035em; }
+.heading-1 { font-family: var(--font-sans); font-size: 44px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
+.heading-2 { font-family: var(--font-sans); font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -0.01em; }
+.heading-3 { font-family: var(--font-sans); font-size: 21px; line-height: 1.25; font-weight: 500; }
+.eyebrow { font-family: var(--font-sans); font-size: 13px; line-height: 1.2; font-weight: 700; letter-spacing: 0.28em; }
+.voice { font-family: var(--font-serif); font-size: 22px; line-height: 1.4; font-weight: 400; font-style: italic; }
+.voice-small { font-family: var(--font-serif); font-size: 18px; line-height: 1.35; font-weight: 400; font-style: italic; }
+.body-large { font-family: var(--font-sans); font-size: 20px; line-height: 1.45; font-weight: 300; }
+.body { font-family: var(--font-sans); font-size: 16px; line-height: 1.55; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 15px; line-height: 1.3; font-weight: 500; letter-spacing: 0.04em; }
+.caption { font-family: var(--font-sans); font-size: 13px; line-height: 1.4; font-weight: 400; }

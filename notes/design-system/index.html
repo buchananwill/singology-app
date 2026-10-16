@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en-GB" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Singology 1:1 — components</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/singology.css">
+<style>
+  body { margin: 0; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: var(--space-8) var(--space-4); }
+  header { display: flex; justify-content: space-between; align-items: end; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-8); }
+  .item { display: grid; gap: var(--space-3); padding: var(--space-6) 0; border-top: 1px solid var(--line); }
+  .meta p { margin: 4px 0 0; }
+  iframe { width: 100%; height: 420px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
+</style>
+</head>
+<body class="sg-root">
+<div class="wrap">
+  <header>
+    <div><p class="sg-eyebrow">Design system</p><h1 class="sg-h1">Singology 1:1</h1></div>
+    <button class="sg-btn sg-btn--secondary sg-btn--small" id="theme">Dark theme</button>
+  </header>
+  <section class="item">
+    <div class="meta"><h2 class="sg-h3">Button</h2><p class="sg-caption">Primary, secondary, coach, quiet — on surface and on stage</p>
+      <p class="sg-caption"><a href="components/Button/README.md">Guidelines</a> · <a href="components/Button/example.html">Open example</a></p></div>
+    <iframe src="components/Button/example.html" title="Button example" loading="lazy"></iframe>
+  </section>
+  <section class="item">
+    <div class="meta"><h2 class="sg-h3">CoachCard</h2><p class="sg-caption">Greyscale portrait disc, italic name and patch, coach button — on tint</p>
+      <p class="sg-caption"><a href="components/CoachCard/README.md">Guidelines</a> · <a href="components/CoachCard/example.html">Open example</a></p></div>
+    <iframe src="components/CoachCard/example.html" title="CoachCard example" loading="lazy"></iframe>
+  </section>
+  <section class="item">
+    <div class="meta"><h2 class="sg-h3">Field</h2><p class="sg-caption">Default, focused-style help text, and invalid</p>
+      <p class="sg-caption"><a href="components/Field/README.md">Guidelines</a> · <a href="components/Field/example.html">Open example</a></p></div>
+    <iframe src="components/Field/example.html" title="Field example" loading="lazy"></iframe>
+  </section>
+  <section class="item">
+    <div class="meta"><h2 class="sg-h3">Nav</h2><p class="sg-caption">The site's green pill bar, with a white pill for the current page</p>
+      <p class="sg-caption"><a href="components/Nav/README.md">Guidelines</a> · <a href="components/Nav/example.html">Open example</a></p></div>
+    <iframe src="components/Nav/example.html" title="Nav example" loading="lazy"></iframe>
+  </section>
+  <section class="item">
+    <div class="meta"><h2 class="sg-h3">Panel</h2><p class="sg-caption">Stage panel on a brand ground, the site's signature hero; plus tint</p>
+      <p class="sg-caption"><a href="components/Panel/README.md">Guidelines</a> · <a href="components/Panel/example.html">Open example</a></p></div>
+    <iframe src="components/Panel/example.html" title="Panel example" loading="lazy"></iframe>
+  </section>
+  <section class="item">
+    <div class="meta"><h2 class="sg-h3">Progress</h2><p class="sg-caption">Practice goal meter — green on navy, the site's own pairing</p>
+      <p class="sg-caption"><a href="components/Progress/README.md">Guidelines</a> · <a href="components/Progress/example.html">Open example</a></p></div>
+    <iframe src="components/Progress/example.html" title="Progress example" loading="lazy"></iframe>
+  </section>
+  <section class="item">
+    <div class="meta"><h2 class="sg-h3">SessionCard</h2><p class="sg-caption">An upcoming 1:1 session with its date tile, status and actions</p>
+      <p class="sg-caption"><a href="components/SessionCard/README.md">Guidelines</a> · <a href="components/SessionCard/example.html">Open example</a></p></div>
+    <iframe src="components/SessionCard/example.html" title="SessionCard example" loading="lazy"></iframe>
+  </section>
+  <section class="item">
+    <div class="meta"><h2 class="sg-h3">Tag</h2><p class="sg-caption">Session status tags; each carries its word, not just a colour</p>
+      <p class="sg-caption"><a href="components/Tag/README.md">Guidelines</a> · <a href="components/Tag/example.html">Open example</a></p></div>
+    <iframe src="components/Tag/example.html" title="Tag example" loading="lazy"></iframe>
+  </section>
+</div>
+<script src="js/singology.js"></script>
+<script>
+  var btn = document.getElementById('theme');
+  btn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    Singology.setTheme(next);
+    btn.textContent = next === 'dark' ? 'Light theme' : 'Dark theme';
+    document.querySelectorAll('iframe').forEach(function (f) {
+      f.src = f.getAttribute('src').split('?')[0] + '?theme=' + next;
+    });
+  });
+</script>
+</body>
+</html>

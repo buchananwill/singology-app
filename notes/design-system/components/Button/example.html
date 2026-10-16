@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en-GB" data-theme="light">
+<head><meta charset="utf-8"><title>Button — example</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/singology.css">
+<script>if (/[?&]theme=dark/.test(location.search)) document.documentElement.setAttribute("data-theme", "dark");</script>
+
+<style>
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 20px 24px; }
+</style></head>
+<body style="margin:0">
+<div class="sg-root">
+  <div class="row">
+    <button class="sg-btn sg-btn--primary">Book a session</button>
+    <button class="sg-btn sg-btn--secondary">Reschedule</button>
+    <button class="sg-btn sg-btn--coach">View profile</button>
+    <button class="sg-btn sg-btn--quiet">Cancel</button>
+  </div>
+  <div class="row sg-stage" style="background:var(--surface-stage)">
+    <button class="sg-btn sg-btn--primary">Join session</button>
+    <button class="sg-btn sg-btn--secondary">Practice notes</button>
+    <button class="sg-btn sg-btn--primary sg-btn--small">Small</button>
+  </div>
+</div>
+</body>
+</html>
