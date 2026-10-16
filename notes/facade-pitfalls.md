@@ -121,3 +121,10 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** Not removed. The sub-item is skipped and reported to the lead. Removing it would only make sense with a custom `entry.server.tsx` that does not use it.
 - **Affects.** Neither the slice nor the founder demo. The review finding was wrong.
 - **Evidence.** `node_modules/@react-router/dev/dist/config/defaults/entry.server.web.tsx:3` imports `isbot`; `@react-router/dev` 8.4.0 `typegen-*.js:449-457` (`if (!deps["isbot"]) { console.log("adding \`isbot@5\` to your package.json ...") ... execSync("pnpm install") }`).
+
+## 15. The S2 spike could not connect: the `DATABASE_URL` tenant does not exist
+
+- **What happened.** The first S2 spike (`packages/db/scripts/spikeRlsClaims.ts`) failed at connect, before any statement ran. The `DATABASE_URL` in `packages/db/.env` names port 6543 (the transaction pooler), where schema decisions 58 and 77 require the session pooler on 5432. On every combination of `aws-0`/`aws-1-eu-west-2.pooler.supabase.com` and ports 5432/6543, Supavisor answered `(ENOTFOUND) tenant/user postgres.<ref> not found`. The project's own hostname `<ref>.supabase.co` does not resolve ("DNS name does not exist"), while the pooler hostname does, so the project ref in the env file does not name a live Supabase project.
+- **Workaround.** None. The env file is the user's; it was not edited or worked around. The lead was told, and the database-independent parts of S2 went ahead.
+- **Affects.** The slice: every database step of S2 (spike, `db push`, seed, pgTAP, integration tests, `/lab/db`) waits on a correct session-pooler string. Not the founder demo.
+- **Evidence.** `scripts/describeDatabaseUrl.ts` (password redacted): `postgresql://postgres.nagpxhvdhstzqpdqqkmp:REDACTED@aws-1-eu-west-2.pooler.supabase.com:6543/postgres`; `pg` error `code: 'XX000'`, `severity: 'FATAL'`, `(ENOTFOUND) tenant/user postgres.nagpxhvdhstzqpdqqkmp not found`; `Resolve-DnsName nagpxhvdhstzqpdqqkmp.supabase.co` → `DNS_ERROR_RCODE_NAME_ERROR`.

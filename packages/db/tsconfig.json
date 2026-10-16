@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "scripts/**/*", "drizzle.config.ts"],
   "compilerOptions": {
     // For `structuredClone`, which workerd provides too.
     "types": ["node"]

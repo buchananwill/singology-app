@@ -11,10 +11,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@singology/shared": "workspace:^"
+    "@singology/shared": "workspace:^",
+    "pg": "8.23.1"
   },
   "devDependencies": {
     "@types/node": "^24",
+    "@types/pg": "8.23.1",
+    "tsx": "4.23.15",
     "typescript": "~6.0.3",
     "vitest": "5.0.1"
   }
