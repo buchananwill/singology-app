@@ -1,15 +1,28 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { parseEnv } from "node:util";
 
 const ENV_FILE = fileURLToPath(new URL("../../.env", import.meta.url));
 
-type EnvKey = "DATABASE_URL" | "SUPABASE_SECRET_KEY";
+type EnvKey = "DATABASE_URL" | "SUPABASE_DB_PASSWORD" | "SUPABASE_SECRET_KEY";
 
-/** Reads a key from `packages/db/.env` (or the environment), for scripts and database tests. */
-export function requireEnv(key: EnvKey): string {
-  if (process.env[key] === undefined && existsSync(ENV_FILE)) {
-    process.loadEnvFile(ENV_FILE);
+let loaded = false;
+
+// Precedence: packages/db/.env overrides the inherited environment (a stale system DATABASE_URL
+// once shadowed it; pitfall 18). The environment is used only for keys the file does not set.
+export function loadDbEnv(): void {
+  if (loaded) {
+    return;
   }
+  loaded = true;
+  if (existsSync(ENV_FILE)) {
+    Object.assign(process.env, parseEnv(readFileSync(ENV_FILE, "utf8")));
+  }
+}
+
+/** Reads a key from `packages/db/.env` (or, failing that, the environment). */
+export function requireEnv(key: EnvKey): string {
+  loadDbEnv();
   const value = process.env[key];
   if (!value) {
     throw new Error(`${key} is not set in packages/db/.env`);

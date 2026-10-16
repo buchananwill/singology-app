@@ -4,12 +4,9 @@ import { randomUUID } from "node:crypto";
 
 import pg from "pg";
 
-process.loadEnvFile(new URL("../.env", import.meta.url));
+import { requireEnv } from "../src/seed/env";
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not set in packages/db/.env");
-}
+const connectionString = requireEnv("DATABASE_URL");
 
 const sub = randomUUID();
 const client = new pg.Client({ connectionString });
