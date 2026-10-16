@@ -23,13 +23,6 @@ export const SUBMISSION_STATUSES = ["processing", "awaiting_review", "reviewed",
 /** In ascending order: a sort by difficulty follows this array. */
 export const DIFFICULTIES = ["beginner", "improver", "intermediate", "advanced"] as const;
 
-export const DIFFICULTY_LABEL: Record<(typeof DIFFICULTIES)[number], string> = {
-  beginner: "Beginner",
-  improver: "Improver",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-};
-
 /** Open-ended label facets: a new facet is a new value here, never a migration. */
 export const TAG_KINDS = ["focus"] as const;
 

@@ -2,6 +2,7 @@ import {
   type AssignmentStatus,
   type CoachTier,
   type DemoRole,
+  type Difficulty,
   type LibraryCategory,
   type MediaKind,
   MINUTE_MS,
@@ -101,6 +102,13 @@ export const CATEGORY_LABEL: Record<LibraryCategory, string> = {
   onset: "Onset",
   range: "Range",
   agility: "Agility",
+};
+
+export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
+  beginner: "Beginner",
+  improver: "Improver",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
 };
 
 export const VOICE_TYPE_LABEL: Record<VoiceType, string> = {
