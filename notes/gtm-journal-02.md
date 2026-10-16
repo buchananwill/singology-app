@@ -108,6 +108,8 @@ Each package lands as many small commits on `slice`, passes `pnpm typecheck`, `l
 
 **53. S2 review pass: style and type reviewers on `8911676..f4c72ca`; the React reviewer is skipped for S2.** D45 says three reviewers per package. The only React in S2 is the thirty-line `/lab/db` route and a label map moved into `format.ts`, so the React reviewer would review nothing of substance; it runs on S3 onwards, where components change. Both reviewers run on Opus, with the schema spec as the contract and generated SQL, lockfile and Worker types out of scope.
 
+**54. Reviewer standoff on the derived assignment status: the CASE literals are bound from the shared constants.** Style N6 asked to type the CASE as `sql<AssignmentStatus>` and drop the per-row `AssignmentStatusSchema.parse` (a Zod parse per row inside a map); the type reviewer's fix-cycle B5 calls that a regression, because `sql<T>` is a bare assertion and the three literals live in a string nothing checks, so a renamed enum value would compile and emit an invalid `Assignment`. **Ruling:** neither form. The three literals are bound into the template as parameters typed `AssignmentStatus` (from the shared constant), so the SQL and the enum cannot diverge, `sql<AssignmentStatus>` is backed by typed values rather than asserted, and there is no per-row parse. *Reason:* the drift the type reviewer fears comes from the literal strings, not from the missing parse; removing the literals removes the drift at its source.
+
 ## Findings
 
 **F23. Free tiers for the alpha, checked against the vendors' own pricing pages on 2026-10-16.** The founder pays for the platforms (user). What the alpha needs costs about $6 a month, all of it on Cloudflare and Bunny:
