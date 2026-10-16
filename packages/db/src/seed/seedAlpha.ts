@@ -1,10 +1,10 @@
 // The alpha seed (spec decisions 73 and 74): idempotent, so it can be re-run after a squash.
 import type { Tag } from "@singology/shared";
-import { createClient } from "@supabase/supabase-js";
 import { inArray } from "drizzle-orm";
 
+import { createAuthAdmin } from "../authAdmin";
 import { connectionSettingsFromUrl, createAdminDb } from "../client";
-import { requireEnv, supabaseUrlFrom } from "../env";
+import { requireEnv } from "../env";
 import { createFixtureData } from "../fixtures/data";
 import { firstOrThrow, getOrThrow } from "../orThrow";
 import {
@@ -30,11 +30,8 @@ import {
 import { fixtureUuid } from "./fixtureUuid";
 import { userIdByEmail } from "./userIdByEmail";
 
-const databaseUrl = requireEnv("DATABASE_URL");
-const db = createAdminDb(connectionSettingsFromUrl(databaseUrl));
-const authAdmin = createClient(supabaseUrlFrom(databaseUrl), requireEnv("SUPABASE_SECRET_KEY"), {
-  auth: { persistSession: false, autoRefreshToken: false },
-}).auth.admin;
+const db = createAdminDb(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
+const authAdmin = createAuthAdmin();
 
 const tagKey = (tag: Tag) => `${tag.kind}:${tag.slug}`;
 
