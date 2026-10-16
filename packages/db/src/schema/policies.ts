@@ -6,11 +6,15 @@ import type { EnrolmentParty } from "../enrolmentParty";
 import { submissions } from "./coaching";
 import { enrolments } from "./enrolments";
 
+export interface EnrolmentPolicyOptions {
+  activeOnly?: boolean;
+}
+
 /** The row's enrolment has the caller as `party` (and, with `activeOnly`, is active). */
 export function enrolmentIsCallers(
   party: EnrolmentParty,
   enrolmentId: AnyPgColumn,
-  { activeOnly = false }: { activeOnly?: boolean } = {},
+  { activeOnly = false }: EnrolmentPolicyOptions = {},
 ): SQL {
   const active = activeOnly ? sql` and ${enrolments.status} = 'active'` : sql``;
   return sql`exists (
@@ -20,11 +24,8 @@ export function enrolmentIsCallers(
 }
 
 /** The row's user is on the other side of an enrolment that has the caller as `callerParty`. */
-export function isEnrolledWithCaller(
-  callerParty: EnrolmentParty,
-  otherParty: EnrolmentParty,
-  userId: AnyPgColumn,
-): SQL {
+export function isEnrolledWithCaller(callerParty: EnrolmentParty, userId: AnyPgColumn): SQL {
+  const otherParty: EnrolmentParty = callerParty === "studentId" ? "coachId" : "studentId";
   return sql`exists (
     select 1 from ${enrolments}
     where ${enrolments[otherParty]} = ${userId} and ${enrolments[callerParty]} = ${authUid}

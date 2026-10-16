@@ -4,12 +4,11 @@ import { parseEnv } from "node:util";
 
 const ENV_FILE = fileURLToPath(new URL("../.env", import.meta.url));
 
-type EnvKey = "DATABASE_URL" | "SUPABASE_SECRET_KEY";
+export type EnvKey = "DATABASE_URL" | "SUPABASE_SECRET_KEY";
 
 let loaded = false;
 
-// Precedence: packages/db/.env overrides the inherited environment, which once held a stale
-// DATABASE_URL; the environment is used only for keys the file does not set.
+// packages/db/.env overrides the inherited environment.
 function loadDbEnv(): void {
   if (loaded) {
     return;

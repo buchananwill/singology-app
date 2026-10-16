@@ -49,10 +49,7 @@ export const profiles = pgTable(
     pgPolicy("profiles_select_enrolment_counterpart", {
       for: "select",
       to: authenticatedRole,
-      using: or(
-        isEnrolledWithCaller("studentId", "coachId", t.id),
-        isEnrolledWithCaller("coachId", "studentId", t.id),
-      ),
+      using: or(isEnrolledWithCaller("studentId", t.id), isEnrolledWithCaller("coachId", t.id)),
     }),
   ],
 );
@@ -158,7 +155,7 @@ export const students = pgTable(
     pgPolicy("students_select_by_coach", {
       for: "select",
       to: authenticatedRole,
-      using: isEnrolledWithCaller("coachId", "studentId", t.userId),
+      using: isEnrolledWithCaller("coachId", t.userId),
     }),
   ],
 );
