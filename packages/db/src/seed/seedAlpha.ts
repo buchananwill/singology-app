@@ -1,4 +1,6 @@
-// The alpha seed (spec decisions 73 and 74): idempotent, so it can be re-run after a squash.
+// The alpha seed: the fixture cast as users, the library, and the fixture coaching data with its
+// times resolved against this run. Identity and library rows are upserted; the coaching tables are
+// emptied and reloaded, so every run ends in the same state.
 import type { Tag } from "@singology/shared";
 import { inArray } from "drizzle-orm";
 
@@ -12,7 +14,6 @@ import {
   coachOffers,
   collectionItems,
   collections,
-  enrolments,
   libraryItems,
   libraryItemTags,
   mediaAssets,
@@ -20,18 +21,14 @@ import {
   students,
   tags,
 } from "../schema";
-import {
-  ALPHA_ENROLMENT,
-  ALPHA_USERS,
-  CTO_EMAIL,
-  CTO_VOICE_TYPE,
-  FOUNDER_EMAIL,
-} from "./alphaCast";
+import { ALPHA_USERS, type CastMember, placeholderEmail } from "./alphaCast";
 import { fixtureUuid } from "./fixtureUuid";
+import { loadCoaching } from "./loadCoaching";
 import { userIdByEmail } from "./userIdByEmail";
 
 const db = createAdminDb(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
 const authAdmin = createAuthAdmin();
+const fixtures = createFixtureData(new Date());
 
 const tagKey = (tag: Tag) => `${tag.kind}:${tag.slug}`;
 
@@ -51,22 +48,33 @@ async function ensureUser(email: string, displayName: string): Promise<string> {
   return data.user.id;
 }
 
-const userIds = new Map<string, string>();
-for (const user of ALPHA_USERS) {
-  userIds.set(user.email, await ensureUser(user.email, user.displayName));
-}
-const idOf = (email: string) => getOrThrow(userIds, email, `No user for ${email}`);
-const coachIdFor = new Map<string, string>(
-  ALPHA_USERS.map((user) => [user.coachFixtureId, idOf(user.email)]),
-);
-const coachId = (fixtureCoachId: string) =>
-  getOrThrow(coachIdFor, fixtureCoachId, `No alpha user coaches as ${fixtureCoachId}`);
+const cast: CastMember[] = [
+  ...ALPHA_USERS,
+  ...fixtures.students
+    .filter((student) => !ALPHA_USERS.some((user) => user.studentFixtureId === student.id))
+    .map((student) => ({
+      email: placeholderEmail(student.id),
+      displayName: student.displayName,
+      studentFixtureId: student.id,
+    })),
+];
 
-const fixtures = createFixtureData(new Date());
+const profileRows: { id: string; displayName: string }[] = [];
+const userIdFor = new Map<string, string>();
+for (const member of cast) {
+  const id = await ensureUser(member.email, member.displayName);
+  profileRows.push({ id, displayName: member.displayName });
+  for (const fixtureId of [member.coachFixtureId, member.studentFixtureId]) {
+    if (fixtureId !== undefined) {
+      userIdFor.set(fixtureId, id);
+    }
+  }
+}
+const userOf = (fixtureId: string) =>
+  getOrThrow(userIdFor, fixtureId, `No seeded user plays ${fixtureId}`);
 
 await db.transaction(async (tx) => {
-  for (const user of ALPHA_USERS) {
-    const row = { id: idOf(user.email), displayName: user.displayName };
+  for (const row of profileRows) {
     await tx
       .insert(profiles)
       .values(row)
@@ -75,7 +83,7 @@ await db.transaction(async (tx) => {
 
   for (const coach of fixtures.coaches) {
     const row = {
-      userId: coachId(coach.id),
+      userId: userOf(coach.id),
       tier: coach.tier,
       bio: coach.bio,
       avatarSrc: coach.avatarSrc,
@@ -85,16 +93,15 @@ await db.transaction(async (tx) => {
     await tx.insert(coaches).values(row).onConflictDoUpdate({ target: coaches.userId, set: row });
   }
 
-  const student = { userId: idOf(CTO_EMAIL), voiceType: CTO_VOICE_TYPE };
-  await tx
-    .insert(students)
-    .values(student)
-    .onConflictDoUpdate({ target: students.userId, set: student });
+  for (const student of fixtures.students) {
+    const row = { userId: userOf(student.id), voiceType: student.voiceType };
+    await tx.insert(students).values(row).onConflictDoUpdate({ target: students.userId, set: row });
+  }
 
   for (const offer of fixtures.coachOffers) {
     const row = {
       id: fixtureUuid(offer.id),
-      coachId: coachId(offer.coachId),
+      coachId: userOf(offer.coachId),
       tier: offer.tier,
       name: offer.name,
       billing: offer.billing,
@@ -197,19 +204,12 @@ await db.transaction(async (tx) => {
     ),
   );
 
-  await tx
-    .insert(enrolments)
-    .values({
-      id: ALPHA_ENROLMENT.id,
-      studentId: idOf(CTO_EMAIL),
-      coachId: idOf(FOUNDER_EMAIL),
-      offerId: fixtureUuid(ALPHA_ENROLMENT.offerFixtureId),
-    })
-    .onConflictDoNothing({ target: enrolments.id });
+  await loadCoaching(tx, fixtures, userOf);
 });
 
 console.log(
-  `Seeded ${ALPHA_USERS.length} users, ${fixtures.libraryItems.length} library items, ` +
-    `${fixtures.mediaAssets.length} media assets, ${fixtures.collections.length} collections.`,
+  `Seeded ${cast.length} users, ${fixtures.libraryItems.length} library items, ` +
+    `${fixtures.mediaAssets.length} media assets, ${fixtures.collections.length} collections, ` +
+    `${fixtures.submissions.length} submissions, ${fixtures.feedback.length} feedback.`,
 );
 await db.$client.end();

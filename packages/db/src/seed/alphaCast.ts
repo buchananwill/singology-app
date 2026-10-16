@@ -1,23 +1,37 @@
-import type { VoiceType } from "@singology/shared";
+export const ALPHA_EMAILS = {
+  founder: "liveandletfunk@gmail.com",
+  cto: "willwritescode@gmail.com",
+} as const;
 
-import { fixtureUuid } from "./fixtureUuid";
+export type AlphaTester = keyof typeof ALPHA_EMAILS;
 
-// Placeholders until the lead supplies the real addresses (S3).
-export const FOUNDER_EMAIL = "founder@singology.test";
-export const CTO_EMAIL = "cto@singology.test";
+export interface CastMember {
+  email: string;
+  displayName: string;
+  coachFixtureId?: string;
+  studentFixtureId?: string;
+}
 
 /**
- * The founder coaches as `coach-founder`; the CTO is a student enrolled with the founder and also
- * coaches as `coach-standard`, so both sides of the loop can be tested with two accounts.
+ * The two people who sign in. The founder coaches as `coach-founder`; the CTO coaches as
+ * `coach-standard` and is also `student-ada`, enrolled with the founder, so one account tests both
+ * sides of the loop.
  */
-export const ALPHA_USERS = [
-  { email: FOUNDER_EMAIL, displayName: "Singology founder", coachFixtureId: "coach-founder" },
-  { email: CTO_EMAIL, displayName: "Singology CTO", coachFixtureId: "coach-standard" },
-] as const;
+export const ALPHA_USERS: readonly CastMember[] = [
+  {
+    email: ALPHA_EMAILS.founder,
+    displayName: "Singology founder",
+    coachFixtureId: "coach-founder",
+  },
+  {
+    email: ALPHA_EMAILS.cto,
+    displayName: "Singology CTO",
+    coachFixtureId: "coach-standard",
+    studentFixtureId: "student-ada",
+  },
+];
 
-export const CTO_VOICE_TYPE: VoiceType = "baritone";
-
-export const ALPHA_ENROLMENT = {
-  id: fixtureUuid("enrol-cto-founder"),
-  offerFixtureId: "offer-founder-monthly",
-} as const;
+/** The other fixture students are users with addresses that never receive mail. */
+export function placeholderEmail(fixtureId: string): string {
+  return `${fixtureId}@singology.test`;
+}
