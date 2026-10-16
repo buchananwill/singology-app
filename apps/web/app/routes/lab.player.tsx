@@ -1,9 +1,11 @@
 import { Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { fixtureUuid } from "@singology/db";
 import type { FeedbackComment } from "@singology/shared";
 import { data } from "react-router";
 
 import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { repositoriesContext } from "../context";
+import { requireSignedIn } from "../middleware/me";
 import type { Route } from "./+types/lab.player";
 
 /** Lab test data, not fixtures. */
@@ -33,15 +35,19 @@ export const meta: Route.MetaFunction = () => [
   { name: "robots", content: "noindex" },
 ];
 
+// Media rows are readable only by a signed-in user they belong to (these are the seeded student
+// takes and demo video), so the page asks for a session rather than failing as anon.
+export const middleware: Route.MiddlewareFunction[] = [requireSignedIn()];
+
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const [takeA, takeB, video] = await Promise.all([
-    repositories.media.get("media-student-take-a"),
-    repositories.media.get("media-student-take-b"),
-    repositories.media.get("media-test-pattern"),
+    repositories.media.get(fixtureUuid("media-student-take-a")),
+    repositories.media.get(fixtureUuid("media-student-take-b")),
+    repositories.media.get(fixtureUuid("media-test-pattern")),
   ]);
   if (!takeA || !takeB || !video) {
-    throw data("Lab media fixtures are missing", { status: 404 });
+    throw data("Lab media is missing: is the database seeded?", { status: 404 });
   }
   return { takeA, takeB, video, comments: LAB_COMMENTS };
 }

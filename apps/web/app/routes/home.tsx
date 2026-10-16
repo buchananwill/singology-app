@@ -72,8 +72,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             comments pinned to the moments that matter.
           </Text>
           <Box>
-            <Button component={Link} to={href("/demo")} size="md">
-              Try the demo
+            <Button component={Link} to={href("/sign-in")} size="md">
+              Sign in
             </Button>
           </Box>
         </Stack>
@@ -141,14 +141,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
         <Stack component="section" gap="sm" align="flex-start" aria-labelledby="cta-title">
           <Title id="cta-title" order={2} size="h3">
-            See it for yourself
+            Already invited?
           </Title>
           <Text>
-            The demo uses sample data, so you can look around as a student or as a coach without
-            signing up.
+            Singology is in a private alpha. If you have an invitation, sign in with your email
+            address and we'll send you a link.
           </Text>
-          <Button component={Link} to={href("/demo")}>
-            Try the demo
+          <Button component={Link} to={href("/sign-in")}>
+            Sign in
           </Button>
         </Stack>
       </Stack>

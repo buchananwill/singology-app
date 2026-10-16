@@ -18,7 +18,7 @@ import {
 import { href, Link } from "react-router";
 
 import { FilterRow } from "../components/library/FilterRow";
-import { demoRoleContext, repositoriesContext } from "../context";
+import { meContext, repositoriesContext } from "../context";
 import { CATEGORY_LABEL, formatCount, VOICE_TYPE_LABEL } from "../lib/format";
 import type { Route } from "./+types/library";
 
@@ -51,8 +51,8 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   return {
     filter,
     items,
-    // Only the student view has exercise pages.
-    linkToExercises: context.get(demoRoleContext) === "student",
+    // Exercise pages are student pages.
+    linkToExercises: context.get(meContext)?.student != null,
   };
 }
 
