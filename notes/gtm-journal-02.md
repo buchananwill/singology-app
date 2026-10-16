@@ -40,7 +40,7 @@ Carried from journal 1 §3 by reference, plus:
 
 ## 4. Next work
 
-- **Done this session:** stack committed and documented ([slice-stack.md](./slice-stack.md), D42); arc priorities recorded (D43); branch `slice` cut (D44); alpha work packages ruled (D45); plan amended.
+- **Done this session:** stack committed and documented ([slice-stack.md](./slice-stack.md), D42); arc priorities recorded (D43); branch `slice` cut (D44); alpha work packages ruled (D45); plan amended; **the schema decision spec is drafted** at [slice-schema.md](./slice-schema.md) (D48), `status: proposed`, awaiting the user's read. S2 implementation is dispatched only after the user approves it.
 - **Next, in order (D45 as re-ordered by D49):**
   1. **S1, user:** provision the Supabase project (Free, London), Hyperdrive config (caching disabled), Resend domain. Hand the lead the non-secret identifiers; secrets go in `.dev.vars`. **Bunny waits** until S4 (D49).
   2. **S2, lead then delegate:** the schema decision spec (`notes/slice-schema.md`, D48), then the Drizzle schema, RLS policies, pgTAP tests, migrations, and the Drizzle `Repositories` implementation. The first spike inside S2 is Hyperdrive to Supabase connectivity (IPv6 question, journal 1 D22).
