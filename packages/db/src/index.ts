@@ -9,5 +9,5 @@ export {
 export { countActiveCoaches } from "./drizzle/countActiveCoaches";
 export { createDrizzleRepositories } from "./drizzle/createDrizzleRepositories";
 export { createFixtureRepositories } from "./fixtures/createFixtureRepositories";
-export { createFixtureData, DEMO_COACH_ID, DEMO_STUDENT_ID } from "./fixtures/data";
+export { createFixtureData } from "./fixtures/data";
 export { fixtureUuid } from "./seed/fixtureUuid";

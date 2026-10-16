@@ -19,11 +19,13 @@ import {
 import { assert, describe, expect, it } from "vitest";
 
 import { createFixtureRepositories } from "./createFixtureRepositories";
-import { createFixtureData, DEMO_COACH_ID, DEMO_STUDENT_ID } from "./data";
+import { createFixtureData } from "./data";
 import { assignmentStatusFrom } from "./state";
 
 /** Any fixed instant: fixture times are offsets from it. */
 const TEST_NOW = new Date("2026-09-23T12:00:00.000Z");
+const ADA = "student-ada";
+const FOUNDER = "coach-founder";
 const fixtureData = createFixtureData(TEST_NOW);
 
 const coaches = indexById(fixtureData.coaches);
@@ -156,7 +158,7 @@ describe("fixture data", () => {
 
   it("has two takes of the same exercise by the demo student, for A/B", () => {
     const takes = fixtureData.submissions.filter(
-      (s) => enrolments.get(s.enrolmentId)?.studentId === DEMO_STUDENT_ID,
+      (s) => enrolments.get(s.enrolmentId)?.studentId === ADA,
     );
     const perItem = groupBy(takes, (take) => take.libraryItemId);
     expect(
@@ -165,8 +167,8 @@ describe("fixture data", () => {
   });
 
   it("has demo identities that exist", () => {
-    expect(students.has(DEMO_STUDENT_ID)).toBe(true);
-    expect(coaches.has(DEMO_COACH_ID)).toBe(true);
+    expect(students.has(ADA)).toBe(true);
+    expect(coaches.has(FOUNDER)).toBe(true);
   });
 
   it("references only existing coaches from offers", () => {
@@ -275,8 +277,8 @@ describe("review queue against the turnaround promise", () => {
 
   it("puts the due-soon item in the demo coach's queue", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
-    const queue = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
-    const coach = coaches.get(DEMO_COACH_ID);
+    const queue = await repos.submissions.queueViewForCoach(FOUNDER);
+    const coach = coaches.get(FOUNDER);
     assert(coach, "the demo coach exists");
     expect(
       queue.map(
@@ -322,7 +324,7 @@ describe("createFixtureRepositories", () => {
 
   it("lists a student's feedback newest first", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
-    const items = await repos.feedback.forStudent(DEMO_STUDENT_ID);
+    const items = await repos.feedback.forStudent(ADA);
     expect(items.map((f) => f.id)).toEqual(["fb-ada-siren-2", "fb-ada-siren-1"]);
     expect(await repos.feedback.forStudent("student-dev")).toEqual([]);
   });
@@ -330,7 +332,7 @@ describe("createFixtureRepositories", () => {
   it("resolves fixture times against the now it is given", async () => {
     const now = new Date("2031-01-15T08:00:00.000Z");
     const repos = createFixtureRepositories({ now });
-    const [oldest] = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
+    const [oldest] = await repos.submissions.queueViewForCoach(FOUNDER);
     assert(oldest, "the demo coach's queue has an item");
     expect(oldest.submission.submittedAt).toBe(
       new Date(now.getTime() - 62 * HOUR_MS).toISOString(),
@@ -419,7 +421,7 @@ describe("createFixtureRepositories", () => {
 
   it("gives at least one item in the demo coach's queue a previous take", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
-    const queue = await repos.submissions.queueViewForCoach(DEMO_COACH_ID);
+    const queue = await repos.submissions.queueViewForCoach(FOUNDER);
     const previous = await Promise.all(
       queue.map(({ submission }) => repos.submissions.previousFor(submission.id)),
     );
@@ -474,9 +476,9 @@ describe("createFixtureRepositories writes", () => {
     });
     expect(SubmissionSchema.parse(created).status).toBe("processing");
     expect(created.submittedAt).toBe(TEST_NOW.toISOString());
-    const mine = await repos.submissions.forStudent(DEMO_STUDENT_ID);
+    const mine = await repos.submissions.forStudent(ADA);
     expect(mine.map((s) => s.id)).toContain(created.id);
-    const assignments = await repos.assignments.forStudent(DEMO_STUDENT_ID);
+    const assignments = await repos.assignments.forStudent(ADA);
     expect(assignments.find((a) => a.id === "asg-ada-runs")?.status).toBe("submitted");
   });
 
@@ -506,12 +508,12 @@ describe("createFixtureRepositories writes", () => {
       reply: null,
       assignLibraryItemIds: ["lib-onset-hum-to-vowel"],
     });
-    expect(sent.feedback.coachId).toBe(DEMO_COACH_ID);
+    expect(sent.feedback.coachId).toBe(FOUNDER);
     expect(sent.comments.map((c) => c.tSeconds)).toEqual([3, 12]);
     expect(await repos.feedback.forSubmissionWithComments("sub-ada-onset")).toEqual(sent);
-    const owned = await repos.submissions.getForStudent(DEMO_STUDENT_ID, "sub-ada-onset");
+    const owned = await repos.submissions.getForStudent(ADA, "sub-ada-onset");
     expect(owned?.submission.status).toBe("reviewed");
-    const assignments = await repos.assignments.forStudent(DEMO_STUDENT_ID);
+    const assignments = await repos.assignments.forStudent(ADA);
     expect(assignments.find((a) => a.id === "asg-ada-onset")?.status).toBe("feedback_ready");
     expect(
       assignments.some((a) => a.libraryItemId === "lib-onset-hum-to-vowel" && a.status === "todo"),
@@ -528,7 +530,7 @@ describe("createFixtureRepositories writes", () => {
       note: "",
     });
     const second = createFixtureRepositories({ now: TEST_NOW });
-    expect(await second.submissions.forStudent(DEMO_STUDENT_ID)).toHaveLength(
+    expect(await second.submissions.forStudent(ADA)).toHaveLength(
       fixtureData.submissions.filter((s) => s.enrolmentId === "enrol-ada").length,
     );
   });

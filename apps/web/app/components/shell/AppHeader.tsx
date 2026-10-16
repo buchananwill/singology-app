@@ -1,32 +1,39 @@
-import { Anchor, Badge, Button, Group } from "@mantine/core";
-import type { DemoRole } from "@singology/shared";
-import { href, Link } from "react-router";
+import { Anchor, Badge, Button, Group, Text } from "@mantine/core";
+import type { Me } from "@singology/shared";
+import { Form, href, Link } from "react-router";
 
 import { ROLE_LABEL } from "../../lib/format";
+import { homeFor, rolesOf } from "./navItems";
 
 export interface AppHeaderProps {
-  /** `null` before a role is picked on `/demo`. */
-  role: DemoRole | null;
+  me: Me | null;
 }
 
-export function AppHeader({ role }: AppHeaderProps) {
+export function AppHeader({ me }: AppHeaderProps) {
   return (
     <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-      <Anchor component={Link} to={href("/")} fw={700} fz="xl" c="inherit" underline="never">
+      <Anchor component={Link} to={homeFor(me)} fw={700} fz="xl" c="inherit" underline="never">
         Singology
       </Anchor>
-      {role === null ? (
-        <Button component={Link} to={href("/demo")} size="xs" variant="light">
-          Try the demo
+      {me === null ? (
+        <Button component={Link} to={href("/sign-in")} size="xs" variant="light">
+          Sign in
         </Button>
       ) : (
         <Group gap="xs" wrap="nowrap">
-          <Badge variant="light" data-testid="current-role">
-            {ROLE_LABEL[role]}
-          </Badge>
-          <Anchor component={Link} to={href("/demo")} size="sm">
-            Switch view
-          </Anchor>
+          <Text size="sm" visibleFrom="sm" data-testid="signed-in-name">
+            {me.profile.displayName}
+          </Text>
+          {rolesOf(me).map((role) => (
+            <Badge key={role} variant="light" data-testid="role-badge">
+              {ROLE_LABEL[role]}
+            </Badge>
+          ))}
+          <Form method="post" action={href("/sign-out")}>
+            <Button type="submit" size="xs" variant="subtle">
+              Sign out
+            </Button>
+          </Form>
         </Group>
       )}
     </Group>

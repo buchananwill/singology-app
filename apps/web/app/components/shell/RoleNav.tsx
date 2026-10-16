@@ -1,20 +1,20 @@
 import { Button, Group } from "@mantine/core";
-import type { DemoRole } from "@singology/shared";
+import type { Me } from "@singology/shared";
 import { Link, useLocation } from "react-router";
 
-import { NAV_ITEMS } from "./navItems";
+import { navItemsFor } from "./navItems";
 
 export interface RoleNavProps {
-  role: DemoRole;
+  me: Me;
 }
 
-/** Short labels so all fit in one row at 375px. */
-export function RoleNav({ role }: RoleNavProps) {
+/** Short labels so all fit in one row at 375px, even for a user with both roles. */
+export function RoleNav({ me }: RoleNavProps) {
   const { pathname } = useLocation();
   return (
     <nav aria-label="Main">
       <Group gap="xxs" mb="md" wrap="nowrap">
-        {NAV_ITEMS[role].map((item) => {
+        {navItemsFor(me).map((item) => {
           const active = item.isActive ? item.isActive(pathname) : pathname === item.to;
           return (
             <Button

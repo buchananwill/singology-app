@@ -3,7 +3,6 @@ import { z } from "zod";
 import {
   ASSIGNMENT_STATUSES,
   COACH_TIERS,
-  DEMO_ROLES,
   DIFFICULTIES,
   ENROLMENT_STATUSES,
   EVENT_KINDS,
@@ -15,6 +14,7 @@ import {
   OFFER_BILLING,
   SUBMISSION_STATUSES,
   TAG_KINDS,
+  USER_ROLES,
   VOICE_TYPES,
 } from "./constants";
 
@@ -24,10 +24,8 @@ export const IsoDateTimeSchema = z.iso.datetime();
 export const CoachTierSchema = z.enum(COACH_TIERS);
 export type CoachTier = z.infer<typeof CoachTierSchema>;
 
-export const DemoRoleSchema = z.enum(DEMO_ROLES, { error: "Pick one of the two views." });
-export type DemoRole = z.infer<typeof DemoRoleSchema>;
-
-export const DemoRoleChoiceSchema = z.object({ role: DemoRoleSchema });
+export const UserRoleSchema = z.enum(USER_ROLES);
+export type UserRole = z.infer<typeof UserRoleSchema>;
 
 export const LibraryCategorySchema = z.enum(LIBRARY_CATEGORIES);
 export type LibraryCategory = z.infer<typeof LibraryCategorySchema>;

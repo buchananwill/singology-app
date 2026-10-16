@@ -23,11 +23,10 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { AlphaBanner } from "./components/shell/AlphaBanner";
 import { AppHeader } from "./components/shell/AppHeader";
-import { DemoBanner } from "./components/shell/DemoBanner";
 import { RoleNav } from "./components/shell/RoleNav";
-import { demoRoleContext } from "./context";
-import { demoRoleMiddleware } from "./middleware/demoRole";
+import { meContext } from "./context";
 import { meMiddleware } from "./middleware/me";
 import { repositoriesMiddleware } from "./middleware/repositories";
 import { sessionMiddleware } from "./middleware/session";
@@ -37,11 +36,10 @@ export const middleware: Route.MiddlewareFunction[] = [
   sessionMiddleware,
   repositoriesMiddleware,
   meMiddleware,
-  demoRoleMiddleware,
 ];
 
 export function loader({ context }: Route.LoaderArgs) {
-  return { role: context.get(demoRoleContext) };
+  return { me: context.get(meContext) };
 }
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -67,18 +65,18 @@ export function Layout({ children }: { children: ReactNode }) {
 }
 
 export default function App({ loaderData }: Route.ComponentProps) {
-  const { role } = loaderData;
+  const { me } = loaderData;
   const isLanding = useLocation().pathname === "/";
   return (
     <AppShell header={{ height: 56 }} padding="md">
       <AppShell.Header>
-        <AppHeader role={role} />
+        <AppHeader me={me} />
       </AppShell.Header>
       <AppShell.Main>
         {!isLanding && (
           <Container size="md">
-            <DemoBanner />
-            {role !== null && <RoleNav role={role} />}
+            <AlphaBanner />
+            {me !== null && <RoleNav me={me} />}
           </Container>
         )}
         <Outlet />
@@ -93,9 +91,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "Page not found" : "Error";
-    details =
-      error.status === 404 ? "The requested page could not be found." : error.statusText || details;
+    if (error.status === 404) {
+      message = "Page not found";
+      details = "The requested page could not be found.";
+    } else if (error.status === 403) {
+      message = "Not available to your account";
+      details = "This page is for a role your account does not hold.";
+    } else {
+      message = "Error";
+      details = error.statusText || details;
+    }
   } else if (import.meta.env.DEV && error instanceof Error) {
     details = error.message;
     stack = error.stack;

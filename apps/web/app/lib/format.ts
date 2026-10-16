@@ -1,12 +1,12 @@
 import {
   type AssignmentStatus,
   type CoachTier,
-  type DemoRole,
   type Difficulty,
   type LibraryCategory,
   type MediaKind,
   MINUTE_MS,
   type ReviewSlaState,
+  type UserRole,
   type VoiceType,
 } from "@singology/shared";
 
@@ -148,9 +148,9 @@ export const SLA_COLOR: Record<ReviewSlaState, string> = {
   overdue: "red",
 };
 
-export const ROLE_LABEL: Record<DemoRole, string> = {
-  student: "Student view",
-  coach: "Coach view",
+export const ROLE_LABEL: Record<UserRole, string> = {
+  student: "Student",
+  coach: "Coach",
 };
 
 export const MEDIA_KIND_LABEL: Record<MediaKind, string> = {

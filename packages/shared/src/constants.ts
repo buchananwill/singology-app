@@ -4,8 +4,8 @@ export const COACH_TIERS = ["premium", "standard"] as const;
 /** A monthly plan with a set number of reviews, or one single review. */
 export const OFFER_BILLING = ["monthly", "single"] as const;
 
-/** The roles a visitor can pick on the facade's role switcher. */
-export const DEMO_ROLES = ["student", "coach"] as const;
+/** The roles a user can hold; one user may hold both. */
+export const USER_ROLES = ["student", "coach"] as const;
 
 export const LIBRARY_CATEGORIES = ["breath", "onset", "range", "agility"] as const;
 

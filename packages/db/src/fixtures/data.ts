@@ -37,12 +37,6 @@ type At = (hoursFromNow: number) => string;
 
 const DAY = 24;
 
-/** The student the facade's student view shows (there is no sign-in). */
-export const DEMO_STUDENT_ID = "student-ada";
-
-/** The coach the facade's coach view shows: the founder. */
-export const DEMO_COACH_ID = "coach-founder";
-
 const ALL_VOICES: LibraryItem["voiceTypes"] = [...VOICE_TYPES];
 
 const coaches: Coach[] = [
