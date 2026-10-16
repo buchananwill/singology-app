@@ -13,6 +13,7 @@
     "test:db": "vitest run --config vitest.db.config.ts",
     "test:rls": "tsx scripts/runRlsTests.ts",
     "generate": "drizzle-kit generate",
+    "generate:private": "tsx scripts/privateMigration.ts",
     "supabase": "tsx scripts/supabaseCli.ts",
     "seed": "tsx src/seed/seedAlpha.ts",
     "seed:counts": "tsx scripts/seedCounts.ts"

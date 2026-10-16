@@ -4,9 +4,10 @@
 
 1. Delete `supabase/migrations/` (the SQL files and drizzle-kit's `meta/`).
 2. `pnpm --filter @singology/db generate --name initial_schema` (the schema in `packages/db/src/schema`).
-3. `pnpm --filter @singology/db generate --custom --name private_triggers_and_grants`, then restore its
-   SQL: the `private` schema, the two trigger functions, the `auth.users` and `updated_at` triggers,
-   and the per-table grants. Exactly two migration files remain.
+3. `pnpm --filter @singology/db generate --custom --name private_triggers_and_grants`, then
+   `pnpm --filter @singology/db generate:private`, which writes that file from the schema: the
+   `private` schema, the two trigger functions, the `auth.users` trigger, a touch trigger per table
+   with `updated_at`, and grants derived from each table's policies. Two migration files remain.
 4. `pnpm --filter @singology/db supabase db reset --no-seed`: the CLI resets the remote alpha database
    over `--db-url` (no Docker) and applies both migrations. It also empties `auth.users`.
 5. `pnpm --filter @singology/db seed`, twice; `pnpm --filter @singology/db seed:counts` must print the
