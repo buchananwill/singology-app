@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { HLS_MIME_TYPE } from "@singology/shared";
 
+import { storageStateFor } from "./auth";
 import { currentTime, readyWaveforms, trackErrors } from "./helpers";
 
 test.describe("/lab/player", () => {
+  test.use({ storageState: storageStateFor("cto") });
+
   test("waveform, rate buttons and HLS video work with no console errors", async ({ page }) => {
     const errors = trackErrors(page);
     await page.goto("/lab/player");

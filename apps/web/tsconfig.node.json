@@ -8,6 +8,7 @@
     "previewPort.ts",
     "publicDir.ts",
     "e2e/**/*",
+    "scripts/**/*",
     "test/**/*"
   ],
   "compilerOptions": {

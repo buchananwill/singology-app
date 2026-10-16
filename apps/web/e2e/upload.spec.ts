@@ -1,14 +1,18 @@
 import { expect, test } from "@playwright/test";
+import { fixtureUuid } from "@singology/db";
 
-import { chooseRole, mediaFixture, trackErrors } from "./helpers";
+import { storageStateFor } from "./auth";
+import { mediaFixture, trackErrors } from "./helpers";
+
+test.use({ storageState: storageStateFor("cto") });
 
 test("uploading a take shows its details, then the success state", async ({
   page,
   browserName,
 }) => {
   const errors = trackErrors(page);
-  await chooseRole(page, "student");
-  await page.goto("/student/exercises/lib-agility-five-note");
+
+  await page.goto(`/student/exercises/${fixtureUuid("lib-agility-five-note")}`);
 
   const panel = page.getByTestId("upload-panel");
   const input = panel.getByTestId("upload-input");

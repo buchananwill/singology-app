@@ -1,7 +1,6 @@
 import path from "node:path";
 
 import { expect, type Locator, type Page, type Request } from "@playwright/test";
-import type { DemoRole } from "@singology/shared";
 
 import { PUBLIC_DIR } from "../publicDir";
 
@@ -65,16 +64,4 @@ export async function settle(page: Page): Promise<void> {
   // Longer than discovery's 100 ms debounce, so a pending fetch has started.
   await page.waitForTimeout(250);
   await expect.poll(() => pending.size).toBe(0);
-}
-
-/** Picks a view on `/demo` the way a visitor does, which sets the role cookie. */
-export async function chooseRole(page: Page, role: DemoRole): Promise<void> {
-  watchManifestRequests(page);
-  await page.goto("/demo");
-  // Let hydration finish first: a submit clicked mid-hydration was occasionally lost in WebKit.
-  await settle(page);
-  const label = role === "student" ? "View as a student" : "View as a coach (founder)";
-  await page.getByRole("button", { name: label }).click();
-  await expect(page).toHaveURL(role === "student" ? /\/student$/ : /\/coach$/);
-  await settle(page);
 }

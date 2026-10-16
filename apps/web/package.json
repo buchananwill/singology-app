@@ -8,8 +8,9 @@
     "build": "react-router build",
     "preview": "pnpm run build && vite preview",
     "serve:built": "node --env-file-if-exists=.dev.vars node_modules/wrangler/bin/wrangler.js dev --config build/server/wrangler.json --ip 127.0.0.1",
+    "serve:built:test": "node scripts/serveTestWorker.ts",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "SINGOLOGY_ENV=test playwright test",
     "cf-typegen": "wrangler types",
     "typecheck": "wrangler types && react-router typegen && tsc -b"
   },

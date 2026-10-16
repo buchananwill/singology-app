@@ -16,6 +16,8 @@ export default tseslint.config(
       "**/playwright-report/**",
       "**/worker-configuration.d.ts",
       ".playwright-mcp/**",
+      // Reference material, including a copied design system, not project code.
+      "notes/**",
     ],
   },
   js.configs.recommended,
@@ -47,7 +49,13 @@ export default tseslint.config(
   // owns the factory, its seed and its database tests.
   {
     files: ["apps/**/*.{ts,tsx}", "jobs/**/*.ts", "packages/**/*.ts"],
-    ignores: ["apps/web/app/routes/api.*", "jobs/media/**", "packages/db/**"],
+    ignores: [
+      "apps/web/app/routes/api.*",
+      "jobs/media/**",
+      "packages/db/**",
+      // Test code: the e2e suite mints sign-in tokens against the test project.
+      "apps/web/e2e/**",
+    ],
     rules: {
       "no-restricted-imports": [
         "error",

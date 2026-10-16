@@ -1,13 +1,10 @@
 import { expect, type Locator, test } from "@playwright/test";
+import { fixtureUuid } from "@singology/db";
 
-import {
-  chooseRole,
-  currentTime,
-  mediaFixture,
-  readyWaveforms,
-  settle,
-  trackErrors,
-} from "./helpers";
+import { storageStateFor } from "./auth";
+import { currentTime, mediaFixture, readyWaveforms, settle, trackErrors } from "./helpers";
+
+test.use({ storageState: storageStateFor("founder") });
 
 /** Seeks the take's media element (what `handle.seek` does) and waits for the seek to land. */
 async function seekTo(media: Locator, timeSec: number): Promise<void> {
@@ -24,8 +21,8 @@ async function seekTo(media: Locator, timeSec: number): Promise<void> {
 
 test("the previous take of the same exercise opens with its own player", async ({ page }) => {
   const errors = trackErrors(page);
-  await chooseRole(page, "coach");
-  await page.goto("/coach/reviews/sub-ben-hiss");
+
+  await page.goto(`/coach/reviews/${fixtureUuid("sub-ben-hiss")}`);
   const previous = page.getByTestId("previous-take");
   // Collapsed: no second player until it is opened.
   await expect(page.getByTestId("waveform-player")).toHaveCount(1);
@@ -35,7 +32,7 @@ test("the previous take of the same exercise opens with its own player", async (
   await expect(previous).toContainText("I'm gasping by the end.");
 
   await settle(page);
-  await page.goto("/coach/reviews/sub-ada-onset");
+  await page.goto(`/coach/reviews/${fixtureUuid("sub-ada-onset")}`);
   await expect(page.getByTestId("no-previous-take")).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -48,8 +45,8 @@ test.describe("the coach review workspace", () => {
     page,
   }) => {
     const errors = trackErrors(page);
-    await chooseRole(page, "coach");
-    await page.goto("/coach/reviews/sub-ben-hiss");
+
+    await page.goto(`/coach/reviews/${fixtureUuid("sub-ben-hiss")}`);
     const take = page.getByTestId("review-take");
     await expect(readyWaveforms(take)).toHaveCount(1);
     const media = take.getByTestId("player-media");
@@ -97,8 +94,8 @@ test.describe("the coach review workspace", () => {
 
   test("won't send empty feedback", async ({ page }) => {
     const errors = trackErrors(page);
-    await chooseRole(page, "coach");
-    await page.goto("/coach/reviews/sub-ada-onset");
+
+    await page.goto(`/coach/reviews/${fixtureUuid("sub-ada-onset")}`);
     const send = page.getByTestId("send-feedback");
     const button = send.getByRole("button", { name: "Send feedback" });
     await expect(button).toBeEnabled();
