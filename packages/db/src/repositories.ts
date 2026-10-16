@@ -2,6 +2,8 @@ import type {
   Assignment,
   Coach,
   CoachOffer,
+  Collection,
+  CreateSubmission,
   Enrolment,
   Feedback,
   FeedbackComment,
@@ -9,6 +11,9 @@ import type {
   LibraryItem,
   MediaAsset,
   MediaKind,
+  RecordEvent,
+  RegisterMedia,
+  SendFeedbackInput,
   Student,
   Submission,
 } from "@singology/shared";
@@ -36,11 +41,20 @@ export interface LibraryRepository {
   get(id: string): Promise<LibraryItem | undefined>;
   /** The items with these ids, in the order given; unknown ids are omitted. */
   getMany(ids: readonly string[]): Promise<LibraryItem[]>;
+  /** In collection order, each with its items in order. */
+  listCollections(): Promise<Collection[]>;
 }
 
+/** Reads return ready assets only: a pending or failed upload has nothing to play yet. */
 export interface MediaRepository {
   get(id: string): Promise<MediaAsset | undefined>;
   getMany(ids: readonly string[]): Promise<MediaAsset[]>;
+  /** Registers the caller's upload as `pending`; only the media job makes it ready. */
+  register(input: RegisterMedia): Promise<{ id: string }>;
+}
+
+export interface EventRepository {
+  record(input: RecordEvent): Promise<void>;
 }
 
 export interface AssignmentRepository {
@@ -68,6 +82,8 @@ export interface SubmissionRepository {
   queueViewForCoach(coachId: string): Promise<CoachQueueItem[]>;
   /** The same student's most recent earlier submission of the same exercise. */
   previousFor(submissionId: string): Promise<Submission | undefined>;
+  /** Creates the take as `processing`; an assigned take must be of the assignment's exercise. */
+  create(input: CreateSubmission): Promise<Submission>;
 }
 
 /** The comments are in time order. */
@@ -81,6 +97,11 @@ export interface FeedbackRepository {
   /** Every feedback item on this student's submissions, newest first. */
   forStudent(studentId: string): Promise<Feedback[]>;
   comments(feedbackId: string): Promise<FeedbackComment[]>;
+  /**
+   * Persists the whole review at once: the feedback, its comments, the submission's `reviewed`
+   * status and one assignment per assigned exercise. Nothing is kept if any part fails.
+   */
+  send(input: SendFeedbackInput): Promise<FeedbackWithComments>;
 }
 
 /** `now` is the request time, which the fixture repositories resolve their time offsets against. */
@@ -98,4 +119,5 @@ export interface Repositories {
   assignments: AssignmentRepository;
   submissions: SubmissionRepository;
   feedback: FeedbackRepository;
+  events: EventRepository;
 }

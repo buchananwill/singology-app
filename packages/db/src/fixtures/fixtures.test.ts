@@ -433,4 +433,105 @@ describe("createFixtureRepositories", () => {
     const queue = await repos.submissions.queueViewForCoach("coach-founder");
     expect(queue.map((row) => row.submission.id)).toEqual(["sub-ben-hiss", "sub-ada-onset"]);
   });
+
+  it("filters the library by difficulty and tag", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const beginner = await repos.library.list({ difficulty: "beginner" });
+    expect(beginner.map((i) => i.id)).toEqual([
+      "lib-breath-hiss",
+      "lib-breath-lip-trill",
+      "lib-onset-balanced",
+    ]);
+    const legato = await repos.library.list({ tag: "legato" });
+    expect(legato.length).toBeGreaterThan(0);
+    expect(legato.every((i) => i.tags.some((t) => t.slug === "legato"))).toBe(true);
+  });
+
+  it("lists collections in order with their items in order", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const collections = await repos.library.listCollections();
+    expect(collections.map((c) => c.id)).toEqual(["col-foundations", "col-range-agility"]);
+    expect(collections[1]?.itemIds[0]).toBe("lib-range-siren");
+  });
+});
+
+describe("createFixtureRepositories writes", () => {
+  it("creates a processing submission and marks its assignment submitted", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const { id: mediaId } = await repos.media.register({
+      kind: "audio",
+      store: "local",
+      storeKey: "/media/take.m4a",
+      originalFileName: "take.m4a",
+      sizeBytes: 1000,
+      mimeType: "audio/mp4",
+    });
+    expect(await repos.media.get(mediaId)).toBeUndefined();
+    const created = await repos.submissions.create({
+      enrolmentId: "enrol-ada",
+      assignmentId: "asg-ada-runs",
+      libraryItemId: "lib-agility-five-note",
+      mediaId,
+      note: "Runs",
+    });
+    expect(SubmissionSchema.parse(created).status).toBe("processing");
+    expect(created.submittedAt).toBe(TEST_NOW.toISOString());
+    const mine = await repos.submissions.forStudent(DEMO_STUDENT_ID);
+    expect(mine.map((s) => s.id)).toContain(created.id);
+    const assignments = await repos.assignments.forStudent(DEMO_STUDENT_ID);
+    expect(assignments.find((a) => a.id === "asg-ada-runs")?.status).toBe("submitted");
+  });
+
+  it("rejects a submission whose exercise is not the assignment's", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    await expect(
+      repos.submissions.create({
+        enrolmentId: "enrol-ada",
+        assignmentId: "asg-ada-runs",
+        libraryItemId: "lib-breath-hiss",
+        mediaId: "media-student-take-a",
+        note: "",
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("sends a review: feedback, comments in time order, reviewed status, new assignments", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const sent = await repos.feedback.send({
+      intent: "send",
+      submissionId: "sub-ada-onset",
+      summary: "Cleaner onsets.",
+      comments: [
+        { tSeconds: 12, body: "Better." },
+        { tSeconds: 3, body: "Good start." },
+      ],
+      reply: null,
+      assignLibraryItemIds: ["lib-onset-hum-to-vowel"],
+    });
+    expect(sent.feedback.coachId).toBe(DEMO_COACH_ID);
+    expect(sent.comments.map((c) => c.tSeconds)).toEqual([3, 12]);
+    expect(await repos.feedback.forSubmissionWithComments("sub-ada-onset")).toEqual(sent);
+    const owned = await repos.submissions.getForStudent(DEMO_STUDENT_ID, "sub-ada-onset");
+    expect(owned?.submission.status).toBe("reviewed");
+    const assignments = await repos.assignments.forStudent(DEMO_STUDENT_ID);
+    expect(assignments.find((a) => a.id === "asg-ada-onset")?.status).toBe("feedback_ready");
+    expect(
+      assignments.some((a) => a.libraryItemId === "lib-onset-hum-to-vowel" && a.status === "todo"),
+    ).toBe(true);
+  });
+
+  it("keeps each instance's writes to itself", async () => {
+    const first = createFixtureRepositories({ now: TEST_NOW });
+    await first.events.record({ kind: "signed_in" });
+    await first.submissions.create({
+      enrolmentId: "enrol-ada",
+      libraryItemId: "lib-breath-hiss",
+      mediaId: "media-student-take-a",
+      note: "",
+    });
+    const second = createFixtureRepositories({ now: TEST_NOW });
+    expect(await second.submissions.forStudent(DEMO_STUDENT_ID)).toHaveLength(
+      fixtureData.submissions.filter((s) => s.enrolmentId === "enrol-ada").length,
+    );
+  });
 });

@@ -1,4 +1,13 @@
-import { indexById, type LibraryFilter } from "@singology/shared";
+import {
+  type Assignment,
+  type AssignmentStatus,
+  type Feedback,
+  type FeedbackComment,
+  indexById,
+  type LibraryFilter,
+  type RecordEvent,
+  type Submission,
+} from "@singology/shared";
 
 import type {
   CoachQueueItem,
@@ -34,9 +43,12 @@ function matchesFilter(
   return true;
 }
 
-/** Nothing persists: every call reads a fresh copy of the fixtures. */
+/** Nothing persists beyond the instance: writes change this request's own copy of the fixtures. */
 export function createFixtureRepositories({ now }: RepositoryOptions): Repositories {
-  const data = createFixtureData(now);
+  const data = structuredClone(createFixtureData(now));
+  const nowIso = now.toISOString();
+  const pendingMediaIds = new Set<string>();
+  const events: RecordEvent[] = [];
   const enrolmentIdsFor = (owner: EnrolmentOwner, ownerId: string): Set<string> =>
     new Set(data.enrolments.filter((e) => e[owner] === ownerId).map((e) => e.id));
 
@@ -57,6 +69,13 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
     return data.submissions
       .filter((s) => s.status === "awaiting_review" && enrolmentIds.has(s.enrolmentId))
       .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
+  };
+
+  const setAssignmentStatus = (assignmentId: string, status: AssignmentStatus) => {
+    const assignment = data.assignments.find((a) => a.id === assignmentId);
+    if (assignment !== undefined) {
+      assignment.status = status;
+    }
   };
 
   const commentsFor = (feedbackId: string) =>
@@ -87,10 +106,22 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
         structuredClone(data.libraryItems.filter((i) => matchesFilter(i, filter))),
       get: async (id) => structuredClone(data.libraryItems.find((i) => i.id === id)),
       getMany: async (ids) => structuredClone(pickByIds(data.libraryItems, ids)),
+      listCollections: async () =>
+        structuredClone(data.collections.toSorted((a, b) => a.position - b.position)),
     },
     media: {
       get: async (id) => structuredClone(data.mediaAssets.find((m) => m.id === id)),
       getMany: async (ids) => structuredClone(pickByIds(data.mediaAssets, ids)),
+      register: async () => {
+        const id = crypto.randomUUID();
+        pendingMediaIds.add(id);
+        return { id };
+      },
+    },
+    events: {
+      record: async (input) => {
+        events.push(structuredClone(input));
+      },
     },
     assignments: {
       forStudent: async (studentId) => {
@@ -136,6 +167,42 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
           .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
         return structuredClone(previous);
       },
+      create: async (input) => {
+        const enrolment = data.enrolments.find((e) => e.id === input.enrolmentId);
+        if (enrolment?.status !== "active") {
+          throw new Error("No active enrolment for this submission.");
+        }
+        const knownMedia =
+          pendingMediaIds.has(input.mediaId) ||
+          data.mediaAssets.some((m) => m.id === input.mediaId);
+        if (!knownMedia) {
+          throw new Error("The submission's media is not registered.");
+        }
+        if (input.assignmentId !== undefined) {
+          const assignment = data.assignments.find((a) => a.id === input.assignmentId);
+          if (
+            assignment?.enrolmentId !== input.enrolmentId ||
+            assignment.libraryItemId !== input.libraryItemId
+          ) {
+            throw new Error("The assignment is for a different enrolment or exercise.");
+          }
+        }
+        const submission: Submission = {
+          id: crypto.randomUUID(),
+          enrolmentId: input.enrolmentId,
+          assignmentId: input.assignmentId,
+          libraryItemId: input.libraryItemId,
+          mediaId: input.mediaId,
+          note: input.note,
+          submittedAt: nowIso,
+          status: "processing",
+        };
+        data.submissions.push(submission);
+        if (input.assignmentId !== undefined) {
+          setAssignmentStatus(input.assignmentId, "submitted");
+        }
+        return structuredClone(submission);
+      },
     },
     feedback: {
       forSubmissionWithComments: async (submissionId) => {
@@ -156,6 +223,45 @@ export function createFixtureRepositories({ now }: RepositoryOptions): Repositor
         );
       },
       comments: async (feedbackId) => structuredClone(commentsFor(feedbackId)),
+      send: async (input) => {
+        const submission = data.submissions.find((s) => s.id === input.submissionId);
+        const enrolment = data.enrolments.find((e) => e.id === submission?.enrolmentId);
+        if (submission === undefined || enrolment === undefined) {
+          throw new Error("No such submission.");
+        }
+        if (data.feedback.some((f) => f.submissionId === submission.id)) {
+          throw new Error("This submission already has feedback.");
+        }
+        const feedback: Feedback = {
+          id: crypto.randomUUID(),
+          submissionId: submission.id,
+          coachId: enrolment.coachId,
+          body: input.summary,
+          replyMediaId: input.replyMediaId,
+          sentAt: nowIso,
+        };
+        const comments = input.comments.map((comment): FeedbackComment => ({
+          id: crypto.randomUUID(),
+          feedbackId: feedback.id,
+          ...comment,
+        }));
+        data.feedback.push(feedback);
+        data.feedbackComments.push(...comments);
+        submission.status = "reviewed";
+        if (submission.assignmentId !== undefined) {
+          setAssignmentStatus(submission.assignmentId, "feedback_ready");
+        }
+        data.assignments.push(
+          ...input.assignLibraryItemIds.map((libraryItemId): Assignment => ({
+            id: crypto.randomUUID(),
+            enrolmentId: enrolment.id,
+            libraryItemId,
+            assignedAt: nowIso,
+            status: "todo",
+          })),
+        );
+        return structuredClone({ feedback, comments: commentsFor(feedback.id) });
+      },
     },
   };
 }
