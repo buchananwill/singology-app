@@ -17,8 +17,9 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: {
-    // `wrangler dev`, not `vite preview`: its proxy exhausts Windows ephemeral ports.
-    command: `pnpm run build && pnpm exec wrangler dev --config build/server/wrangler.json --port ${PREVIEW_PORT} --ip 127.0.0.1`,
+    // `wrangler dev`, not `vite preview`: its proxy exhausts Windows ephemeral ports. Wrangler reads
+    // the local Hyperdrive string only from the process environment, so .dev.vars is loaded into it.
+    command: `pnpm run build && node --env-file-if-exists=.dev.vars node_modules/wrangler/bin/wrangler.js dev --config build/server/wrangler.json --port ${PREVIEW_PORT} --ip 127.0.0.1`,
     url: `http://localhost:${PREVIEW_PORT}`,
     reuseExistingServer: false,
     timeout: 180_000,
