@@ -172,3 +172,24 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Affects.** The slice from S3, when the landing page moves to Drizzle. Not the founder demo, which runs on fixtures.
 - **Resolution.** The lead's ruling: a `profiles_select_active_coach` policy for `anon` and `authenticated` on profiles whose `coaches` row is active. It ships as an additive drizzle-kit migration, plus a custom one that grants `anon` select on `profiles`, since the policy needs the grant. pgTAP `profiles.sql` asserts that anon sees exactly the active coaches' profiles, and loosening the policy convicts it. As anon, `coaches.listWithOffers()` now returns both alpha coaches with their names (test:db).
 - **Evidence.** Spec decisions 44, 45 and 62; `createDrizzleRepositories.ts` `listWithOffers` joins `profiles`; pgTAP `profiles.sql` asserts `anon` gets `permission denied for table profiles`.
+
+## 21. The e2e server inherited the stale system `DATABASE_URL` again
+
+- **What happened.** The first e2e server launcher ran `node --env-file=../../packages/db/.env.test`. As in pitfall 18, `--env-file` never overrides a variable that is already set, so the Worker's local Hyperdrive string came from the inherited system `DATABASE_URL`, and every request failed with `(ENOTFOUND) tenant/user postgres.nagpxhvdhstzqpdqqkmp not found`. The suite timed out waiting for the web server.
+- **Workaround.** `apps/web/scripts/serveTestWorker.ts` parses `packages/db/.env.test` with `util.parseEnv` and passes the values explicitly: `DATABASE_URL` as `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` in the child's environment, and `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` as `wrangler dev --var` overrides.
+- **Affects.** The slice's e2e tooling. A system-level `DATABASE_URL` for ref `nagpxhvdhstzqpdqqkmp` still exists on this machine; the user may want to delete it at the system level.
+- **Evidence.** `[WebServer] ✘ [ERROR] error: (ENOTFOUND) tenant/user postgres.nagpxhvdhstzqpdqqkmp not found`; after the fix, both testers sign in through `/auth/confirm` and the test-project sessions read their own roles, which only works when the Worker's database is the test project.
+
+## 22. Parallel e2e workers exhaust the Supabase session pooler under local Hyperdrive
+
+- **What happened.** With the app on Drizzle, the first green-path run failed six tests with `(EMAXCONNSESSION) max clients reached in session mode - max clients are limited to pool_size: 15`. Local Hyperdrive emulation does not pool: every `createUserDb` call (one per repository method) opens its own connection, loaders fan out with `Promise.all`, and Playwright's default worker count multiplies that.
+- **Workaround.** `workers: 2` in `apps/web/playwright.config.ts`. The suite then runs green in about two minutes.
+- **Affects.** Local e2e and, under heavy parallel use, `pnpm dev`. Not the deployed Worker, where Hyperdrive pools connections in front of the session pooler. Worth watching in S7 if the alpha ever opens more than a few tabs at once.
+- **Evidence.** Before: `6 failed, 57 passed` with `EMAXCONNSESSION` lines from the web server. After: `63 passed, 3 skipped`.
+
+## 23. Slice-auth decision 27's 403 case needs a student-only tester, and the cast has none who signs in
+
+- **What happened.** Decision 27 asks for "a student is refused the coach queue with 403". Decision 18 makes the CTO both `student-ada` and `coach-standard`, and `signInAs` signs in only the founder or the CTO (decision 24). The students who hold only a student row (`student-ben`, `student-cara`, `student-dev`) have placeholder addresses and never sign in. So no tester can be a student refused the queue.
+- **Workaround.** None for the case as written. The suite checks the mirror instead: the founder, who coaches and is not a student, is refused `/student` with a 403. That runs the same guard path (`requireStudent` beside `requireCoach`, one helper).
+- **Affects.** The slice's e2e coverage of `requireCoach`'s 403 branch. A ruling could add a student-only tester to `signInAs` (for example `student-ben`'s placeholder user, which the admin API can sign in without email).
+- **Evidence.** `apps/web/e2e/smoke.spec.ts`, "the header shows the coach role, and the student pages are refused with 403".
