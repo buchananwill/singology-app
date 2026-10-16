@@ -12,9 +12,6 @@
     // route first. Keep in sync with MEDIA_PATH_PREFIX.
     "run_worker_first": ["/media/*"],
   },
-  // `singology-dev-db`, created with caching disabled (spec decision 57). Locally, Wrangler and the
-  // Vite plugin use CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE from the process
-  // environment instead of this id; `pnpm dev` and the e2e server load it from .dev.vars with
-  // `node --env-file-if-exists=.dev.vars`.
+  // singology-dev-db, caching disabled.
   "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "997b46ccb23e49e394a600075a67e994" }],
 }

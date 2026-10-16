@@ -9,8 +9,7 @@ export const meta: Route.MetaFunction = () => [
   { name: "robots", content: "noindex" },
 ];
 
-// The Worker-to-Postgres proof: Hyperdrive, then one RLS transaction as anon. The binding's fields
-// go straight through; the Worker never parses a connection URL.
+// The Worker-to-Postgres proof: Hyperdrive, then one RLS transaction as anon.
 export async function loader() {
   const db = createUserDb(env.HYPERDRIVE, { role: "anon" });
   return { activeCoaches: await countActiveCoaches(db) };
