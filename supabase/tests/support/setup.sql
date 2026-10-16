@@ -5,52 +5,56 @@ create extension if not exists pgtap with schema extensions;
 create schema tests;
 grant usage on schema tests to anon, authenticated;
 
+-- The seed's version-5 ids never start with this, so counts scoped by tests.ours() hold on an
+-- empty and on a seeded database alike.
+create function tests.id_prefix() returns text language sql immutable as $$
+  select '00000000-0000-4000-8000-'
+$$;
+
 create function tests.id(name text) returns uuid language plpgsql immutable as $$
 declare
-  found uuid;
+  suffix text;
 begin
-  found := case name
-    when 'student' then '00000000-0000-4000-8000-0000000000a1'
-    when 'other_student' then '00000000-0000-4000-8000-0000000000a2'
-    when 'coach' then '00000000-0000-4000-8000-0000000000c1'
-    when 'other_coach' then '00000000-0000-4000-8000-0000000000c2'
-    when 'offer' then '00000000-0000-4000-8000-0000000000f1'
-    when 'other_offer' then '00000000-0000-4000-8000-0000000000f2'
-    when 'enrolment' then '00000000-0000-4000-8000-0000000000e1'
-    when 'other_enrolment' then '00000000-0000-4000-8000-0000000000e2'
-    when 'demo_media' then '00000000-0000-4000-8000-0000000000d1'
-    when 'inactive_demo_media' then '00000000-0000-4000-8000-0000000000d2'
-    when 'student_take' then '00000000-0000-4000-8000-0000000000b0'
-    when 'other_student_take' then '00000000-0000-4000-8000-0000000000b9'
-    when 'coach_reply' then '00000000-0000-4000-8000-0000000000c8'
-    when 'coach_pending_reply' then '00000000-0000-4000-8000-0000000000c9'
-    when 'library_item' then '00000000-0000-4000-8000-0000000000b1'
-    when 'inactive_library_item' then '00000000-0000-4000-8000-0000000000b2'
-    when 'tag' then '00000000-0000-4000-8000-000000000101'
-    when 'collection' then '00000000-0000-4000-8000-000000000201'
-    when 'inactive_collection' then '00000000-0000-4000-8000-000000000202'
-    when 'assignment' then '00000000-0000-4000-8000-000000000301'
-    when 'other_assignment' then '00000000-0000-4000-8000-000000000302'
-    when 'submission_reviewed' then '00000000-0000-4000-8000-000000000401'
-    when 'other_submission' then '00000000-0000-4000-8000-000000000402'
-    when 'submission_awaiting' then '00000000-0000-4000-8000-000000000403'
-    when 'feedback' then '00000000-0000-4000-8000-000000000501'
-    when 'other_feedback' then '00000000-0000-4000-8000-000000000502'
-    when 'comment' then '00000000-0000-4000-8000-000000000601'
-    when 'other_comment' then '00000000-0000-4000-8000-000000000602'
-    when 'notification' then '00000000-0000-4000-8000-000000000701'
+  suffix := case name
+    when 'student' then '0000000000a1'
+    when 'other_student' then '0000000000a2'
+    when 'coach' then '0000000000c1'
+    when 'other_coach' then '0000000000c2'
+    when 'offer' then '0000000000f1'
+    when 'other_offer' then '0000000000f2'
+    when 'enrolment' then '0000000000e1'
+    when 'other_enrolment' then '0000000000e2'
+    when 'demo_media' then '0000000000d1'
+    when 'inactive_demo_media' then '0000000000d2'
+    when 'student_take' then '0000000000b0'
+    when 'other_student_take' then '0000000000b9'
+    when 'coach_reply' then '0000000000c8'
+    when 'coach_pending_reply' then '0000000000c9'
+    when 'library_item' then '0000000000b1'
+    when 'inactive_library_item' then '0000000000b2'
+    when 'tag' then '000000000101'
+    when 'collection' then '000000000201'
+    when 'inactive_collection' then '000000000202'
+    when 'assignment' then '000000000301'
+    when 'other_assignment' then '000000000302'
+    when 'submission_reviewed' then '000000000401'
+    when 'other_submission' then '000000000402'
+    when 'submission_awaiting' then '000000000403'
+    when 'feedback' then '000000000501'
+    when 'other_feedback' then '000000000502'
+    when 'comment' then '000000000601'
+    when 'other_comment' then '000000000602'
+    when 'notification' then '000000000701'
   end;
-  if found is null then
+  if suffix is null then
     raise exception 'unknown test id %', name;
   end if;
-  return found;
+  return (tests.id_prefix() || suffix)::uuid;
 end;
 $$;
 
--- Every id above has this prefix and the seed's version-5 ids never do, so counts scoped by
--- tests.ours() hold on an empty and on a seeded database alike.
 create function tests.ours(id uuid) returns boolean language sql immutable as $$
-  select id::text like '00000000-0000-4000-8000-%'
+  select starts_with(id::text, tests.id_prefix())
 $$;
 
 create function tests.act_as(uid uuid) returns void language plpgsql as $$
