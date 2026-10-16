@@ -4,12 +4,16 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./admin": "./src/admin.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "generate": "drizzle-kit generate"
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "test:rls": "tsx scripts/runRlsTests.ts",
+    "generate": "drizzle-kit generate",
+    "seed": "tsx src/seed/seedAlpha.ts"
   },
   "dependencies": {
     "@singology/shared": "workspace:^",

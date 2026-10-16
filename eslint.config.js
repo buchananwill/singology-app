@@ -39,6 +39,40 @@ export default tseslint.config(
         },
       ],
       "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
+  },
+  // Spec decision 61: the RLS-bypassing client is imported only by webhook resource routes, the
+  // media job, the notification sender and the seed, so every privileged call is visible in review.
+  {
+    files: ["apps/**/*.{ts,tsx}", "jobs/**/*.ts", "packages/**/*.ts"],
+    ignores: [
+      "apps/web/app/routes/api.*",
+      "apps/web/workers/notifications/**",
+      "jobs/media/**",
+      "packages/db/src/admin.ts",
+      "packages/db/src/seed/**",
+      "packages/db/test/**",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@singology/db/admin",
+              message: "adminDb bypasses RLS: only webhook routes, jobs and the seed may use it.",
+            },
+          ],
+          patterns: [
+            {
+              group: ["**/client"],
+              importNames: ["createAdminDb"],
+              message: "adminDb bypasses RLS: import it from @singology/db/admin where allowed.",
+            },
+          ],
+        },
+      ],
     },
   },
   {
