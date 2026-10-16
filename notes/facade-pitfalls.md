@@ -128,3 +128,10 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** None. The env file is the user's; it was not edited or worked around. The lead was told, and the database-independent parts of S2 went ahead.
 - **Affects.** The slice: every database step of S2 (spike, `db push`, seed, pgTAP, integration tests, `/lab/db`) waits on a correct session-pooler string. Not the founder demo.
 - **Evidence.** `scripts/describeDatabaseUrl.ts` (password redacted): `postgresql://postgres.nagpxhvdhstzqpdqqkmp:REDACTED@aws-1-eu-west-2.pooler.supabase.com:6543/postgres`; `pg` error `code: 'XX000'`, `severity: 'FATAL'`, `(ENOTFOUND) tenant/user postgres.nagpxhvdhstzqpdqqkmp not found`; `Resolve-DnsName nagpxhvdhstzqpdqqkmp.supabase.co` → `DNS_ERROR_RCODE_NAME_ERROR`.
+
+## 16. The seed needs a fourth secret: schema decisions 73 and 77 conflict
+
+- **What happened.** Decision 73 says the seed creates the alpha users "with `adminDb` and the Supabase admin auth API". That API (`auth.admin.createUser`) authenticates with the project's secret (service-role) API key. Decision 77 says the secrets are "three keys and no more", and none of the three is that key. The only route inside three keys is inserting into `auth.users` with SQL, which is not the admin auth API and writes to a table Supabase owns.
+- **Workaround.** None taken. `src/seed/seedAlpha.ts` follows decision 73 and reads a fourth key, `SUPABASE_SECRET_KEY`, from `packages/db/.env`; the project URL is derived from the pooler user name, so no other key is added. It has not run (pitfall 15 blocks every database step anyway). The lead rules on whether 77 gains the key or 73 changes.
+- **Affects.** The slice (the seed, and with it the integration and pgTAP tests that need the alpha users). Not the founder demo.
+- **Evidence.** Spec decisions 73 and 77; `@supabase/supabase-js` 2.118 `auth.admin.createUser` is documented as requiring the secret or `service_role` key.

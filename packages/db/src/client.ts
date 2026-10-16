@@ -4,7 +4,8 @@ import pg from "pg";
 
 import * as schema from "./schema";
 
-export type Db = NodePgDatabase<typeof schema>;
+/** `$client` is exposed so a script can end the pool when it is done. */
+export type Db = NodePgDatabase<typeof schema> & { $client: pg.Pool };
 export type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 export interface Claims {
