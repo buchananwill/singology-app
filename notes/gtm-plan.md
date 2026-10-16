@@ -31,6 +31,8 @@ WP1 to WP5 run in parallel. WP6 is the lead's work and waits for all five. WP7 w
 
 **Status 2026-09-23:** WP1 to WP5 have returned and been spot-checked. WP6 is in draft, awaiting the user's review.
 
+**Status 2026-10-16:** the founder has approved the proposal and the facade (step 1 done). Step 3 has started as the slice arc, with the stack committed in [slice-stack.md](./slice-stack.md) and the work packages S1 to S7 ruled in [gtm-journal-02.md](./gtm-journal-02.md) D45. Step 2 (legal and accounting) runs alongside and does not block the alpha.
+
 ## Standing corrections
 
 (none yet)

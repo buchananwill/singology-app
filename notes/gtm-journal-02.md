@@ -1,0 +1,96 @@
+---
+title: "Singology Slice: Session 2 Journal"
+type: workflow
+status: active
+---
+
+# Singology Slice: Session 2 Journal
+
+**This is the head of the thread**, continuing [session 1](./gtm-journal-01.md). Decisions continue at 42 and findings at F22.
+
+## Reading order for a fresh context
+
+1. [gtm-vision.md](./gtm-vision.md) in full. Short, and the yardstick.
+2. [slice-stack.md](./slice-stack.md) in full. The committed stack; it replaces reading the research briefs.
+3. §4 Next work and §5 Open items below.
+4. Decisions here, only the ones §4 cites. From journal 1, only D15, D16, D21, D22 and D31 to D33, and only when a decision here cites them.
+
+Do not read journal 1 end to end, and do not read the research briefs end to end. The facade spec ([facade-spec.md](./facade-spec.md)) is history: the code is the record of the facade now.
+
+## 1. The arc's charter
+
+Put real cloud infrastructure behind the approved facade so the founder and the CTO can alpha-test the coaching loop: Supabase for core data and auth, Bunny for media, Cloudflare Workers as the host (D42). Prove video upload, audio upload, feedback annotation and nudge emails end to end (D43). Stabilise the database schema so beta migrations are minimal and never destructive. Keep the product simple: the value is students building practice habits and vocal technique through coach feedback and the exercise library.
+
+## 2. State as at bootstrap
+
+- **Branch `slice`**, cut from `main` at `1047be2` (which adds `CLAUDE.md` on top of `8cbe3c4`, the pushed head of `origin/main`). `origin` is `github.com/buchananwill/singology-app`; `slice` is not pushed.
+- **Measured 2026-10-16 by the lead:** `pnpm test` passes 140 (shared 28, media 8, db 38, web 66); `pnpm typecheck` and `pnpm lint` are clean; the tree was clean before the journal files. `pnpm test:e2e` not re-run at bootstrap; last measured 47 pass, 3 skipped (F21).
+- **Toolchain:** Node 24.6.0, pnpm 9.12.1, TypeScript 6.0.3 (pinned, D30), React Router 8.4.0, wrangler 4.137.0.
+- **Deployed:** the facade at `singology-facade.resort-reference-gallery.workers.dev`, gated by Cloudflare Access (F17). The deployed version predates the review fixes.
+- **No cloud resources exist yet** for Supabase, Bunny, Hyperdrive or Resend. No `.dev.vars`.
+
+## 3. Operational manual
+
+Carried from journal 1 §3 by reference, plus:
+
+- **`CLAUDE.md`** at the repo root now carries the commands, architecture and house rules. Delegates read it automatically; briefs need not repeat it, but must still state React Router v8 import rules and "flag anything you had to interpret; never work around it".
+- **Deploys and account creation are the user's.** The auto-mode classifier refuses `wrangler deploy` from an agent (F17). Nothing in Supabase, Bunny, Cloudflare or Resend is created or paid for by an agent.
+- **Secrets** live in `apps/web/.dev.vars` locally (ignored) and in wrangler secrets. No secret is ever written to a note, a commit or a brief.
+- **Shell discipline:** small single-purpose commands, dedicated tools over shell equivalents (global CLAUDE.md).
+
+## 4. Next work
+
+- **Done this session:** stack committed and documented ([slice-stack.md](./slice-stack.md), D42); arc priorities recorded (D43); branch `slice` cut (D44); alpha work packages ruled (D45); plan amended.
+- **Next, in order (D45):**
+  1. **S1, user:** provision the Supabase project, Bunny Stream library and Storage zone, Hyperdrive config (caching disabled), Resend domain. Hand the lead the non-secret identifiers; secrets go in `.dev.vars`.
+  2. **S2, lead then delegate:** the schema decision spec (`notes/slice-schema.md`, D48), then the Drizzle schema, RLS policies, pgTAP tests, migrations, and the Drizzle `Repositories` implementation. The first spike inside S2 is Hyperdrive to Supabase connectivity (IPv6 question, journal 1 D22).
+  3. **S3:** Supabase Auth replaces the demo-role cookie.
+  4. **S4:** media ingest and playback through Bunny, the media job, real assets in the player.
+  5. **S5:** feedback persisted: comments, summary, reply, assignments.
+  6. **S6:** nudge emails through Resend on a Cron Trigger.
+  7. **S7:** written smoke tests for the four functions, alpha deploy behind Access, founder and CTO run them.
+- **Carried from journal 1 §4:** the `singology-style` skill (turn the reviewer's House Rules and D35 to D41 into a skill every brief loads); the iPhone device check (pitfalls 7 and 8), now folded into S7's smoke tests on the user's iPhone.
+
+## 5. Open items
+
+- **Founder and accountant questions** carried from journal 1 §5 unchanged (adults only; VAT agency or principal; choir size and pricing). None blocks the alpha.
+- **Containers pricing and plan requirement** (journal 1 D21, unverified). Checked in S4 before the job is built; the fallback is ruled then.
+- **Whether Hyperdrive reaches Supabase's IPv6-only direct connection** (journal 1 D22). The first S2 spike answers it.
+- **Billing out of alpha (D43)** is the lead's reading of the user's priorities. The user may pull Stripe into the arc.
+
+## Decisions
+
+**42. The slice stack is committed: Bunny (Stream for video, Storage for audio), Cloudflare Workers, Supabase Postgres and Auth.** *User steer 2026-10-16:* "We are committing now to a stack and documenting that as the immediate path is the first priority. No further discussion needed on these tent-pole items unless an assumption/research finding turns out to be false." Recorded in [slice-stack.md](./slice-stack.md), which supersedes the research briefs as the thing to read. The briefs stay as the record of options. **Journal 1 D11's pre-commitment audio gate on Bunny is folded into the alpha video smoke test (D45 S7):** the user has committed, and D21 already keeps audio originals off Stream's encoder, so the gate only concerns the audio track of video replies and submissions. If that smoke test shows damaged audio, it is a finding against this decision, raised to the user.
+
+**43. Arc priorities (user, 2026-10-16), and the lead's consequential rulings.**
+- *User:* "Simplicity and facility is everything. The core value proposition of the platform is supporting singing students build good practice habits and vocal technique through the coaching feedback tools and exercises. Anything that impedes that is undesired complexity."
+- *User:* "Stabilize the core database schema so that migrations in beta-testing and onwards are minimal, and definitely non-destructive. Alpha-stage permits throwaway migrations of any scale. Beta will close the gate on that." **Lead's ruling:** the gate is the first beta account. Until then the alpha database may be reset. The schema is designed from the start as if the gate were closed (journal 1 D15 already requires forward-only, data-preserving migrations for the pilot cohort).
+- *User:* "Smoke test all the core coaching functions: video upload, audio upload, feedback annotation, nudge emails." **Lead's ruling on "nudge emails":** three emails define the function for alpha: feedback-ready to the student, new-submission to the coach, and a practice reminder to a student with no submission in the current week. Transport is Resend (journal 1 D27). Nothing else is sent in alpha.
+- *User:* "Day One design is approved as web-page only, leaning on external recording and upload to page to ensure content quality. No native apps. Assume no record to page directly." This confirms journal 1 D16 (upload-first) and D28, and removes in-page recording from the arc entirely.
+- **Lead's ruling: billing is out of the alpha arc.** The user's priorities name four functions and none is payment. Alpha testers are the founder and the CTO. Enrolments exist without subscriptions; the schema names where Stripe state attaches (nullable columns or a separate table, decided in D48's spec) but no Stripe code is written. *Open to reversal by the user (§5).*
+
+**44. The arc's branch is `slice`, cut from `main` at `1047be2`.** The naming follows the repo's precedent (`facade`, `facade-review-fixes`). Delegates work on `slice` or on short branches cut from it and merged back into it. Nothing merges to `main` until the arc closes, with the full suite green and the user's agreement. `main` is not touched meanwhile except by the user.
+
+**45. Alpha work packages, in this order.** Ordered by risk, following journal 1 §4's spike order (Drizzle over Hyperdrive with RLS first, then Bunny, then the Container job), with Stripe removed (D43).
+
+| WP | Scope | Owner |
+|---|---|---|
+| S1 | Accounts and environments: Supabase project (London), Bunny Stream library and Storage zone with token auth, Hyperdrive config with caching disabled, Resend domain, secrets in `.dev.vars` and wrangler. | User |
+| S2 | Data: the schema decision spec (D48), then `packages/db` gains the Drizzle schema with `pgPolicy` RLS, `userDb`/`adminDb` factories, drizzle-kit migrations into `supabase/migrations`, pgTAP tests, a seed, and `createDrizzleRepositories` implementing `Repositories`. First spike: Worker to Hyperdrive to Supabase round trip in an RLS transaction. | Lead specs; Opus delegate implements |
+| S3 | Auth: `@supabase/ssr` in root middleware; `demoRoleMiddleware` and the role cookie replaced by the session; `studentIdContext` and `coachIdContext` from the signed-in profile; magic-link sign-in and sign-out routes; invite flow for alpha accounts. `/demo` is retired. | Opus delegate |
+| S4 | Media: tus upload to Bunny Stream (video) and Bunny Storage (audio) from the existing upload panel, with signatures minted by resource routes; Bunny webhook and upload-complete routes; the media job (listening copy and peaks) in a Container, from `jobs/media`; token-signed playback URLs; `MediaAsset` rows driving the player. | Opus delegate, after a Containers pricing check |
+| S5 | Feedback: the review action persists comments, summary, reply asset and assignments; the student feedback view and progress read them; coach queue from real submissions. | Opus delegate |
+| S6 | Nudge emails: three Resend templates (D43), sent from actions (feedback-ready, new-submission) and a Cron Trigger (weekly reminder), with a sent-log table so nothing sends twice. | Opus delegate |
+| S7 | Smoke tests: a written script per function for the founder and the CTO, Playwright coverage where it runs without a real device, alpha deployed behind Access. The iPhone checks from pitfalls 7 and 8 run here on the user's device. | Lead writes scripts; user runs them |
+
+Each package lands as many small commits on `slice`, passes `pnpm typecheck`, `lint`, `test` (and `test:e2e` when the app changed), and gets the three reviewers (style, type, React) on its range before the lead accepts it.
+
+**46. The alpha deployment stays behind Cloudflare Access, on top of Supabase Auth.** Journal 1 D17 says Access never protects production; alpha is not production, and belt-and-braces costs nothing while the allow-list is two people. Access comes off at beta. *Reason:* magic-link auth on a public URL exposes a sign-in surface before the sign-in code has been exercised by anyone but its author.
+
+**47. Alpha authentication is Supabase Auth magic link only, invite-only.** No OAuth providers, no passkeys, no self-serve sign-up in alpha. The lead or the user creates accounts by invite. *Reason:* D43 simplicity; two testers; OAuth adds provider consoles and redirect URIs for no alpha benefit. Self-serve sign-up and OAuth are beta items.
+
+**48. The schema is specified before any Drizzle code is written.** `notes/slice-schema.md` is a decision spec (the planning-session format) that reconciles two sources: the facade's `packages/shared` Zod schemas, which are the proven shape of what the UI needs, and journal 1 WP4 §3's data model sketch, which has the relational and RLS shape. It drops what alpha does not need (guardians, consent, billing, audit) but names where each attaches, keeps the `events` table from journal 1 D27 from day one, and states the RLS rule for every table in prose before any policy is written. *Reason:* the user's second priority is schema stability; a schema that emerges from implementation is the opposite of that.
+
+## Findings
+
+**F22. State at bootstrap, 2026-10-16.** Measured by the lead on `main` at `8cbe3c4` before cutting `slice`: 140 unit tests pass, typecheck and lint clean, tree clean. Journal 1's close-of-session figure was also 140, so nothing drifted. `origin` now exists and `main` is pushed (journal 1 §3 said "no remote yet"; that line is stale). Toolchain as in §2.
