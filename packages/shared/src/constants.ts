@@ -17,7 +17,40 @@ export const ENROLMENT_STATUSES = ["active", "paused", "ended"] as const;
 
 export const ASSIGNMENT_STATUSES = ["todo", "submitted", "feedback_ready"] as const;
 
-export const SUBMISSION_STATUSES = ["awaiting_review", "reviewed"] as const;
+/** `processing` until the media job has peaks; `failed` when it could not make them. */
+export const SUBMISSION_STATUSES = ["processing", "awaiting_review", "reviewed", "failed"] as const;
+
+/** In ascending order: a sort by difficulty follows this array. */
+export const DIFFICULTIES = ["beginner", "improver", "intermediate", "advanced"] as const;
+
+export const DIFFICULTY_LABEL: Record<(typeof DIFFICULTIES)[number], string> = {
+  beginner: "Beginner",
+  improver: "Improver",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
+
+/** Open-ended label facets: a new facet is a new value here, never a migration. */
+export const TAG_KINDS = ["focus"] as const;
+
+/** `local` is the app's own `/media/*` path, used by seeded media until Bunny is switched on. */
+export const MEDIA_STORES = ["local", "bunny_stream", "bunny_storage"] as const;
+
+export const MEDIA_STATUSES = ["pending", "ready", "failed"] as const;
+
+/** Stored as text, so adding a kind is never a migration. */
+export const EVENT_KINDS = [
+  "signed_in",
+  "submission_created",
+  "feedback_sent",
+  "feedback_viewed",
+] as const;
+
+export const NOTIFICATION_KINDS = [
+  "feedback_ready",
+  "new_submission",
+  "practice_reminder",
+] as const;
 
 export const HLS_MIME_TYPE = "application/vnd.apple.mpegurl";
 

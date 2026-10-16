@@ -2,6 +2,7 @@ import {
   type Assignment,
   type Coach,
   type CoachOffer,
+  type Collection,
   type Enrolment,
   type Feedback,
   type FeedbackComment,
@@ -10,6 +11,7 @@ import {
   type MediaAsset,
   type Student,
   type Submission,
+  type Tag,
   VOICE_TYPES,
 } from "@singology/shared";
 
@@ -21,6 +23,7 @@ export interface FixtureData {
   students: Student[];
   enrolments: Enrolment[];
   libraryItems: LibraryItem[];
+  collections: Collection[];
   mediaAssets: MediaAsset[];
   assignments: Assignment[];
   submissions: Submission[];
@@ -114,8 +117,7 @@ const enrolments = (at: At): Enrolment[] => [
     coachId: "coach-founder",
     offerId: "offer-founder-monthly",
     status: "active",
-    currentPeriodEnd: at(12 * DAY),
-    submissionsUsed: 2,
+    startedAt: at(-18 * DAY),
   },
   {
     id: "enrol-ben",
@@ -123,8 +125,7 @@ const enrolments = (at: At): Enrolment[] => [
     coachId: "coach-founder",
     offerId: "offer-founder-monthly",
     status: "active",
-    currentPeriodEnd: at(19 * DAY),
-    submissionsUsed: 2,
+    startedAt: at(-15 * DAY),
   },
   {
     id: "enrol-cara",
@@ -132,8 +133,7 @@ const enrolments = (at: At): Enrolment[] => [
     coachId: "coach-standard",
     offerId: "offer-standard-monthly",
     status: "active",
-    currentPeriodEnd: at(8 * DAY),
-    submissionsUsed: 1,
+    startedAt: at(-14 * DAY),
   },
   {
     id: "enrol-dev",
@@ -141,16 +141,30 @@ const enrolments = (at: At): Enrolment[] => [
     coachId: "coach-standard",
     offerId: "offer-standard-single",
     status: "active",
-    currentPeriodEnd: at(27 * DAY),
-    submissionsUsed: 1,
+    startedAt: at(-6 * DAY),
   },
 ];
+
+/** A first draft of the founder's technical-focus vocabulary. */
+const focus = {
+  breathSupport: { kind: "focus", slug: "breath-support", label: "Breath support" },
+  cleanOnset: { kind: "focus", slug: "clean-onset", label: "Clean onset" },
+  legato: { kind: "focus", slug: "legato", label: "Legato" },
+  registerTransition: {
+    kind: "focus",
+    slug: "register-transition",
+    label: "Register transition",
+  },
+  vowelShape: { kind: "focus", slug: "vowel-shape", label: "Vowel shape" },
+} satisfies Record<string, Tag>;
 
 const libraryItems: LibraryItem[] = [
   {
     id: "lib-breath-hiss",
     title: "Sustained hiss",
     category: "breath",
+    difficulty: "beginner",
+    tags: [focus.breathSupport],
     voiceTypes: ALL_VOICES,
     instructions:
       "Stand tall with soft knees. Breathe in low for four counts, then let the air out on a steady 'sss' for as long as is comfortable. Keep the ribs wide and the shoulders still. Rest, then repeat four times.",
@@ -161,6 +175,8 @@ const libraryItems: LibraryItem[] = [
     id: "lib-breath-lip-trill",
     title: "Lip trill on one breath",
     category: "breath",
+    difficulty: "beginner",
+    tags: [focus.breathSupport, focus.legato],
     voiceTypes: ALL_VOICES,
     instructions:
       "Loosen the lips and blow through them so they buzz, like a motorboat. Add a gentle hum and slide up and down a comfortable five notes. If the lips stop, press lightly on your cheeks with two fingers.",
@@ -171,6 +187,8 @@ const libraryItems: LibraryItem[] = [
     id: "lib-onset-balanced",
     title: "Balanced onsets on 'ah'",
     category: "onset",
+    difficulty: "beginner",
+    tags: [focus.cleanOnset],
     voiceTypes: ALL_VOICES,
     instructions:
       "Sing short 'ah' notes on one pitch, starting each one cleanly: no breathy 'h' before it and no click in the throat. Think of the note starting as the breath starts. Five notes, rest, then move up a step.",
@@ -181,6 +199,8 @@ const libraryItems: LibraryItem[] = [
     id: "lib-onset-hum-to-vowel",
     title: "Hum into a vowel",
     category: "onset",
+    difficulty: "improver",
+    tags: [focus.cleanOnset, focus.vowelShape],
     voiceTypes: ["soprano", "mezzo", "alto"],
     instructions:
       "Start on a relaxed 'mm' hum, feel the buzz on the lips, then open into 'ah' without changing the pitch or pushing. Keep the sound as easy after the vowel as it was in the hum.",
@@ -190,6 +210,8 @@ const libraryItems: LibraryItem[] = [
     id: "lib-range-siren",
     title: "Siren slides",
     category: "range",
+    difficulty: "improver",
+    tags: [focus.registerTransition, focus.legato],
     voiceTypes: ALL_VOICES,
     instructions:
       "On an 'ng' (as in 'sing'), slide smoothly from the bottom of your voice to the top and back, like a siren. Stay light and quiet. Don't reach for the top notes: let the slide carry you there.",
@@ -200,6 +222,8 @@ const libraryItems: LibraryItem[] = [
     id: "lib-range-bridge",
     title: "Crossing the bridge",
     category: "range",
+    difficulty: "intermediate",
+    tags: [focus.registerTransition, focus.vowelShape],
     voiceTypes: ["tenor", "baritone", "bass"],
     instructions:
       "Sing a five-note scale on 'oo' that starts just below the point where your voice usually flips. Keep the volume down and the jaw loose as you cross it. Move the start up a semitone each time.",
@@ -210,6 +234,8 @@ const libraryItems: LibraryItem[] = [
     id: "lib-agility-five-note",
     title: "Five-note runs",
     category: "agility",
+    difficulty: "intermediate",
+    tags: [focus.legato],
     voiceTypes: ALL_VOICES,
     instructions:
       "Sing 1-2-3-4-5-4-3-2-1 on 'ah', slowly at first, keeping every note clear and even. When it feels easy, speed up a little. Accuracy first; speed comes later.",
@@ -220,11 +246,42 @@ const libraryItems: LibraryItem[] = [
     id: "lib-agility-arpeggio",
     title: "Triplet arpeggios",
     category: "agility",
+    difficulty: "advanced",
+    tags: [focus.vowelShape, focus.breathSupport],
     voiceTypes: ["soprano", "mezzo", "tenor"],
     instructions:
       "Sing a major arpeggio (1-3-5-8-5-3-1) in triplets on 'ee'. Keep a light, bouncy feel and let each note land without an 'h' between them.",
     demoMediaId: "media-coach-reply",
     backingTrackMediaId: "media-backing-track",
+  },
+];
+
+/** The sirens sit in both, to show an item in several collections. */
+const collections: Collection[] = [
+  {
+    id: "col-foundations",
+    title: "Foundations",
+    description: "Breath, clean onsets and an easy hum: the habits every session starts from.",
+    position: 0,
+    itemIds: [
+      "lib-breath-hiss",
+      "lib-breath-lip-trill",
+      "lib-onset-balanced",
+      "lib-onset-hum-to-vowel",
+      "lib-range-siren",
+    ],
+  },
+  {
+    id: "col-range-agility",
+    title: "Range and agility",
+    description: "Moving through the voice: slides, the bridge and quick, even runs.",
+    position: 1,
+    itemIds: [
+      "lib-range-siren",
+      "lib-range-bridge",
+      "lib-agility-five-note",
+      "lib-agility-arpeggio",
+    ],
   },
 ];
 
@@ -503,6 +560,7 @@ export function createFixtureData(now: Date): FixtureData {
     students,
     enrolments: enrolments(at),
     libraryItems,
+    collections,
     mediaAssets,
     assignments: assignments(at),
     submissions: submissions(at),

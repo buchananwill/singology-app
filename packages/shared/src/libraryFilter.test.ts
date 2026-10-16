@@ -15,4 +15,14 @@ describe("LibraryFilterSchema", () => {
     expect(filter.category).toBeUndefined();
     expect(filter.voiceType).toBeUndefined();
   });
+
+  it("keeps a known difficulty and a tag slug, and drops an unknown difficulty", () => {
+    expect(LibraryFilterSchema.parse({ difficulty: "improver", tag: "legato" })).toEqual({
+      difficulty: "improver",
+      tag: "legato",
+    });
+    const filter = LibraryFilterSchema.parse({ difficulty: "expert", tag: "" });
+    expect(filter.difficulty).toBeUndefined();
+    expect(filter.tag).toBeUndefined();
+  });
 });

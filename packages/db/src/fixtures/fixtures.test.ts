@@ -2,6 +2,7 @@ import {
   AssignmentSchema,
   CoachOfferSchema,
   CoachSchema,
+  CollectionSchema,
   EnrolmentSchema,
   FeedbackCommentSchema,
   FeedbackSchema,
@@ -42,6 +43,7 @@ describe("fixture data", () => {
       StudentSchema.array().parse(fixtureData.students);
       EnrolmentSchema.array().parse(fixtureData.enrolments);
       LibraryItemSchema.array().parse(fixtureData.libraryItems);
+      CollectionSchema.array().parse(fixtureData.collections);
       MediaAssetSchema.array().parse(fixtureData.mediaAssets);
       AssignmentSchema.array().parse(fixtureData.assignments);
       SubmissionSchema.array().parse(fixtureData.submissions);
@@ -63,22 +65,44 @@ describe("fixture data", () => {
     expect(later.feedback.map((f) => f.sentAt)).toEqual(
       fixtureData.feedback.map((f) => shifted(f.sentAt)),
     );
-    expect(later.enrolments.map((e) => e.currentPeriodEnd)).toEqual(
-      fixtureData.enrolments.map((e) => shifted(e.currentPeriodEnd)),
+    expect(later.enrolments.map((e) => e.startedAt)).toEqual(
+      fixtureData.enrolments.map((e) => shifted(e.startedAt)),
     );
   });
 
-  it("puts past events in the past and enrolment periods in the future", () => {
+  it("puts every event in the past, after its enrolment started", () => {
     const now = TEST_NOW.toISOString();
     for (const item of [
+      ...fixtureData.enrolments.map((e) => e.startedAt),
       ...fixtureData.assignments.map((a) => a.assignedAt),
       ...fixtureData.submissions.map((s) => s.submittedAt),
       ...fixtureData.feedback.map((f) => f.sentAt),
     ]) {
       expect(item < now).toBe(true);
     }
-    for (const enrolment of fixtureData.enrolments) {
-      expect(enrolment.currentPeriodEnd > now).toBe(true);
+    for (const assignment of fixtureData.assignments) {
+      const enrolment = enrolments.get(assignment.enrolmentId);
+      assert(enrolment, "the assignment's enrolment exists");
+      expect(enrolment.startedAt < assignment.assignedAt).toBe(true);
+    }
+  });
+
+  it("gives every library item a difficulty, a focus tag and a collection", () => {
+    const collected = new Set(fixtureData.collections.flatMap((c) => c.itemIds));
+    for (const item of fixtureData.libraryItems) {
+      expect(item.tags.some((tag) => tag.kind === "focus")).toBe(true);
+      expect(collected.has(item.id)).toBe(true);
+    }
+    expect(collected.size).toBe(fixtureData.libraryItems.length);
+  });
+
+  it("labels each tag slug one way only", () => {
+    const labels = new Map<string, Set<string>>();
+    for (const tag of fixtureData.libraryItems.flatMap((i) => i.tags)) {
+      labels.set(tag.slug, (labels.get(tag.slug) ?? new Set()).add(tag.label));
+    }
+    for (const set of labels.values()) {
+      expect(set.size).toBe(1);
     }
   });
 

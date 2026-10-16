@@ -25,6 +25,12 @@ function matchesFilter(
   if (filter?.voiceType !== undefined && !item.voiceTypes.includes(filter.voiceType)) {
     return false;
   }
+  if (filter?.difficulty !== undefined && item.difficulty !== filter.difficulty) {
+    return false;
+  }
+  if (filter?.tag !== undefined && !item.tags.some((tag) => tag.slug === filter.tag)) {
+    return false;
+  }
   return true;
 }
 
