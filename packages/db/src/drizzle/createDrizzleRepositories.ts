@@ -4,7 +4,7 @@ import {
   type LibraryItem,
   type Tag,
 } from "@singology/shared";
-import { and, arrayContains, asc, desc, eq, exists, inArray, lt, type SQL, sql } from "drizzle-orm";
+import { and, arrayContains, asc, desc, eq, inArray, lt, type SQL, sql } from "drizzle-orm";
 
 import type { Transaction, UserDb } from "../client";
 import type { Repositories, RepositoryOptions } from "../repositories";
@@ -96,10 +96,10 @@ function libraryFilter(filter: LibraryFilter | undefined): SQL | undefined {
     filter?.difficulty === undefined ? undefined : eq(libraryItems.difficulty, filter.difficulty),
     filter?.tag === undefined
       ? undefined
-      : exists(
-          sql`select 1 from ${libraryItemTags} lit join ${tags} t on t.id = lit.tag_id
-              where lit.library_item_id = ${libraryItems.id} and t.slug = ${filter.tag}`,
-        ),
+      : sql`exists (
+          select 1 from ${libraryItemTags} lit join ${tags} t on t.id = lit.tag_id
+          where lit.library_item_id = ${libraryItems.id} and t.slug = ${filter.tag}
+        )`,
   );
 }
 

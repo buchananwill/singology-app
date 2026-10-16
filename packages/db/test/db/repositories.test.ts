@@ -1,0 +1,339 @@
+// Integration tests for createDrizzleRepositories against the seeded alpha database
+// (`pnpm --filter @singology/db test:db`). Every row a test writes is deleted again in afterAll.
+import {
+  CoachSchema,
+  CollectionSchema,
+  EnrolmentSchema,
+  LibraryItemSchema,
+  MediaAssetSchema,
+  type RegisterMedia,
+  SubmissionSchema,
+} from "@singology/shared";
+import { and, eq, inArray, sql } from "drizzle-orm";
+import { afterAll, assert, beforeAll, describe, expect, it } from "vitest";
+
+import { createAdminDb, createUserDb, type Db } from "../../src/client";
+import { createDrizzleRepositories } from "../../src/drizzle/createDrizzleRepositories";
+import type { Repositories } from "../../src/repositories";
+import { assignments, events, feedback, mediaAssets, submissions } from "../../src/schema";
+import { ALPHA_ENROLMENT, CTO_EMAIL, FOUNDER_EMAIL } from "../../src/seed/alphaCast";
+import { requireEnv } from "../../src/seed/env";
+import { fixtureUuid } from "../../src/seed/fixtureUuid";
+
+const databaseUrl = requireEnv("DATABASE_URL");
+const now = new Date();
+const lib = (fixtureId: string) => fixtureUuid(fixtureId);
+
+let admin: Db;
+let founderId: string;
+let ctoId: string;
+let asFounder: Repositories;
+let asCto: Repositories;
+let asAnon: Repositories;
+const created = { media: [] as string[], submissions: [] as string[], feedback: [] as string[] };
+const startedAt = new Date();
+
+const upload = (storeKey: string): RegisterMedia => ({
+  kind: "audio",
+  store: "local",
+  storeKey,
+  originalFileName: "take.m4a",
+  sizeBytes: 1000,
+  mimeType: "audio/mp4",
+});
+
+/** Stands in for the media job (decision 25): only adminDb makes an asset ready. */
+async function markReady(mediaId: string, submissionId?: string) {
+  await admin
+    .update(mediaAssets)
+    .set({
+      status: "ready",
+      src: "/media/student-take-a.m4a",
+      peaksSrc: "/media/student-take-a.peaks.json",
+      durationSec: 76.6,
+    })
+    .where(eq(mediaAssets.id, mediaId));
+  if (submissionId !== undefined) {
+    await admin
+      .update(submissions)
+      .set({ status: "awaiting_review" })
+      .where(eq(submissions.id, submissionId));
+  }
+}
+
+async function userId(email: string): Promise<string> {
+  const result = await admin.execute<{ id: string }>(
+    sql`select id from auth.users where email = ${email}`,
+  );
+  const id = result.rows[0]?.id;
+  assert(id, `the seed created ${email}`);
+  return id;
+}
+
+beforeAll(async () => {
+  admin = createAdminDb(databaseUrl);
+  founderId = await userId(FOUNDER_EMAIL);
+  ctoId = await userId(CTO_EMAIL);
+  const repos = (sub?: string) =>
+    createDrizzleRepositories(
+      createUserDb(
+        databaseUrl,
+        sub === undefined ? { role: "anon" } : { role: "authenticated", sub },
+      ),
+      { now },
+    );
+  asFounder = repos(founderId);
+  asCto = repos(ctoId);
+  asAnon = repos();
+});
+
+afterAll(async () => {
+  if (created.feedback.length > 0) {
+    await admin.delete(assignments).where(inArray(assignments.feedbackId, created.feedback));
+    await admin.delete(feedback).where(inArray(feedback.id, created.feedback));
+  }
+  if (created.submissions.length > 0) {
+    await admin.delete(submissions).where(inArray(submissions.id, created.submissions));
+  }
+  if (created.media.length > 0) {
+    await admin.delete(mediaAssets).where(inArray(mediaAssets.id, created.media));
+  }
+  await admin
+    .delete(events)
+    .where(and(eq(events.userId, ctoId), sql`${events.at} >= ${startedAt.toISOString()}`));
+  await admin.$client.end();
+});
+
+describe("reads", () => {
+  it("lists active coaches with their offers", async () => {
+    const rows = await asCto.coaches.listWithOffers();
+    expect(rows.map((row) => row.coach.id).sort()).toEqual([founderId, ctoId].sort());
+    for (const row of rows) {
+      CoachSchema.parse(row.coach);
+      expect(row.offers.map((o) => o.billing)).toEqual(["monthly", "single"]);
+    }
+  });
+
+  it("gets a coach and a student", async () => {
+    expect((await asCto.coaches.get(founderId))?.displayName).toBe("Singology founder");
+    expect((await asFounder.students.get(ctoId))?.voiceType).toBeDefined();
+    expect(await asFounder.students.get(founderId)).toBeUndefined();
+  });
+
+  it("lists the student's enrolment", async () => {
+    const [enrolment, ...rest] = await asCto.enrolments.forStudent(ctoId);
+    expect(rest).toEqual([]);
+    expect(EnrolmentSchema.parse(enrolment).id).toBe(ALPHA_ENROLMENT.id);
+  });
+
+  it("lists and filters the library", async () => {
+    const all = await asCto.library.list();
+    expect(all).toHaveLength(8);
+    LibraryItemSchema.array().parse(all);
+    expect(await asCto.library.list({ category: "range" })).toHaveLength(2);
+    const beginner = await asCto.library.list({ difficulty: "beginner" });
+    expect(beginner.map((i) => i.title).sort()).toEqual(
+      ["Balanced onsets on 'ah'", "Lip trill on one breath", "Sustained hiss"].sort(),
+    );
+    const legato = await asCto.library.list({ tag: "legato" });
+    expect(legato.length).toBeGreaterThan(0);
+    expect(legato.every((i) => i.tags.some((t) => t.slug === "legato"))).toBe(true);
+    const bass = await asCto.library.list({ voiceType: "bass" });
+    expect(bass.every((i) => i.voiceTypes.includes("bass"))).toBe(true);
+    expect(bass.length).toBeLessThan(8);
+  });
+
+  it("gets library items, many in the order asked", async () => {
+    expect((await asCto.library.get(lib("lib-breath-hiss")))?.title).toBe("Sustained hiss");
+    const items = await asCto.library.getMany([
+      lib("lib-range-siren"),
+      fixtureUuid("no-such-item"),
+      lib("lib-breath-hiss"),
+    ]);
+    expect(items.map((i) => i.id)).toEqual([lib("lib-range-siren"), lib("lib-breath-hiss")]);
+    expect(await asCto.library.getMany([])).toEqual([]);
+  });
+
+  it("lists collections in order with their items in order", async () => {
+    const collections = await asCto.library.listCollections();
+    CollectionSchema.array().parse(collections);
+    expect(collections.map((c) => c.title)).toEqual(["Foundations", "Range and agility"]);
+    expect(collections[1]?.itemIds[0]).toBe(lib("lib-range-siren"));
+  });
+
+  it("gets ready media, many in the order asked", async () => {
+    const video = await asCto.media.get(lib("media-test-pattern"));
+    expect(MediaAssetSchema.parse(video).hlsSrc).toBe("/media/test-pattern-hls/index.m3u8");
+    const assets = await asCto.media.getMany([
+      lib("media-coach-reply"),
+      lib("media-backing-track"),
+    ]);
+    expect(assets.map((a) => a.id)).toEqual([lib("media-coach-reply"), lib("media-backing-track")]);
+  });
+
+  it("lets anon read nothing but the public coach tables", async () => {
+    await expect(asAnon.library.list()).rejects.toMatchObject({ cause: { code: "42501" } });
+  });
+});
+
+describe("the coaching loop", () => {
+  let firstTake: string;
+  let secondTake: string;
+  let feedbackId: string;
+
+  it("registers a pending upload that reads as missing until it is ready", async () => {
+    const { id } = await asCto.media.register(upload("tests/first.m4a"));
+    created.media.push(id);
+    expect(await asCto.media.get(id)).toBeUndefined();
+    firstTake = id;
+  });
+
+  it("creates a processing submission", async () => {
+    const submission = await asCto.submissions.create({
+      enrolmentId: ALPHA_ENROLMENT.id,
+      libraryItemId: lib("lib-breath-hiss"),
+      mediaId: firstTake,
+      note: "Integration test take",
+    });
+    created.submissions.push(submission.id);
+    expect(SubmissionSchema.parse(submission).status).toBe("processing");
+    await markReady(firstTake, submission.id);
+    expect((await asCto.submissions.forStudent(ctoId)).map((s) => s.id)).toContain(submission.id);
+    expect(await asCto.media.get(firstTake)).toBeDefined();
+  });
+
+  it("rejects a take on someone else's media or the wrong exercise", async () => {
+    await expect(
+      asCto.submissions.create({
+        enrolmentId: ALPHA_ENROLMENT.id,
+        libraryItemId: lib("lib-breath-hiss"),
+        mediaId: lib("media-student-take-a"),
+        note: "",
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("queues the take for the coach, with student, exercise and media kind", async () => {
+    const [submissionId] = created.submissions;
+    const queue = await asFounder.submissions.queueViewForCoach(founderId);
+    const row = queue.find((r) => r.submission.id === submissionId);
+    assert(row, "the take is in the founder's queue");
+    expect(row.student.id).toBe(ctoId);
+    expect(row.item.id).toBe(lib("lib-breath-hiss"));
+    expect(row.mediaKind).toBe("audio");
+    expect(await asCto.submissions.queueViewForCoach(ctoId)).toEqual([]);
+  });
+
+  it("gets the submission for its student and its coach only", async () => {
+    const [submissionId] = created.submissions;
+    assert(submissionId, "a submission was created");
+    expect((await asCto.submissions.getForStudent(ctoId, submissionId))?.enrolment.id).toBe(
+      ALPHA_ENROLMENT.id,
+    );
+    expect((await asFounder.submissions.getForCoach(founderId, submissionId))?.submission.id).toBe(
+      submissionId,
+    );
+    expect(await asCto.submissions.getForCoach(ctoId, submissionId)).toBeUndefined();
+  });
+
+  it("sends a whole review in one transaction", async () => {
+    const [submissionId] = created.submissions;
+    assert(submissionId, "a submission was created");
+    const { id: replyId } = await asFounder.media.register(upload("tests/reply.m4a"));
+    created.media.push(replyId);
+    const sent = await asFounder.feedback.send({
+      intent: "send",
+      submissionId,
+      summary: "Steadier air.",
+      comments: [
+        { tSeconds: 20, body: "Here it wobbles." },
+        { tSeconds: 4, body: "Good start." },
+      ],
+      reply: null,
+      replyMediaId: replyId,
+      assignLibraryItemIds: [lib("lib-breath-lip-trill")],
+    });
+    feedbackId = sent.feedback.id;
+    created.feedback.push(feedbackId);
+    expect(sent.feedback.coachId).toBe(founderId);
+    expect(sent.comments.map((c) => c.tSeconds)).toEqual([4, 20]);
+    expect(await asCto.feedback.forSubmissionWithComments(submissionId)).toEqual(sent);
+    expect(await asCto.feedback.comments(feedbackId)).toEqual(sent.comments);
+    expect((await asCto.feedback.forStudent(ctoId))[0]?.id).toBe(feedbackId);
+    const owned = await asCto.submissions.getForStudent(ctoId, submissionId);
+    expect(owned?.submission.status).toBe("reviewed");
+    const assigned = await asCto.assignments.forStudent(ctoId);
+    expect(
+      assigned.some((a) => a.libraryItemId === lib("lib-breath-lip-trill") && a.status === "todo"),
+    ).toBe(true);
+  });
+
+  it("rolls the whole review back when any part fails", async () => {
+    const [submissionId] = created.submissions;
+    assert(submissionId, "a submission was created");
+    await expect(
+      asFounder.feedback.send({
+        intent: "send",
+        submissionId,
+        summary: "A second review",
+        comments: [],
+        reply: null,
+        assignLibraryItemIds: [],
+      }),
+    ).rejects.toThrow();
+    const rows = await admin.select().from(feedback).where(eq(feedback.submissionId, submissionId));
+    expect(rows).toHaveLength(1);
+  });
+
+  it("derives assignment status from the submissions that reference it", async () => {
+    const todo = (await asCto.assignments.forStudent(ctoId)).find(
+      (a) => a.libraryItemId === lib("lib-breath-lip-trill"),
+    );
+    assert(todo, "the review assigned the lip trill");
+    const { id } = await asCto.media.register(upload("tests/assigned.m4a"));
+    created.media.push(id);
+    const take = await asCto.submissions.create({
+      enrolmentId: ALPHA_ENROLMENT.id,
+      assignmentId: todo.id,
+      libraryItemId: lib("lib-breath-lip-trill"),
+      mediaId: id,
+      note: "",
+    });
+    created.submissions.push(take.id);
+    const after = (await asCto.assignments.forStudent(ctoId)).find((a) => a.id === todo.id);
+    expect(after?.status).toBe("submitted");
+    await expect(
+      asCto.submissions.create({
+        enrolmentId: ALPHA_ENROLMENT.id,
+        assignmentId: todo.id,
+        libraryItemId: lib("lib-breath-hiss"),
+        mediaId: id,
+        note: "",
+      }),
+    ).rejects.toThrow(/different enrolment or exercise/);
+  });
+
+  it("finds the previous take of the same exercise", async () => {
+    const { id } = await asCto.media.register(upload("tests/second.m4a"));
+    created.media.push(id);
+    const second = await asCto.submissions.create({
+      enrolmentId: ALPHA_ENROLMENT.id,
+      libraryItemId: lib("lib-breath-hiss"),
+      mediaId: id,
+      note: "Second go",
+    });
+    created.submissions.push(second.id);
+    secondTake = second.id;
+    expect((await asFounder.submissions.previousFor(secondTake))?.id).toBe(created.submissions[0]);
+  });
+
+  it("records the caller's own event", async () => {
+    await asCto.events.record({ kind: "feedback_viewed", meta: { submissionId: secondTake } });
+    const rows = await admin
+      .select()
+      .from(events)
+      .where(and(eq(events.userId, ctoId), eq(events.kind, "feedback_viewed")));
+    expect(rows.some((row) => row.at >= startedAt)).toBe(true);
+    await expect(asAnon.events.record({ kind: "signed_in" })).rejects.toThrow();
+  });
+});
