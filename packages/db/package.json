@@ -8,15 +8,18 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@singology/shared": "workspace:^",
+    "drizzle-orm": "0.45.4",
     "pg": "8.23.1"
   },
   "devDependencies": {
     "@types/node": "^24",
     "@types/pg": "8.23.1",
+    "drizzle-kit": "0.31.11",
     "tsx": "4.23.15",
     "typescript": "~6.0.3",
     "vitest": "5.0.1"
