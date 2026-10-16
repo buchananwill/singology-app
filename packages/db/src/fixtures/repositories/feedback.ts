@@ -1,4 +1,4 @@
-import type { Assignment, Feedback, FeedbackComment } from "@singology/shared";
+import type { Feedback, FeedbackComment } from "@singology/shared";
 
 import type { FeedbackRepository } from "../../repositories";
 import { enrolmentIdsFor, type FixtureState } from "../state";
@@ -55,12 +55,11 @@ export function fixtureFeedback(state: FixtureState): FeedbackRepository {
       data.feedbackComments.push(...comments);
       submission.status = "reviewed";
       data.assignments.push(
-        ...input.assignLibraryItemIds.map((libraryItemId): Assignment => ({
+        ...input.assignLibraryItemIds.map((libraryItemId) => ({
           id: crypto.randomUUID(),
           enrolmentId: enrolment.id,
           libraryItemId,
           assignedAt: state.nowIso,
-          status: "todo",
         })),
       );
       return structuredClone({ feedback, comments: commentsFor(feedback.id) });

@@ -20,6 +20,7 @@ import { assert, describe, expect, it } from "vitest";
 
 import { createFixtureRepositories } from "./createFixtureRepositories";
 import { createFixtureData, DEMO_COACH_ID, DEMO_STUDENT_ID } from "./data";
+import { assignmentStatusFrom } from "./state";
 
 /** Any fixed instant: fixture times are offsets from it. */
 const TEST_NOW = new Date("2026-09-23T12:00:00.000Z");
@@ -45,7 +46,7 @@ describe("fixture data", () => {
       LibraryItemSchema.array().parse(fixtureData.libraryItems);
       CollectionSchema.array().parse(fixtureData.collections);
       MediaAssetSchema.array().parse(fixtureData.mediaAssets);
-      AssignmentSchema.array().parse(fixtureData.assignments);
+      AssignmentSchema.omit({ status: true }).array().parse(fixtureData.assignments);
       SubmissionSchema.array().parse(fixtureData.submissions);
       FeedbackSchema.array().parse(fixtureData.feedback);
       FeedbackCommentSchema.array().parse(fixtureData.feedbackComments);
@@ -132,9 +133,11 @@ describe("fixture data", () => {
       expect(count).toBeLessThanOrEqual(5);
     }
     expect(fixtureData.submissions.some((s) => media.get(s.mediaId)?.kind === "video")).toBe(true);
-    expect(new Set(fixtureData.assignments.map((a) => a.status))).toEqual(
-      new Set(["todo", "submitted", "feedback_ready"]),
-    );
+    expect(
+      new Set(
+        fixtureData.assignments.map((a) => assignmentStatusFrom(fixtureData.submissions, a.id)),
+      ),
+    ).toEqual(new Set(["todo", "submitted", "feedback_ready"]));
   });
 
   it("has the illustrative pricing", () => {
@@ -209,19 +212,10 @@ describe("fixture data", () => {
     }
   });
 
-  it("keeps assignment and submission statuses consistent with feedback", () => {
+  it("keeps submission statuses consistent with feedback", () => {
     for (const submission of fixtureData.submissions) {
       const hasFeedback = fixtureData.feedback.some((f) => f.submissionId === submission.id);
       expect(submission.status).toBe(hasFeedback ? "reviewed" : "awaiting_review");
-      if (submission.assignmentId !== undefined) {
-        expect(assignments.get(submission.assignmentId)?.status).toBe(
-          hasFeedback ? "feedback_ready" : "submitted",
-        );
-      }
-    }
-    for (const assignment of fixtureData.assignments) {
-      const submitted = fixtureData.submissions.some((s) => s.assignmentId === assignment.id);
-      expect(assignment.status === "todo").toBe(!submitted);
     }
   });
 

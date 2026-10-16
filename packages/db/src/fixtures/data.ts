@@ -25,7 +25,8 @@ export interface FixtureData {
   libraryItems: LibraryItem[];
   collections: Collection[];
   mediaAssets: MediaAsset[];
-  assignments: Assignment[];
+  /** Status is derived from submissions on read, as in the database. */
+  assignments: Omit<Assignment, "status">[];
   submissions: Submission[];
   feedback: Feedback[];
   feedbackComments: FeedbackComment[];
@@ -285,69 +286,60 @@ const collections: Collection[] = [
   },
 ];
 
-const assignments = (at: At): Assignment[] => [
+const assignments = (at: At): FixtureData["assignments"] => [
   {
     id: "asg-ada-siren-1",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-range-siren",
     assignedAt: at(-16 * DAY),
-    status: "feedback_ready",
   },
   {
     id: "asg-ada-siren-2",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-range-siren",
     assignedAt: at(-9 * DAY),
-    status: "feedback_ready",
   },
   {
     id: "asg-ada-onset",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-onset-balanced",
     assignedAt: at(-9 * DAY),
-    status: "submitted",
   },
   {
     id: "asg-ada-runs",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-agility-five-note",
     assignedAt: at(-4 * DAY),
-    status: "todo",
   },
   {
     id: "asg-ada-hiss",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-breath-hiss",
     assignedAt: at(-4 * DAY),
-    status: "todo",
   },
   {
     id: "asg-ben-hiss-1",
     enrolmentId: "enrol-ben",
     libraryItemId: "lib-breath-hiss",
     assignedAt: at(-14 * DAY),
-    status: "feedback_ready",
   },
   {
     id: "asg-ben-hiss",
     enrolmentId: "enrol-ben",
     libraryItemId: "lib-breath-hiss",
     assignedAt: at(-5 * DAY),
-    status: "submitted",
   },
   {
     id: "asg-cara-arpeggio",
     enrolmentId: "enrol-cara",
     libraryItemId: "lib-agility-arpeggio",
     assignedAt: at(-13 * DAY),
-    status: "feedback_ready",
   },
   {
     id: "asg-dev-bridge",
     enrolmentId: "enrol-dev",
     libraryItemId: "lib-range-bridge",
     assignedAt: at(-5 * DAY),
-    status: "submitted",
   },
 ];
 
