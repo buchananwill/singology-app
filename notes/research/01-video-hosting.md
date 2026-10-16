@@ -16,7 +16,7 @@ Answers vision Q1 in [gtm-vision.md](../gtm-vision.md). It uses the cost-model a
 - **DIY on R2 is the cheapest option.** R2 charges nothing for egress, but the CTO must build and own transcoding and access control. Supabase Storage is workable, but its egress is 9 times the price of Bunny's.
 - **Vercel should host the frontend only.** Its Flat Rate CDN excludes media-heavy bandwidth.
 - **Audio.** Every managed host re-encodes audio, and none publishes its audio bitrate. Test each one before committing. Minimum: AAC-LC at 160 kbps stereo (or 128 kbps mono), 48 kHz, and keep the original upload.
-- **Recommendation.** Primary pick: **Bunny Stream**. Fallback: **R2 DIY**. At 1,000 students and 720p, Bunny costs **$6,331/yr** with 12-month retention, or **$2,534/yr** with 90-day retention.
+- **Recommendation.** Primary pick: **Bunny Stream**. Fallback: **R2 DIY**. At 1,000 students and 720p, Bunny costs **\$6,331/yr** with 12-month retention, or **\$2,534/yr** with 90-day retention.
 
 ## 1. YouTube
 

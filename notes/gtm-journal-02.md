@@ -41,13 +41,13 @@ Carried from journal 1 §3 by reference, plus:
 ## 4. Next work
 
 - **Done this session:** stack committed and documented ([slice-stack.md](./slice-stack.md), D42); arc priorities recorded (D43); branch `slice` cut (D44); alpha work packages ruled (D45); plan amended.
-- **Next, in order (D45):**
-  1. **S1, user:** provision the Supabase project, Bunny Stream library and Storage zone, Hyperdrive config (caching disabled), Resend domain. Hand the lead the non-secret identifiers; secrets go in `.dev.vars`.
+- **Next, in order (D45 as re-ordered by D49):**
+  1. **S1, user:** provision the Supabase project (Free, London), Hyperdrive config (caching disabled), Resend domain. Hand the lead the non-secret identifiers; secrets go in `.dev.vars`. **Bunny waits** until S4 (D49).
   2. **S2, lead then delegate:** the schema decision spec (`notes/slice-schema.md`, D48), then the Drizzle schema, RLS policies, pgTAP tests, migrations, and the Drizzle `Repositories` implementation. The first spike inside S2 is Hyperdrive to Supabase connectivity (IPv6 question, journal 1 D22).
   3. **S3:** Supabase Auth replaces the demo-role cookie.
-  4. **S4:** media ingest and playback through Bunny, the media job, real assets in the player.
-  5. **S5:** feedback persisted: comments, summary, reply, assignments.
-  6. **S6:** nudge emails through Resend on a Cron Trigger.
+  4. **S5:** feedback persisted: comments, summary, reply, assignments.
+  5. **S6:** nudge emails through Resend on a Cron Trigger.
+  6. **S4:** media ingest and playback through Bunny, the media job, real assets in the player. The founder starts the Bunny trial here.
   7. **S7:** written smoke tests for the four functions, alpha deploy behind Access, founder and CTO run them.
 - **Carried from journal 1 §4:** the `singology-style` skill (turn the reviewer's House Rules and D35 to D41 into a skill every brief loads); the iPhone device check (pitfalls 7 and 8), now folded into S7's smoke tests on the user's iPhone.
 
@@ -91,6 +91,12 @@ Each package lands as many small commits on `slice`, passes `pnpm typecheck`, `l
 **47. Alpha authentication is Supabase Auth magic link only, invite-only.** No OAuth providers, no passkeys, no self-serve sign-up in alpha. The lead or the user creates accounts by invite. *Reason:* D43 simplicity; two testers; OAuth adds provider consoles and redirect URIs for no alpha benefit. Self-serve sign-up and OAuth are beta items.
 
 **48. The schema is specified before any Drizzle code is written.** `notes/slice-schema.md` is a decision spec (the planning-session format) that reconciles two sources: the facade's `packages/shared` Zod schemas, which are the proven shape of what the UI needs, and journal 1 WP4 §3's data model sketch, which has the relational and RLS shape. It drops what alpha does not need (guardians, consent, billing, audit) but names where each attaches, keeps the `events` table from journal 1 D27 from day one, and states the RLS rule for every table in prose before any policy is written. *Reason:* the user's second priority is schema stability; a schema that emerges from implementation is the opposite of that.
+
+**49. Bunny is switched on last.** *User steer 2026-10-16:* "We can hold off switching on Bunny until the rest is built and the founder presses the switch." Consequences:
+- **S4 (media ingest through Bunny) moves to the end of the build order**, after S5 and S6. The order is now S1 (minus Bunny), S2, S3, S5, S6, S4, S7. Bunny's 14-day trial starts when S4 starts, so the founder's $1 a month begins only when there is something to upload to.
+- **Everything before S4 runs on the facade's media path:** `MediaAsset` rows point at the static fixture files under `/media/*`, served by the Range-aware Worker route (journal 1 D31). The upload panel keeps posting metadata only, as in the facade, until S4 wires the file to Bunny.
+- **The media seam is part of S2's schema and interfaces:** `MediaAsset` keeps its `src`, `hlsSrc` and `peaksSrc` URL shape, so the app never knows which store is behind a URL. S4 adds a `MediaStore` interface (mint upload signature, sign playback URL, handle upload-complete) with the Bunny implementation; the schema records the store and the store's asset id per asset so a later move (journal 1 D15, Bunny to R2) is a backend migration.
+*Reason:* the user's. It also means the schema, auth and feedback work is tested with media that already plays, and the Bunny integration lands against a stable app.
 
 ## Findings
 
