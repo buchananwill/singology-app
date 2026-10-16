@@ -21,19 +21,19 @@ These are the founder's and CTO's standing priorities for the slice. Weigh every
 
 pnpm 9 workspace, Node 22+. Run from the repo root unless noted. On Windows open the shell at the correctly-cased path `D:\Coding\singology-app` (lower-case `coding` breaks pnpm filters, see pitfall 5).
 
-| Task | Command |
-|---|---|
-| Install | `pnpm install --frozen-lockfile` |
-| Typecheck all packages | `pnpm typecheck` |
-| Lint / format | `pnpm lint`, `pnpm format` (`format:check` to verify) |
-| Unit tests, all packages | `pnpm test` |
-| One unit test file | `pnpm --filter @singology/web exec vitest run app/lib/format.test.ts` (same shape for `@singology/db`, `@singology/shared`, `@singology/media-jobs`) |
-| E2E (Chromium + WebKit) | `pnpm test:e2e` |
-| One e2e spec / browser | `pnpm test:e2e e2e/review.spec.ts --project chromium` |
-| Dev server | `pnpm dev` |
-| Built Worker in workerd | `pnpm preview` (port 4173) |
-| Build | `pnpm build` |
-| Regenerate fixture media | `pnpm --filter @singology/media-jobs generate`, then `peaks` (needs ffmpeg on PATH) |
+| Task                     | Command                                                                                                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install                  | `pnpm install --frozen-lockfile`                                                                                                                     |
+| Typecheck all packages   | `pnpm typecheck`                                                                                                                                     |
+| Lint / format            | `pnpm lint`, `pnpm format` (`format:check` to verify)                                                                                                |
+| Unit tests, all packages | `pnpm test`                                                                                                                                          |
+| One unit test file       | `pnpm --filter @singology/web exec vitest run app/lib/format.test.ts` (same shape for `@singology/db`, `@singology/shared`, `@singology/media-jobs`) |
+| E2E (Chromium + WebKit)  | `pnpm test:e2e`                                                                                                                                      |
+| One e2e spec / browser   | `pnpm test:e2e e2e/review.spec.ts --project chromium`                                                                                                |
+| Dev server               | `pnpm dev`                                                                                                                                           |
+| Built Worker in workerd  | `pnpm preview` (port 4173)                                                                                                                           |
+| Build                    | `pnpm build`                                                                                                                                         |
+| Regenerate fixture media | `pnpm --filter @singology/media-jobs generate`, then `peaks` (needs ffmpeg on PATH)                                                                  |
 
 Before any commit that touches code: `pnpm typecheck`, `pnpm lint`, `pnpm test` must all pass (spec decision 5). Run `pnpm test:e2e` when a route, component or Worker handler changed.
 
@@ -82,7 +82,7 @@ These are fixed project decisions. The reviewer agent in `.claude/agents/singolo
 - Mantine components over raw HTML; theme tokens over magic values. React Router links inside Mantine use a polymorphic component (`Anchor`, `Button`, `UnstyledButton` with `component={Link}`); `Title` is not polymorphic. Do not put block components (`Badge`, `Group`) inside `Text`.
 - Shared UI (the player, the upload panel) is reused through its public API, never copied.
 - Files: components `PascalCase`, hooks `useX.ts`, pure modules `camelCase`. One component per file. Tests sit beside their unit as `*.test.ts`, or in `apps/web/e2e/` for Playwright. No `index.ts` barrels inside `apps/web`.
-- Comments are kept to intent the code cannot express: one line of *why*, or an API contract. No JSDoc that restates a signature, no process narration, no section headers.
+- Comments are kept to intent the code cannot express: one line of _why_, or an API contract. No JSDoc that restates a signature, no process narration, no section headers.
 - Prettier (`printWidth: 100`) owns layout. Never spend effort or review findings on formatting.
 - Student surfaces must work at 375px width.
 

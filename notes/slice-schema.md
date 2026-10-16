@@ -138,8 +138,8 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 41. **Every `public` table has RLS enabled (not forced)** and policies are declared beside the table with Drizzle's `pgPolicy`, so the schema file is the single statement of who may read what; the `postgres` role, which `adminDb` uses, has `bypassrls` on Supabase and so is unaffected.
 42. **Every policy predicate wraps the caller in a subquery, `(select auth.uid())`**, so the function runs once per query rather than once per row.
 43. **A user-scoped query is one transaction that first runs `set local role authenticated` (or `anon`) and `select set_config('request.jwt.claims', $1, true)` with the claims passed as a bound parameter and the role name chosen from a two-value whitelist**, never interpolated, because Drizzle's documented example interpolates and that is an injection path.
-44. **Anonymous requests (the landing page) run as `anon` with no claims**, and the only `anon` policies are `select` on `coaches` where `active` and `select` on `coach_offers` where `active`, which is what the coach cards and pricing table need.
-45. **`profiles`:** a user selects and updates their own row; a user also selects the profile of anyone on the other side of one of their enrolments (`exists` over `enrolments` joined to the caller's role row), because the queue shows student names and the student home shows the coach's name.
+44. **Anonymous requests (the landing page) run as `anon` with no claims**, and the only `anon` policies are `select` on `coaches` where `active`, `select` on `coach_offers` where `active`, and `select` on `profiles` whose `coaches` row is `active` (*AMENDED, pitfall 20:* coach display names live on `profiles`), which is what the coach cards and pricing table need.
+45. **`profiles`:** a user selects and updates their own row; a user also selects the profile of anyone on the other side of one of their enrolments (`exists` over `enrolments` joined to the caller's role row), because the queue shows student names and the student home shows the coach's name; and every caller, `anon` included, selects the profile of any active coach (*AMENDED, pitfall 20*), because coaches are public by design.
 46. **`coaches` and `coach_offers`:** `authenticated` selects where `active`, plus a coach selects and updates their own `coaches` row and their own offers; no insert policy, because coaches are created by the admin seed.
 47. **`students`:** a student selects and updates their own row; a coach selects students who have an enrolment with them.
 48. **`enrolments`:** a student selects rows where `student_id = (select auth.uid())`; a coach selects rows where `coach_id = (select auth.uid())`; no insert, update or delete policy, because enrolment changes are an admin operation in alpha.
@@ -157,7 +157,7 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 57. **Only the Worker connects to Postgres, through a Hyperdrive config created with caching disabled**, bound as `HYPERDRIVE` in `wrangler.jsonc`, because a cached read cannot know the session's claims.
 58. **The Hyperdrive origin is Supabase's session pooler (port 5432)**, which is reachable over IPv4 and honours `set local`; the transaction pooler (6543) is never used behind Hyperdrive, and the first S2 spike records whether the direct connection also works, as a finding for a later switch that is configuration only.
 59. **The driver is `pg` 8.16 or later with `drizzle-orm/node-postgres`** and `drizzle-orm` 0.45.x, per Cloudflare's recommendation for Hyperdrive; `postgres.js` is not used.
-60. **`createUserDb(connectionString, claims)` returns a `UserDb`**, a function `<T>(work: (tx: Transaction) => Promise<T>) => Promise<T>` that opens one connection, runs decision 43's two statements, runs `work`, and commits; **each repository method is one `UserDb` call**, so a loader's `Promise.all` of several methods is several short transactions, which is the right shape for Hyperdrive, which pools in transaction mode.
+60. **`createUserDb(connection, claims)` returns a `UserDb`**, a function `<T>(work: (tx: Transaction) => Promise<T>) => Promise<T>` that opens one connection, runs decision 43's two statements, runs `work`, and commits; **each repository method is one `UserDb` call**, so a loader's `Promise.all` of several methods is several short transactions, which is the right shape for Hyperdrive, which pools in transaction mode. *AMENDED (pitfall 19):* the factories take **discrete connection settings, never a URL**, because Wrangler's local Hyperdrive emulation rebuilds `connectionString` with the password decoded, which breaks URL parsing for any password with reserved characters; the Worker passes `env.HYPERDRIVE`'s fields straight through, and only the scripts parse `DATABASE_URL`, through `connectionSettingsFromUrl`.
 
 ```ts
 export interface Claims {
@@ -165,9 +165,17 @@ export interface Claims {
   sub?: string;
   email?: string;
 }
+export interface ConnectionSettings {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+}
+export function connectionSettingsFromUrl(url: string): ConnectionSettings;
 export type UserDb = <T>(work: (tx: Transaction) => Promise<T>) => Promise<T>;
-export function createUserDb(connectionString: string, claims: Claims): UserDb;
-export function createAdminDb(connectionString: string): Db;
+export function createUserDb(connection: ConnectionSettings, claims: Claims): UserDb;
+export function createAdminDb(connection: ConnectionSettings): Db;
 ```
 
 61. **`adminDb` is permitted only in webhook resource routes (`app/routes/api.*`), the media job, the notification sender and the seed**, enforced by an ESLint `no-restricted-imports` rule on `@singology/db/admin` outside those paths, because one form per privilege level is what makes a privileged call visible in review.
@@ -212,7 +220,7 @@ export interface Repositories {
 74. **The seed is idempotent** (upserts on natural keys: email for users, the fixture ids for library and media), so it can be re-run after a squash without manual cleanup.
 75. **`pnpm --filter @singology/db` gains the scripts `generate` (drizzle-kit), `seed` and `test:rls`**, and the root `pnpm test` keeps excluding the RLS tests because they need a database.
 76. **pgTAP tests run against the alpha database without Docker**, through `supabase test db --linked` if that command runs on Windows without a local stack, and otherwise through a small Node runner that executes `supabase/tests/*.sql` over the direct connection and checks the TAP output; the implementer verifies which and records it in the pitfalls log.
-77. **Secrets are three keys and no more:** `DATABASE_URL` (the session-pooler string, for migrations, seed and RLS tests, passed to the Supabase CLI as `--db-url` so no separate password exists) and `SUPABASE_SECRET_KEY` (the project's secret API key, for the admin auth API in the seed and later the S3 invite flow), both in `packages/db/.env`, loaded by a loader that lets the file override an inherited environment variable of the same name (a stale system-level value once shadowed the file); and `WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` (the same session-pooler string, which `wrangler dev` substitutes for the `HYPERDRIVE` binding), which must be in `apps/web/.dev.vars` because wrangler reads bindings only from that file; in production the Worker reads `env.HYPERDRIVE.connectionString`; no secret appears in a committed file.
+77. **Secrets are three keys and no more:** `DATABASE_URL` (the session-pooler string, for migrations, seed and RLS tests, passed to the Supabase CLI as `--db-url` so no separate password exists) and `SUPABASE_SECRET_KEY` (the project's secret API key, for the admin auth API in the seed and later the S3 invite flow), both in `packages/db/.env`, loaded by a loader that lets the file override an inherited environment variable of the same name (a stale system-level value once shadowed the file); and `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` (the same session-pooler string, which local Hyperdrive emulation substitutes for the `HYPERDRIVE` binding), kept in `apps/web/.dev.vars` and loaded into the process environment by the `dev` and e2e launch commands, because Wrangler reads this particular variable from the process environment, not from `.dev.vars` (*AMENDED, pitfall 19*); in production the Worker reads `env.HYPERDRIVE.connectionString`; no secret appears in a committed file.
 
 ### Collections, tags and the extension rule
 
