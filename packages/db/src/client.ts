@@ -14,17 +14,14 @@ export interface Claims {
   email?: string;
 }
 
-/**
- * Discrete fields, never a URL: the Worker passes `env.HYPERDRIVE` straight through, because local
- * Hyperdrive rebuilds its connection string with the password decoded (pitfall 19).
- */
-export type ConnectionSettings = {
+/** Discrete fields, never a URL, so the Worker can pass `env.HYPERDRIVE` straight through. */
+export interface ConnectionSettings {
   host: string;
   port: number;
   user: string;
   password: string;
   database: string;
-};
+}
 
 /** For Node scripts, the seed and tests, which hold DATABASE_URL. */
 export function connectionSettingsFromUrl(url: string): ConnectionSettings {
@@ -38,19 +35,14 @@ export function connectionSettingsFromUrl(url: string): ConnectionSettings {
   };
 }
 
-const pgConfig = ({
+// `env.HYPERDRIVE` also carries `connectionString`, which pg would prefer over the fields.
+const pickConnectionFields = ({
   host,
   port,
   user,
   password,
   database,
-}: ConnectionSettings): pg.ClientConfig => ({
-  host,
-  port,
-  user,
-  password,
-  database,
-});
+}: ConnectionSettings): pg.ClientConfig => ({ host, port, user, password, database });
 
 /** One RLS-scoped transaction per call; each repository method is one call. */
 export type UserDb = <T>(work: (tx: Transaction) => Promise<T>) => Promise<T>;
@@ -62,7 +54,7 @@ const SET_LOCAL_ROLE = {
 } satisfies Record<Claims["role"], unknown>;
 
 export function createUserDb(settings: ConnectionSettings, claims: Claims): UserDb {
-  const config = pgConfig(settings);
+  const config = pickConnectionFields(settings);
   const setRole = SET_LOCAL_ROLE[claims.role];
   const claimsJson = JSON.stringify(claims);
   return async (work) => {
@@ -80,7 +72,7 @@ export function createUserDb(settings: ConnectionSettings, claims: Claims): User
   };
 }
 
-/** Bypasses RLS. Only the routes and jobs that spec decision 61 lists may import it. */
+/** Bypasses RLS. */
 export function createAdminDb(settings: ConnectionSettings): Db {
-  return drizzle(new pg.Pool(pgConfig(settings)), { schema });
+  return drizzle(new pg.Pool(pickConnectionFields(settings)), { schema });
 }

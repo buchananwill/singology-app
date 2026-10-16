@@ -2,15 +2,15 @@ import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
 
-const ENV_FILE = fileURLToPath(new URL("../../.env", import.meta.url));
+const ENV_FILE = fileURLToPath(new URL("../.env", import.meta.url));
 
-type EnvKey = "DATABASE_URL" | "SUPABASE_DB_PASSWORD" | "SUPABASE_SECRET_KEY";
+type EnvKey = "DATABASE_URL" | "SUPABASE_SECRET_KEY";
 
 let loaded = false;
 
-// Precedence: packages/db/.env overrides the inherited environment (a stale system DATABASE_URL
-// once shadowed it; pitfall 18). The environment is used only for keys the file does not set.
-export function loadDbEnv(): void {
+// Precedence: packages/db/.env overrides the inherited environment, which once held a stale
+// DATABASE_URL; the environment is used only for keys the file does not set.
+function loadDbEnv(): void {
   if (loaded) {
     return;
   }
@@ -30,11 +30,15 @@ export function requireEnv(key: EnvKey): string {
   return value;
 }
 
-/** `https://<ref>.supabase.co`, from the pooler user name `postgres.<ref>`. */
-export function supabaseUrlFrom(databaseUrl: string): string {
+/** The Supabase project ref, from the pooler user name `postgres.<ref>`. */
+export function projectRefFrom(databaseUrl: string): string {
   const ref = new URL(databaseUrl).username.split(".")[1];
   if (!ref) {
     throw new Error("DATABASE_URL's user is not `postgres.<project-ref>`.");
   }
-  return `https://${ref}.supabase.co`;
+  return ref;
+}
+
+export function supabaseUrlFrom(databaseUrl: string): string {
+  return `https://${projectRefFrom(databaseUrl)}.supabase.co`;
 }

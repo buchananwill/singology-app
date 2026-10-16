@@ -2,7 +2,7 @@ import type { VoiceType } from "@singology/shared";
 
 import { fixtureUuid } from "./fixtureUuid";
 
-// Placeholders until the lead supplies the real addresses (S3). The seed upserts on email.
+// Placeholders until the lead supplies the real addresses (S3).
 export const FOUNDER_EMAIL = "founder@singology.test";
 export const CTO_EMAIL = "cto@singology.test";
 

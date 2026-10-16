@@ -9,20 +9,21 @@ import {
   type RegisterMedia,
   SubmissionSchema,
 } from "@singology/shared";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, gte, inArray } from "drizzle-orm";
 import { afterAll, assert, beforeAll, describe, expect, it } from "vitest";
 
-import { connectionSettingsFromUrl, createAdminDb, createUserDb, type Db } from "../../src/client";
+import { connectionSettingsFromUrl, createAdminDb, type Db } from "../../src/admin";
+import { createUserDb } from "../../src/client";
 import { createDrizzleRepositories } from "../../src/drizzle/createDrizzleRepositories";
+import { requireEnv } from "../../src/env";
 import type { Repositories } from "../../src/repositories";
 import { assignments, events, feedback, mediaAssets, submissions } from "../../src/schema";
 import { ALPHA_ENROLMENT, CTO_EMAIL, FOUNDER_EMAIL } from "../../src/seed/alphaCast";
-import { requireEnv } from "../../src/seed/env";
 import { fixtureUuid } from "../../src/seed/fixtureUuid";
+import { userIdByEmail } from "../../src/seed/userIdByEmail";
 
 const settings = connectionSettingsFromUrl(requireEnv("DATABASE_URL"));
-const now = new Date();
-const lib = (fixtureId: string) => fixtureUuid(fixtureId);
+const startedAt = new Date();
 
 let admin: Db;
 let founderId: string;
@@ -31,7 +32,6 @@ let asFounder: Repositories;
 let asCto: Repositories;
 let asAnon: Repositories;
 const created = { media: [] as string[], submissions: [] as string[], feedback: [] as string[] };
-const startedAt = new Date();
 
 const upload = (storeKey: string): RegisterMedia => ({
   kind: "audio",
@@ -62,10 +62,7 @@ async function markReady(mediaId: string, submissionId?: string) {
 }
 
 async function userId(email: string): Promise<string> {
-  const result = await admin.execute<{ id: string }>(
-    sql`select id from auth.users where email = ${email}`,
-  );
-  const id = result.rows[0]?.id;
+  const id = await userIdByEmail(admin, email);
   assert(id, `the seed created ${email}`);
   return id;
 }
@@ -77,7 +74,7 @@ beforeAll(async () => {
   const repos = (sub?: string) =>
     createDrizzleRepositories(
       createUserDb(settings, sub === undefined ? { role: "anon" } : { role: "authenticated", sub }),
-      { now },
+      { now: startedAt },
     );
   asFounder = repos(founderId);
   asCto = repos(ctoId);
@@ -95,9 +92,7 @@ afterAll(async () => {
   if (created.media.length > 0) {
     await admin.delete(mediaAssets).where(inArray(mediaAssets.id, created.media));
   }
-  await admin
-    .delete(events)
-    .where(and(eq(events.userId, ctoId), sql`${events.at} >= ${startedAt.toISOString()}`));
+  await admin.delete(events).where(and(eq(events.userId, ctoId), gte(events.at, startedAt)));
   await admin.$client.end();
 });
 
@@ -150,13 +145,16 @@ describe("reads", () => {
   });
 
   it("gets library items, many in the order asked", async () => {
-    expect((await asCto.library.get(lib("lib-breath-hiss")))?.title).toBe("Sustained hiss");
+    expect((await asCto.library.get(fixtureUuid("lib-breath-hiss")))?.title).toBe("Sustained hiss");
     const items = await asCto.library.getMany([
-      lib("lib-range-siren"),
+      fixtureUuid("lib-range-siren"),
       fixtureUuid("no-such-item"),
-      lib("lib-breath-hiss"),
+      fixtureUuid("lib-breath-hiss"),
     ]);
-    expect(items.map((i) => i.id)).toEqual([lib("lib-range-siren"), lib("lib-breath-hiss")]);
+    expect(items.map((i) => i.id)).toEqual([
+      fixtureUuid("lib-range-siren"),
+      fixtureUuid("lib-breath-hiss"),
+    ]);
     expect(await asCto.library.getMany([])).toEqual([]);
   });
 
@@ -164,17 +162,20 @@ describe("reads", () => {
     const collections = await asCto.library.listCollections();
     CollectionSchema.array().parse(collections);
     expect(collections.map((c) => c.title)).toEqual(["Foundations", "Range and agility"]);
-    expect(collections[1]?.itemIds[0]).toBe(lib("lib-range-siren"));
+    expect(collections[1]?.itemIds[0]).toBe(fixtureUuid("lib-range-siren"));
   });
 
   it("gets ready media, many in the order asked", async () => {
-    const video = await asCto.media.get(lib("media-test-pattern"));
+    const video = await asCto.media.get(fixtureUuid("media-test-pattern"));
     expect(MediaAssetSchema.parse(video).hlsSrc).toBe("/media/test-pattern-hls/index.m3u8");
     const assets = await asCto.media.getMany([
-      lib("media-coach-reply"),
-      lib("media-backing-track"),
+      fixtureUuid("media-coach-reply"),
+      fixtureUuid("media-backing-track"),
     ]);
-    expect(assets.map((a) => a.id)).toEqual([lib("media-coach-reply"), lib("media-backing-track")]);
+    expect(assets.map((a) => a.id)).toEqual([
+      fixtureUuid("media-coach-reply"),
+      fixtureUuid("media-backing-track"),
+    ]);
   });
 
   it("lets anon read nothing but the public coach tables", async () => {
@@ -197,7 +198,7 @@ describe("the coaching loop", () => {
   it("creates a processing submission", async () => {
     const submission = await asCto.submissions.create({
       enrolmentId: ALPHA_ENROLMENT.id,
-      libraryItemId: lib("lib-breath-hiss"),
+      libraryItemId: fixtureUuid("lib-breath-hiss"),
       mediaId: firstTake,
       note: "Integration test take",
     });
@@ -212,8 +213,8 @@ describe("the coaching loop", () => {
     await expect(
       asCto.submissions.create({
         enrolmentId: ALPHA_ENROLMENT.id,
-        libraryItemId: lib("lib-breath-hiss"),
-        mediaId: lib("media-student-take-a"),
+        libraryItemId: fixtureUuid("lib-breath-hiss"),
+        mediaId: fixtureUuid("media-student-take-a"),
         note: "",
       }),
     ).rejects.toThrow();
@@ -225,7 +226,7 @@ describe("the coaching loop", () => {
     const row = queue.find((r) => r.submission.id === submissionId);
     assert(row, "the take is in the founder's queue");
     expect(row.student.id).toBe(ctoId);
-    expect(row.item.id).toBe(lib("lib-breath-hiss"));
+    expect(row.item.id).toBe(fixtureUuid("lib-breath-hiss"));
     expect(row.mediaKind).toBe("audio");
     expect(await asCto.submissions.queueViewForCoach(ctoId)).toEqual([]);
   });
@@ -257,7 +258,7 @@ describe("the coaching loop", () => {
       ],
       reply: null,
       replyMediaId: replyId,
-      assignLibraryItemIds: [lib("lib-breath-lip-trill")],
+      assignLibraryItemIds: [fixtureUuid("lib-breath-lip-trill")],
     });
     feedbackId = sent.feedback.id;
     created.feedback.push(feedbackId);
@@ -270,7 +271,9 @@ describe("the coaching loop", () => {
     expect(owned?.submission.status).toBe("reviewed");
     const assigned = await asCto.assignments.forStudent(ctoId);
     expect(
-      assigned.some((a) => a.libraryItemId === lib("lib-breath-lip-trill") && a.status === "todo"),
+      assigned.some(
+        (a) => a.libraryItemId === fixtureUuid("lib-breath-lip-trill") && a.status === "todo",
+      ),
     ).toBe(true);
   });
 
@@ -293,7 +296,7 @@ describe("the coaching loop", () => {
 
   it("derives assignment status from the submissions that reference it", async () => {
     const todo = (await asCto.assignments.forStudent(ctoId)).find(
-      (a) => a.libraryItemId === lib("lib-breath-lip-trill"),
+      (a) => a.libraryItemId === fixtureUuid("lib-breath-lip-trill"),
     );
     assert(todo, "the review assigned the lip trill");
     const { id } = await asCto.media.register(upload("tests/assigned.m4a"));
@@ -301,7 +304,7 @@ describe("the coaching loop", () => {
     const take = await asCto.submissions.create({
       enrolmentId: ALPHA_ENROLMENT.id,
       assignmentId: todo.id,
-      libraryItemId: lib("lib-breath-lip-trill"),
+      libraryItemId: fixtureUuid("lib-breath-lip-trill"),
       mediaId: id,
       note: "",
     });
@@ -312,7 +315,7 @@ describe("the coaching loop", () => {
       asCto.submissions.create({
         enrolmentId: ALPHA_ENROLMENT.id,
         assignmentId: todo.id,
-        libraryItemId: lib("lib-breath-hiss"),
+        libraryItemId: fixtureUuid("lib-breath-hiss"),
         mediaId: id,
         note: "",
       }),
@@ -324,7 +327,7 @@ describe("the coaching loop", () => {
     created.media.push(id);
     const second = await asCto.submissions.create({
       enrolmentId: ALPHA_ENROLMENT.id,
-      libraryItemId: lib("lib-breath-hiss"),
+      libraryItemId: fixtureUuid("lib-breath-hiss"),
       mediaId: id,
       note: "Second go",
     });

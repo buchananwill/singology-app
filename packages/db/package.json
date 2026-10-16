@@ -14,7 +14,8 @@
     "test:rls": "tsx scripts/runRlsTests.ts",
     "generate": "drizzle-kit generate",
     "supabase": "tsx scripts/supabaseCli.ts",
-    "seed": "tsx src/seed/seedAlpha.ts"
+    "seed": "tsx src/seed/seedAlpha.ts",
+    "seed:counts": "tsx scripts/seedCounts.ts"
   },
   "dependencies": {
     "@singology/shared": "workspace:^",

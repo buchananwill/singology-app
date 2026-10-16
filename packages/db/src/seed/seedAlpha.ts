@@ -1,8 +1,10 @@
 // The alpha seed (spec decisions 73 and 74): idempotent, so it can be re-run after a squash.
+import type { Tag } from "@singology/shared";
 import { createClient } from "@supabase/supabase-js";
-import { inArray, sql } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 import { connectionSettingsFromUrl, createAdminDb } from "../client";
+import { requireEnv, supabaseUrlFrom } from "../env";
 import { createFixtureData } from "../fixtures/data";
 import {
   coaches,
@@ -24,8 +26,8 @@ import {
   CTO_VOICE_TYPE,
   FOUNDER_EMAIL,
 } from "./alphaCast";
-import { requireEnv, supabaseUrlFrom } from "./env";
 import { fixtureUuid } from "./fixtureUuid";
+import { userIdByEmail } from "./userIdByEmail";
 
 const databaseUrl = requireEnv("DATABASE_URL");
 const db = createAdminDb(connectionSettingsFromUrl(databaseUrl));
@@ -33,11 +35,18 @@ const authAdmin = createClient(supabaseUrlFrom(databaseUrl), requireEnv("SUPABAS
   auth: { persistSession: false, autoRefreshToken: false },
 }).auth.admin;
 
+function getOrThrow<K, V>(map: ReadonlyMap<K, V>, key: K, message: string): V {
+  const value = map.get(key);
+  if (value === undefined) {
+    throw new Error(message);
+  }
+  return value;
+}
+
+const tagKey = (tag: Tag) => `${tag.kind}:${tag.slug}`;
+
 async function ensureUser(email: string, displayName: string): Promise<string> {
-  const existing = await db.execute<{ id: string }>(
-    sql`select id from auth.users where email = ${email}`,
-  );
-  const id = existing.rows[0]?.id;
+  const id = await userIdByEmail(db, email);
   if (id !== undefined) {
     return id;
   }
@@ -56,23 +65,12 @@ const userIds = new Map<string, string>();
 for (const user of ALPHA_USERS) {
   userIds.set(user.email, await ensureUser(user.email, user.displayName));
 }
-const idOf = (email: string) => {
-  const id = userIds.get(email);
-  if (id === undefined) {
-    throw new Error(`No user for ${email}`);
-  }
-  return id;
-};
+const idOf = (email: string) => getOrThrow(userIds, email, `No user for ${email}`);
 const coachIdFor = new Map<string, string>(
   ALPHA_USERS.map((user) => [user.coachFixtureId, idOf(user.email)]),
 );
-const coachId = (fixtureCoachId: string) => {
-  const id = coachIdFor.get(fixtureCoachId);
-  if (id === undefined) {
-    throw new Error(`No alpha user coaches as ${fixtureCoachId}`);
-  }
-  return id;
-};
+const coachId = (fixtureCoachId: string) =>
+  getOrThrow(coachIdFor, fixtureCoachId, `No alpha user coaches as ${fixtureCoachId}`);
 
 const fixtures = createFixtureData(new Date());
 
@@ -141,7 +139,7 @@ await db.transaction(async (tx) => {
 
   const tagIds = new Map<string, string>();
   const seededTags = [
-    ...new Map(fixtures.libraryItems.flatMap((i) => i.tags).map((t) => [t.slug, t])).values(),
+    ...new Map(fixtures.libraryItems.flatMap((i) => i.tags).map((t) => [tagKey(t), t])).values(),
   ];
   for (const [position, tag] of seededTags.entries()) {
     const [row] = await tx
@@ -152,7 +150,7 @@ await db.transaction(async (tx) => {
     if (row === undefined) {
       throw new Error(`Tag ${tag.slug} was not upserted.`);
     }
-    tagIds.set(`${tag.kind}:${tag.slug}`, row.id);
+    tagIds.set(tagKey(tag), row.id);
   }
 
   const itemIds = fixtures.libraryItems.map((item) => fixtureUuid(item.id));
@@ -177,13 +175,10 @@ await db.transaction(async (tx) => {
   await tx.delete(libraryItemTags).where(inArray(libraryItemTags.libraryItemId, itemIds));
   await tx.insert(libraryItemTags).values(
     fixtures.libraryItems.flatMap((item) =>
-      item.tags.map((tag) => {
-        const tagId = tagIds.get(`${tag.kind}:${tag.slug}`);
-        if (tagId === undefined) {
-          throw new Error(`Tag ${tag.slug} was not seeded.`);
-        }
-        return { libraryItemId: fixtureUuid(item.id), tagId };
-      }),
+      item.tags.map((tag) => ({
+        libraryItemId: fixtureUuid(item.id),
+        tagId: getOrThrow(tagIds, tagKey(tag), `Tag ${tag.slug} was not seeded.`),
+      })),
     ),
   );
 
