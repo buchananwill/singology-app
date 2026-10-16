@@ -16,4 +16,6 @@ export default [
   layout("routes/anyRole.layout.tsx", [route("library", "routes/library.tsx")]),
   // Player regression page, deliberately not linked from the navigation.
   route("lab/player", "routes/lab.player.tsx"),
+  // Worker-to-Postgres proof, deliberately not linked from the navigation.
+  route("lab/db", "routes/lab.db.tsx"),
 ] satisfies RouteConfig;
