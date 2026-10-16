@@ -200,13 +200,21 @@ export const FeedbackSchema = z.object({
 });
 export type Feedback = z.infer<typeof FeedbackSchema>;
 
+export const MediaMimeTypeSchema = z
+  .string()
+  .regex(/^(audio|video)\//, "Pick an audio or video file.");
+
+export const UploadFileNameSchema = z.string().min(1).max(255);
+
+export const SubmissionNoteSchema = z.string().max(1000);
+
 /** The picked file's metadata, never the file itself. */
 export const RecordingUploadSchema = z.object({
-  fileName: z.string().min(1).max(255),
+  fileName: UploadFileNameSchema,
   sizeBytes: z.coerce.number().int().positive(),
   durationSec: z.coerce.number().positive().finite(),
-  mimeType: z.string().regex(/^(audio|video)\//, "Pick an audio or video file."),
-  note: z.string().max(1000).default(""),
+  mimeType: MediaMimeTypeSchema,
+  note: SubmissionNoteSchema.default(""),
 });
 export type RecordingUpload = z.infer<typeof RecordingUploadSchema>;
 
@@ -258,23 +266,21 @@ export const SendFeedbackInputSchema = SendFeedbackSchema.safeExtend({
 });
 export type SendFeedbackInput = z.infer<typeof SendFeedbackInputSchema>;
 
-export const CreateSubmissionSchema = z.object({
-  enrolmentId: IdSchema,
-  assignmentId: IdSchema.optional(),
-  libraryItemId: IdSchema,
-  mediaId: IdSchema,
-  note: z.string().max(1000),
-});
+export const CreateSubmissionSchema = SubmissionSchema.pick({
+  enrolmentId: true,
+  assignmentId: true,
+  libraryItemId: true,
+  mediaId: true,
+}).extend({ note: SubmissionNoteSchema });
 export type CreateSubmission = z.infer<typeof CreateSubmissionSchema>;
 
-/** An upload's registration: the asset starts `pending` and only the media job makes it ready. */
 export const RegisterMediaSchema = z.object({
   kind: MediaKindSchema,
   store: MediaStoreSchema,
   storeKey: z.string().min(1),
-  originalFileName: z.string().max(255),
+  originalFileName: UploadFileNameSchema,
   sizeBytes: z.number().int().positive(),
-  mimeType: z.string().regex(/^(audio|video)\//, "Pick an audio or video file."),
+  mimeType: MediaMimeTypeSchema,
 });
 export type RegisterMedia = z.infer<typeof RegisterMediaSchema>;
 

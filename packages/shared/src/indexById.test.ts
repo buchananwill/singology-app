@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { indexById } from "./indexById";
+import { indexById, pickByIds } from "./indexById";
 
 describe("indexById", () => {
   it("maps each item's id to the item", () => {
@@ -19,5 +19,13 @@ describe("indexById", () => {
         { id: "a", n: 2 },
       ]).get("a")?.n,
     ).toBe(2);
+  });
+});
+
+describe("pickByIds", () => {
+  it("returns the items in the order asked, omitting unknown ids", () => {
+    const items = [{ id: "a" }, { id: "b" }, { id: "c" }];
+    expect(pickByIds(items, ["c", "x", "a"]).map((i) => i.id)).toEqual(["c", "a"]);
+    expect(pickByIds(items, [])).toEqual([]);
   });
 });
