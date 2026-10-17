@@ -212,3 +212,25 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Possible ruling.** Seed `asg-ada-onset` later than `asg-ada-siren-2` (for example `-8 * DAY`), so it holds a place in the four. Or assert the status on `/student/exercises/<onset>`, whose badge reads the latest assignment of that exercise. Or raise the limit.
 - **Evidence.** `apps/web/app/routes/student.home.tsx` `THIS_WEEK_LIMIT = 4`; `packages/db/src/fixtures/data.ts` assignments; the failed run's page snapshot of `/student`.
 - **Resolution.** The lead's ruling: `asg-ada-onset` is seeded at `-8 * DAY`, so it no longer ties with `asg-ada-siren-2` and keeps its place in the four. The decision-16 check is restored, and after the send `/student` shows "Balanced onsets on 'ah'" as "Feedback ready". The two extra assertions stay: the new exercise first, and the latest-feedback card. `pnpm test:e2e`: 67 passed, 3 skipped.
+
+## 26. Slice-nudges decision 16's subjects need data that the declared `DueNotification` does not carry
+
+- **What happened.** Decision 16 fixes the subjects "{Coach first name} has feedback on your {exercise title}" and "{Student first name} sent a take: {exercise title}". The roster's `DueNotification` has `email` and `displayName`, which decision 10 pairs as the recipient's. It has no field for the other person's name or the exercise title. Decision 10 also says the sender needs no second lookup, and the templates are pure.
+- **Workaround.** An additive field, `about?: { displayName: string; exerciseTitle: string }`. It holds the coach or student and the library item title, and both event queries fill it from the same joins. `displayName` stays the recipient's, so each email opens "Hi {first name},". The reminder leaves `about` unset. A feedback-ready or new-submission template given no `about` throws, so the row counts as failed and is never claimed.
+- **Affects.** The roster declaration of `DueNotification` in `packages/db/src/notificationQueue.ts`, which now differs from the spec by one optional field.
+- **Possible ruling.** Adopt `about` into the roster as it is. Or make `DueNotification` a union on `kind` so the field is required where it is used.
+- **Evidence.** `notes/slice-nudges.md` §1 and decisions 10 and 16; `apps/web/workers/notifications/templates.ts`; `packages/db/test/db/notificationQueue.test.ts` asserts `about` on the seeded rows.
+
+## 27. Slice-nudges decisions 12 and 13 need the notification id inside `EmailTransport.send`
+
+- **What happened.** The roster declares `send(message: EmailMessage)`. Decision 12 sends the claimed notification's id as Resend's `Idempotency-Key`, and decision 13 makes the dry-run id `dry-run:<notification id>`. `EmailMessage` (`to`, `subject`, `text`, `html`) does not carry that id.
+- **Workaround.** `send(message, idempotencyKey)`. `runNudges` passes the claim's id. `EmailMessageSchema` stays as the roster declares it.
+- **Affects.** The transport signature in `apps/web/workers/notifications/transport.ts` only.
+- **Evidence.** `runNudges.test.ts` checks the Resend request's `Idempotency-Key` and the dry-run id.
+
+## 28. `@singology/db/admin` crashed the Worker at start-up: `new URL("../", import.meta.url)` at module scope
+
+- **What happened.** S6 is the first Worker code to import `@singology/db/admin`. `env.ts` computed its package directory at module scope. In the bundled Worker that line runs at load, and workerd has no file URL there. The built Worker failed under `wrangler dev` with `Uncaught TypeError: Invalid URL string. at index.js:1149:1`, so every route, not just the scheduled handler, would have been down.
+- **Workaround.** The URL is now resolved inside `requireEnv` on first use. The Worker never calls it, since it reads `env.HYPERDRIVE`. Node scripts and tests behave as before.
+- **Affects.** Any future Worker import of `@singology/db/admin`, such as the webhook routes. Keep that entry free of module-scope Node-only work.
+- **Evidence.** The failed `serve:built:test` start log. After the fix the server starts, and `GET /cdn-cgi/local/scheduled?cron=*/5+*+*+*+*` returns 200 and logs `nudges {"cron":"*/5 * * * *","due":5,"sent":5,...}`.
