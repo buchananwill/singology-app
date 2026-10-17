@@ -1,7 +1,4 @@
-// The alpha seed: the fixture cast as users, the library, and the fixture coaching data with its
-// times resolved against this run. Identity and library rows are upserted; the coaching tables are
-// emptied and reloaded, so every run ends in the same state.
-import type { Tag } from "@singology/shared";
+import type { Profile, Tag } from "@singology/shared";
 import { inArray } from "drizzle-orm";
 
 import { createAuthAdmin } from "../authAdmin";
@@ -23,7 +20,7 @@ import {
 } from "../schema";
 import { ALPHA_USERS, type CastMember, placeholderEmail } from "./alphaCast";
 import { fixtureUuid } from "./fixtureUuid";
-import { loadCoaching } from "./loadCoaching";
+import { loadCoaching, type UserOfFixture } from "./loadCoaching";
 import { userIdByEmail } from "./userIdByEmail";
 
 const db = createAdminDb(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
@@ -59,7 +56,7 @@ const cast: CastMember[] = [
     })),
 ];
 
-const profileRows: { id: string; displayName: string }[] = [];
+const profileRows: Profile[] = [];
 const userIdFor = new Map<string, string>();
 for (const member of cast) {
   const id = await ensureUser(member.email, member.displayName);
@@ -70,7 +67,7 @@ for (const member of cast) {
     }
   }
 }
-const userOf = (fixtureId: string) =>
+const userOf: UserOfFixture = (fixtureId) =>
   getOrThrow(userIdFor, fixtureId, `No seeded user plays ${fixtureId}`);
 
 await db.transaction(async (tx) => {

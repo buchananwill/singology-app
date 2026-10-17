@@ -25,8 +25,7 @@ import { userIdByEmail } from "../../src/seed/userIdByEmail";
 
 const settings = connectionSettingsFromUrl(requireEnv("DATABASE_URL"));
 const startedAt = new Date();
-// The CTO is the seeded `student-ada`, enrolled with the founder.
-const CTO_ENROLMENT_ID = fixtureUuid("enrol-ada");
+const CTO_AS_ADA_ENROLMENT_ID = fixtureUuid("enrol-ada");
 
 let admin: Db;
 let founderId: string;
@@ -130,10 +129,9 @@ describe("reads", () => {
     }
   });
 
-  it("lists both active coaches, with their names, for anon", async () => {
+  it("lists both active coaches with their names for anon, the founder tier first", async () => {
     const rows = await asAnon.coaches.listWithOffers();
     expect(rows.map((row) => row.coach.id).sort()).toEqual([founderId, ctoId].sort());
-    // Founder tier first.
     expect(rows.map((row) => row.coach.displayName)).toEqual([
       "Singology founder",
       "Singology CTO",
@@ -149,7 +147,7 @@ describe("reads", () => {
   it("lists the student's enrolment", async () => {
     const [enrolment, ...rest] = await asCto.enrolments.forStudent(ctoId);
     expect(rest).toEqual([]);
-    expect(EnrolmentSchema.parse(enrolment).id).toBe(CTO_ENROLMENT_ID);
+    expect(EnrolmentSchema.parse(enrolment).id).toBe(CTO_AS_ADA_ENROLMENT_ID);
   });
 
   it("lists and filters the library", async () => {
@@ -222,7 +220,7 @@ describe("the coaching loop", () => {
 
   it("creates a processing submission", async () => {
     const submission = await asCto.submissions.create({
-      enrolmentId: CTO_ENROLMENT_ID,
+      enrolmentId: CTO_AS_ADA_ENROLMENT_ID,
       libraryItemId: fixtureUuid("lib-breath-hiss"),
       mediaId: firstTake,
       note: "Integration test take",
@@ -237,7 +235,7 @@ describe("the coaching loop", () => {
   it("rejects a take on someone else's media or the wrong exercise", async () => {
     await expect(
       asCto.submissions.create({
-        enrolmentId: CTO_ENROLMENT_ID,
+        enrolmentId: CTO_AS_ADA_ENROLMENT_ID,
         libraryItemId: fixtureUuid("lib-breath-hiss"),
         mediaId: fixtureUuid("media-student-take-a"),
         note: "",
@@ -261,7 +259,7 @@ describe("the coaching loop", () => {
     const [submissionId] = created.submissions;
     assert(submissionId, "a submission was created");
     expect((await asCto.submissions.getForStudent(ctoId, submissionId))?.enrolment.id).toBe(
-      CTO_ENROLMENT_ID,
+      CTO_AS_ADA_ENROLMENT_ID,
     );
     expect((await asFounder.submissions.getForCoach(founderId, submissionId))?.submission.id).toBe(
       submissionId,
@@ -328,7 +326,7 @@ describe("the coaching loop", () => {
     const { id } = await asCto.media.register(upload("tests/assigned.m4a"));
     created.media.push(id);
     const take = await asCto.submissions.create({
-      enrolmentId: CTO_ENROLMENT_ID,
+      enrolmentId: CTO_AS_ADA_ENROLMENT_ID,
       assignmentId: todo.id,
       libraryItemId: fixtureUuid("lib-breath-lip-trill"),
       mediaId: id,
@@ -339,7 +337,7 @@ describe("the coaching loop", () => {
     expect(after?.status).toBe("submitted");
     await expect(
       asCto.submissions.create({
-        enrolmentId: CTO_ENROLMENT_ID,
+        enrolmentId: CTO_AS_ADA_ENROLMENT_ID,
         assignmentId: todo.id,
         libraryItemId: fixtureUuid("lib-breath-hiss"),
         mediaId: id,
@@ -352,7 +350,7 @@ describe("the coaching loop", () => {
     const { id } = await asCto.media.register(upload("tests/second.m4a"));
     created.media.push(id);
     const second = await asCto.submissions.create({
-      enrolmentId: CTO_ENROLMENT_ID,
+      enrolmentId: CTO_AS_ADA_ENROLMENT_ID,
       libraryItemId: fixtureUuid("lib-breath-hiss"),
       mediaId: id,
       note: "Second go",

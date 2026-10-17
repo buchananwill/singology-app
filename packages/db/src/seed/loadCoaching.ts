@@ -13,17 +13,20 @@ import {
 } from "../schema";
 import { fixtureUuid } from "./fixtureUuid";
 
+/** The seeded user who plays a fixture student or coach. */
+export type UserOfFixture = (fixtureId: string) => string;
+
 const optionalUuid = (fixtureId: string | undefined) =>
   fixtureId === undefined ? null : fixtureUuid(fixtureId);
 
 /**
- * Empties the coaching tables and loads the fixture coaching data, so every run ends in the same
- * state. `userOf` maps a fixture student or coach id to the seeded user who plays that part.
+ * Empties the coaching tables and reloads the fixture coaching data, with its times resolved
+ * against this seed run, so every run ends in the same state as the facade's fixtures.
  */
 export async function loadCoaching(
   tx: Transaction,
   fixtures: FixtureData,
-  userOf: (fixtureId: string) => string,
+  userOf: UserOfFixture,
 ): Promise<void> {
   await tx.delete(feedbackComments);
   await tx.delete(feedback);

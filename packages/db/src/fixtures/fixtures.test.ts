@@ -156,7 +156,7 @@ describe("fixture data", () => {
     }
   });
 
-  it("has two takes of the same exercise by the demo student, for A/B", () => {
+  it("has two takes of the same exercise by Ada, for A/B", () => {
     const takes = fixtureData.submissions.filter(
       (s) => enrolments.get(s.enrolmentId)?.studentId === ADA,
     );
@@ -166,7 +166,7 @@ describe("fixture data", () => {
     ).toBe(true);
   });
 
-  it("has demo identities that exist", () => {
+  it("has Ada and the founder", () => {
     expect(students.has(ADA)).toBe(true);
     expect(coaches.has(FOUNDER)).toBe(true);
   });
@@ -275,7 +275,7 @@ describe("review queue against the turnaround promise", () => {
     expect(states.filter((state) => state === "due_soon")).toHaveLength(1);
   });
 
-  it("puts the due-soon item in the demo coach's queue", async () => {
+  it("puts the due-soon item in the founder's queue", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const queue = await repos.submissions.queueViewForCoach(FOUNDER);
     const coach = coaches.get(FOUNDER);
@@ -419,7 +419,7 @@ describe("createFixtureRepositories", () => {
     expect(await repos.submissions.previousFor("no-such-submission")).toBeUndefined();
   });
 
-  it("gives at least one item in the demo coach's queue a previous take", async () => {
+  it("gives at least one item in the founder's queue a previous take", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const queue = await repos.submissions.queueViewForCoach(FOUNDER);
     const previous = await Promise.all(

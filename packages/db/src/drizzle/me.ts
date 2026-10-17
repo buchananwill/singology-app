@@ -6,12 +6,17 @@ import type { MeRepository } from "../repositories";
 import { coaches, profiles, students } from "../schema";
 import { toMe } from "./mappers";
 
+interface AuthUidRow extends Record<string, unknown> {
+  uid: string | null;
+}
+
 export function drizzleMe(db: UserDb): MeRepository {
   return {
     get: () =>
       db(async (tx) => {
-        // anon holds no grant on the role tables, so it must not reach the join.
-        const { rows } = await tx.execute<{ uid: string | null }>(sql`select ${authUid} as uid`);
+        // anon holds no grant on the role tables, so it must not reach the join; a select with no
+        // table has no query-builder form.
+        const { rows } = await tx.execute<AuthUidRow>(sql`select ${authUid} as uid`);
         if (rows[0]?.uid == null) {
           return null;
         }
