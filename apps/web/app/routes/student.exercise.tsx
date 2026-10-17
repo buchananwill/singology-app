@@ -77,7 +77,7 @@ export async function action({ context, params, request }: Route.ActionArgs) {
   }
   return data<MessageResult>({
     ok: true,
-    message: `"${parsed.data.fileName}" is with your coach for "${item.title}". This is a demo, so nothing was saved.`,
+    message: "Your recording passed the checks. Uploads start saving in the next alpha release.",
   });
 }
 
@@ -140,7 +140,7 @@ export default function StudentExercise({ loaderData }: Route.ComponentProps) {
         <UploadPanel
           title="Upload your take"
           submitLabel="Send to your coach"
-          successTitle="Recording sent"
+          successTitle="Recording checked"
           noteLabel="Note for your coach (optional)"
           fields={{ libraryItemId: item.id }}
         />
