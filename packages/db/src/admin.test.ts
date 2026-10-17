@@ -39,11 +39,11 @@ vi.mock("pg", async (importOriginal) => {
 
 afterEach(() => {
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
 });
 
 describe("@singology/db/admin", () => {
-  // The Worker bundles this entry: loading it must not read env files, resolve file URLs,
-  // open a pool or build a Supabase client.
+  // The Worker bundles this entry.
   it("loads without I/O, whatever the environment says", async () => {
     vi.stubEnv("SINGOLOGY_ENV", "not-an-env");
     vi.stubEnv("DATABASE_URL", "");
@@ -58,7 +58,6 @@ describe("@singology/db/admin", () => {
     vi.stubGlobal("URL", RecordingUrl);
     vi.resetModules();
     const admin = await import("./admin");
-    vi.unstubAllGlobals();
     expect(admin.createNotificationQueue).toBeTypeOf("function");
     expect(io.calls).toEqual([]);
   });
