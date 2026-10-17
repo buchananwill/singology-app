@@ -154,9 +154,17 @@ test.describe("the coach review workspace", () => {
       await send.getByRole("link", { name: "Back to the queue" }).click();
       await expect(page.getByTestId("queue-item")).toHaveCount(1);
       await expect(page.getByTestId("queue-student")).toHaveText(["Ben Sample"]);
+      const recent = page.getByRole("region", { name: "Recently reviewed" });
+      const justReviewed = recent.getByTestId("reviewed-item").first();
+      await expect(justReviewed.getByTestId("reviewed-student")).toHaveText(CTO_DISPLAY_NAME);
+      await expect(justReviewed).toContainText("Balanced onsets on 'ah' · Onset");
+      await expect(justReviewed.getByTestId("reviewed-sent")).toHaveText(
+        /^Sent \d{1,2} \w{3} \d{4}$/,
+      );
 
       await settle(page);
-      await page.goto(reviewPath);
+      await justReviewed.getByRole("link", { name: "Open" }).click();
+      await expect(page).toHaveURL(new RegExp(`${reviewPath}$`));
       const reviewed = page.getByTestId("reviewed-view");
       await expect(readyWaveforms(reviewed)).toHaveCount(1);
       await expect(reviewed.getByTestId("comment-marker")).toHaveCount(2);

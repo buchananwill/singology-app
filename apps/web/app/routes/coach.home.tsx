@@ -1,7 +1,8 @@
-import { Badge, Button, Card, Container, Group, List, Stack, Text } from "@mantine/core";
+import { Badge, Button, Card, Container, Group, List, Stack, Text, Title } from "@mantine/core";
 import { reviewSla } from "@singology/shared";
 import { data, href, Link } from "react-router";
 
+import { RecentlyReviewedCard } from "../components/coach/RecentlyReviewedCard";
 import { PlainOrderedList } from "../components/PlainOrderedList";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import {
@@ -21,9 +22,10 @@ export const meta: Route.MetaFunction = () => [{ title: "Review queue | Singolog
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);
   const coachId = context.get(coachIdContext);
-  const [coach, items] = await Promise.all([
+  const [coach, items, recent] = await Promise.all([
     repositories.coaches.get(coachId),
     repositories.submissions.queueViewForCoach(coachId),
+    repositories.submissions.recentlyReviewedForCoach(coachId, 10),
   ]);
   if (!coach) {
     throw data("The demo coach was not found", { status: 404 });
@@ -33,11 +35,12 @@ export async function loader({ context }: Route.LoaderArgs) {
     now: context.get(requestTimeContext).getTime(),
     turnaroundHours: coach.turnaroundHours,
     items,
+    recent,
   };
 }
 
 export default function CoachQueue({ loaderData }: Route.ComponentProps) {
-  const { turnaroundHours, items } = loaderData;
+  const { turnaroundHours, items, recent } = loaderData;
   // The request time on the server and during hydration; the live browser clock afterwards.
   const now = useNow(loaderData.now);
   return (
@@ -109,6 +112,23 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
             })}
           </PlainOrderedList>
         )}
+
+        <Stack component="section" gap="sm" aria-labelledby="recent-title">
+          <Title id="recent-title" order={2} size="h3">
+            Recently reviewed
+          </Title>
+          {recent.length === 0 ? (
+            <Text c="dimmed">Nothing reviewed yet.</Text>
+          ) : (
+            <PlainOrderedList spacing="sm">
+              {recent.map((reviewed) => (
+                <List.Item key={reviewed.submission.id}>
+                  <RecentlyReviewedCard reviewed={reviewed} />
+                </List.Item>
+              ))}
+            </PlainOrderedList>
+          )}
+        </Stack>
       </Stack>
     </Container>
   );
