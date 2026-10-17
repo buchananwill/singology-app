@@ -297,7 +297,7 @@ const assignments = (at: At): FixtureData["assignments"] => [
     id: "asg-ada-onset",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-onset-balanced",
-    assignedAt: at(-9 * DAY),
+    assignedAt: at(-8 * DAY),
   },
   {
     id: "asg-ada-runs",

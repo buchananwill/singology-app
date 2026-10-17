@@ -158,6 +158,9 @@ test.describe("the coach review workspace", () => {
       await expect(reviewed.getByTestId("comment-marker")).toHaveCount(2);
       await expect(reviewed.getByTestId("comment-item")).toHaveCount(2);
       await expect(reviewed.getByTestId("sent-summary")).toHaveText(summary);
+      await expect(reviewed.getByTestId("sent-assigned").getByRole("listitem")).toHaveText([
+        "Hum into a vowel · Onset",
+      ]);
       await expect(page.getByTestId("send-feedback")).toHaveCount(0);
       await expect(page.getByTestId("assign-checklist")).toHaveCount(0);
 
@@ -188,6 +191,9 @@ test.describe("the coach review workspace", () => {
 
       await settle(cto);
       await cto.goto("/student");
+      await expect(
+        cto.getByTestId("assignment").filter({ hasText: "Balanced onsets on 'ah'" }),
+      ).toContainText("Feedback ready");
       await expect(cto.getByTestId("assignment").first()).toContainText("Hum into a vowel");
       const latest = cto.getByTestId("latest-feedback");
       await expect(latest).toContainText("Balanced onsets on 'ah'");
