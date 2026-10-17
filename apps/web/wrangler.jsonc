@@ -21,7 +21,7 @@
     // The CTO's verified Resend domain carries alpha mail until the founder's domain is verified.
     "EMAIL_FROM": "Singology <alpha@shipbornsoftwaresolutions.co.uk>",
     // Placeholder until the slice is deployed.
-    "APP_ORIGIN": "https://singology-facade.resort-reference-gallery.workers.dev",
+    "APP_ORIGIN": "https://singology-facade.shipborn.workers.dev",
   },
   "triggers": { "crons": ["*/5 * * * *", "0 9 * * 4"] },
 }

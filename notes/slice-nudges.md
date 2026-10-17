@@ -86,7 +86,7 @@ export interface NotificationQueue {
 
 12. **`createResendTransport(apiKey, from)` posts to `https://api.resend.com/emails` with `Authorization: Bearer <key>`, body `{ from, to, subject, text, html }`, and an `Idempotency-Key` header equal to the claimed notification's id**, and returns the response's `id`; a non-2xx response is a failed send (decision 4).
 13. **`createDryRunTransport()` logs `to` and `subject` and returns `{ id: "dry-run:<notification id>" }`**; `runNudges` chooses it whenever `env.RESEND_API_KEY` is undefined or empty, so development, the e2e suite and the alpha before the domain exists all run the full path and leave `provider_message_id = 'dry-run:…'` rows that a later alpha reset clears.
-14. **`EMAIL_FROM` is a var of the form `Singology <hello@<the founder's domain>>` and `APP_ORIGIN` is the deployed origin** (`https://singology-facade.resort-reference-gallery.workers.dev` until S7 renames); both are plain config, and links in every email are built from `APP_ORIGIN` only.
+14. **`EMAIL_FROM` is a var of the form `Singology <hello@<the founder's domain>>` and `APP_ORIGIN` is the deployed origin** (`https://singology-facade.shipborn.workers.dev` until S7 renames; *AMENDED journal D88:* `EMAIL_FROM` uses the CTO's verified domain until the founder's exists); both are plain config, and links in every email are built from `APP_ORIGIN` only.
 
 ### Content
 
