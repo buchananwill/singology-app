@@ -31,21 +31,24 @@ export interface Recipient {
 }
 export interface FeedbackReadyDue { kind: "feedback_ready"; recipient: Recipient; coachFirstName: string; exerciseTitle: string; submissionId: string; feedbackId: string }
 export interface NewSubmissionDue { kind: "new_submission"; recipient: Recipient; studentFirstName: string; exerciseTitle: string; submissionId: string }
-export interface PracticeReminderDue { kind: "practice_reminder"; recipient: Recipient; waitingCount: number; periodStart: string }
+export interface PracticeReminderDue { kind: "practice_reminder"; recipient: Recipient; waitingCount: number; periodStart: IsoDate }
 export type DueNotification = FeedbackReadyDue | NewSubmissionDue | PracticeReminderDue;
+export type ClaimedNotification = Pick<typeof notifications.$inferSelect, "id">;
 export interface NotificationQueue {
   dueFeedbackReady(since: Date): Promise<FeedbackReadyDue[]>;
   dueNewSubmission(since: Date): Promise<NewSubmissionDue[]>;
-  duePracticeReminders(periodStart: string): Promise<PracticeReminderDue[]>;
-  claim(due: DueNotification): Promise<{ id: string } | null>; // null when already sent
+  duePracticeReminders(periodStart: IsoDate): Promise<PracticeReminderDue[]>;
+  claim(due: DueNotification): Promise<ClaimedNotification | null>; // null when already sent
   markSent(id: string, providerMessageId: string): Promise<void>;
   release(id: string): Promise<void>; // the send failed; the row goes, the next tick retries
 }
+// AMENDED (review): IsoDate = z.infer<typeof IsoDateSchema> (z.iso.date()) in packages/shared carries the YYYY-MM-DD format in the type.
 ```
 
 **`apps/web/workers/notifications/`, new**
 
-- `transport.ts` — `EmailTransport` (`send(message: EmailMessage, idempotencyKey: string): Promise<{ id: string }>`; *AMENDED, pitfall 27:* the claimed notification's id travels as the second argument, since the Resend header and the dry-run id both need it), `createResendTransport(apiKey, from)`, `createDryRunTransport()`.
+- `types.ts` — `NudgeEnv` and the transport config type, so `transport.ts` and `runNudges.ts` import downward only (*AMENDED, review*).
+- `transport.ts` — `EmailTransport` (`send(message: EmailMessage, idempotencyKey: string): Promise<SentEmail>`, with `SentEmail` and the Resend response schema defined here, not in shared; *AMENDED, pitfall 27:* the claimed notification's id travels as the second argument, since the Resend header and the dry-run id both need it), `createResendTransport(apiKey, from)`, `createDryRunTransport()`.
 - `templates.ts` — `feedbackReadyEmail(due, origin)`, `newSubmissionEmail(due, origin)`, `practiceReminderEmail(due, origin)`, each returning `EmailMessage`.
 - `runNudges.ts` — `runNudges(env, cron, now): Promise<NudgeRunSummary>`; the handler body.
 - `workers/app.ts` — gains `scheduled(controller, env, ctx)` calling `runNudges`.
