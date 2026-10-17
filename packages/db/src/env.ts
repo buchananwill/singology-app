@@ -1,8 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 
-import { connectionSettingsFromUrl, createAdminDb, type Db } from "./client";
-
 // SINGOLOGY_ENV=test selects the test project, which the e2e suite may wipe; unset is the alpha.
 const ENV_FILES = { dev: ".env", test: ".env.test" } as const;
 
@@ -64,11 +62,6 @@ export function requireEnv(key: EnvKey): string {
     throw new Error(`${key} is not set in packages/db/${ENV_FILES[selectedEnv()]}`);
   }
   return value;
-}
-
-/** For Node scripts and tests: the admin client of the project the env selects. */
-export function createAdminDbFromEnv(): Db {
-  return createAdminDb(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
 }
 
 /** The Supabase project ref, from the pooler user name `postgres.<ref>`. */

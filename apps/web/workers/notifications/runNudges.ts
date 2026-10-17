@@ -1,14 +1,14 @@
 import {
-  createAdminDb,
   createNotificationQueue,
-  type Db,
   type DueNotification,
   type NotificationQueue,
+  withAdminDb,
 } from "@singology/db/admin";
 import { DAY_MS, errorMessage, isoWeekStart, NUDGE_CRONS } from "@singology/shared";
 
 import { nudgeEmail } from "./templates";
 import { type EmailTransport, transportFor } from "./transport";
+import type { NudgeEnv } from "./types";
 
 export interface NudgeRunSummary {
   cron: string;
@@ -22,13 +22,6 @@ export interface NudgeRunResult {
   summary: NudgeRunSummary;
   errors: string[];
 }
-
-/**
- * `RESEND_API_KEY` is a secret, absent until the sending domain exists. The vars widen to string
- * because the generated literals would pin every caller to today's placeholder values.
- */
-export type NudgeEnv = Pick<Env, "HYPERDRIVE"> &
-  Record<"EMAIL_FROM" | "APP_ORIGIN", string> & { RESEND_API_KEY?: string };
 
 export interface NudgeSender {
   queue: NotificationQueue;
@@ -119,23 +112,30 @@ export async function sendNudges(
 }
 
 export async function runNudges(env: NudgeEnv, cron: string, now: Date): Promise<NudgeRunSummary> {
-  const result: NudgeRunResult = { summary: emptySummary(cron), errors: [] };
-  let db: Db | undefined;
+  const closeErrors: string[] = [];
+  const reportClose = (error: unknown) => {
+    closeErrors.push(`the pool did not close: ${errorMessage(error)}`);
+  };
+  let result: NudgeRunResult;
   try {
-    db = createAdminDb(env.HYPERDRIVE);
-    const sender = {
-      queue: createNotificationQueue(db),
-      transport: transportFor(env),
-      origin: env.APP_ORIGIN,
-    };
-    Object.assign(result, await sendNudges(sender, cron, now));
+    result = await withAdminDb(
+      env.HYPERDRIVE,
+      (db) =>
+        sendNudges(
+          {
+            queue: createNotificationQueue(db),
+            transport: transportFor(env),
+            origin: env.APP_ORIGIN,
+          },
+          cron,
+          now,
+        ),
+      reportClose,
+    );
   } catch (error) {
-    result.errors.push(errorMessage(error));
-  } finally {
-    await db?.$client.end().catch((error: unknown) => {
-      result.errors.push(`the pool did not close: ${errorMessage(error)}`);
-    });
+    result = { summary: emptySummary(cron), errors: [errorMessage(error)] };
   }
+  result.errors.push(...closeErrors);
   console.log(`nudges ${JSON.stringify({ ...result.summary, errors: result.errors })}`);
   return result.summary;
 }

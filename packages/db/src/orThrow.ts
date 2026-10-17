@@ -1,3 +1,8 @@
+/** An error handler that does not handle: for callers with nothing to keep if cleanup fails. */
+export function rethrow(error: unknown): never {
+  throw error;
+}
+
 export function firstOrThrow<T>(rows: readonly T[], message: string): T {
   const [first] = rows;
   if (first === undefined) {

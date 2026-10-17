@@ -1,11 +1,23 @@
-import { type EmailMessage, ResendSendResultSchema, type SentEmail } from "@singology/shared";
+import type { EmailMessage } from "@singology/shared";
+import { z } from "zod";
 
-import type { NudgeEnv } from "./runNudges";
+/** `RESEND_API_KEY` is a secret, absent until the sending domain exists. */
+export type TransportConfig = Record<keyof Pick<Env, "EMAIL_FROM">, string> & {
+  RESEND_API_KEY?: string;
+};
+
+export interface SentEmail {
+  id: string;
+}
 
 export interface EmailTransport {
   /** `idempotencyKey` is the claimed notification's id, so a provider retry never sends twice. */
   send(message: EmailMessage, idempotencyKey: string): Promise<SentEmail>;
 }
+
+/** The body of Resend's `POST /emails` on success. */
+export const ResendSendResultSchema = z.object({ id: z.string().min(1) });
+export type ResendSendResult = z.infer<typeof ResendSendResultSchema>;
 
 const RESEND_EMAILS_URL = "https://api.resend.com/emails";
 
@@ -24,7 +36,8 @@ export function createResendTransport(apiKey: string, from: string): EmailTransp
       if (!response.ok) {
         throw new Error(`Resend refused the email: ${response.status} ${await response.text()}`);
       }
-      return ResendSendResultSchema.parse(await response.json());
+      const result: ResendSendResult = ResendSendResultSchema.parse(await response.json());
+      return { id: result.id };
     },
   };
 }
@@ -38,8 +51,8 @@ export function createDryRunTransport(): EmailTransport {
   };
 }
 
-export function transportFor(env: Pick<NudgeEnv, "RESEND_API_KEY" | "EMAIL_FROM">): EmailTransport {
-  return env.RESEND_API_KEY
-    ? createResendTransport(env.RESEND_API_KEY, env.EMAIL_FROM)
+export function transportFor(config: TransportConfig): EmailTransport {
+  return config.RESEND_API_KEY
+    ? createResendTransport(config.RESEND_API_KEY, config.EMAIL_FROM)
     : createDryRunTransport();
 }

@@ -21,6 +21,8 @@ import {
 
 export const IdSchema = z.string().min(1);
 export const IsoDateTimeSchema = z.iso.datetime();
+export const IsoDateSchema = z.iso.date();
+export type IsoDate = z.infer<typeof IsoDateSchema>;
 
 export const CoachTierSchema = z.enum(COACH_TIERS);
 export type CoachTier = z.infer<typeof CoachTierSchema>;
@@ -137,10 +139,6 @@ export const EmailMessageSchema = z.object({
   html: z.string().min(1),
 });
 export type EmailMessage = z.infer<typeof EmailMessageSchema>;
-
-/** The body of Resend's `POST /emails` on success. */
-export const ResendSendResultSchema = z.object({ id: z.string().min(1) });
-export type SentEmail = z.infer<typeof ResendSendResultSchema>;
 
 export const EnrolmentStatusSchema = z.enum(ENROLMENT_STATUSES);
 export type EnrolmentStatus = z.infer<typeof EnrolmentStatusSchema>;

@@ -4,7 +4,7 @@ import { inArray } from "drizzle-orm";
 import { afterAll, assert, beforeAll, describe, expect, it } from "vitest";
 
 import type { Db } from "../../src/client";
-import { createAdminDbFromEnv } from "../../src/env";
+import { createAdminDbFromEnv } from "../../src/adminDbFromEnv";
 import {
   createNotificationQueue,
   type NotificationQueue,

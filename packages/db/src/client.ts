@@ -80,3 +80,17 @@ export function createUserDb(settings: ConnectionSettings, claims: Claims): User
 export function createAdminDb(settings: ConnectionSettings): Db {
   return drizzle(new pg.Pool(pickConnectionFields(settings)), { schema });
 }
+
+/** Runs `work` on a fresh admin pool and always ends it; a failure to end goes to `onCloseError`. */
+export async function withAdminDb<T>(
+  settings: ConnectionSettings,
+  work: (db: Db) => Promise<T>,
+  onCloseError: (error: unknown) => void,
+): Promise<T> {
+  const db = createAdminDb(settings);
+  try {
+    return await work(db);
+  } finally {
+    await db.$client.end().catch(onCloseError);
+  }
+}

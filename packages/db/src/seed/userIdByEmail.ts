@@ -3,7 +3,7 @@ import { authUsers } from "drizzle-orm/supabase";
 
 import type { Db } from "../client";
 
-type UserId = (typeof authUsers.$inferSelect)["id"];
+export type UserId = (typeof authUsers.$inferSelect)["id"];
 
 export async function userIdByEmail(db: Db, email: string): Promise<UserId | undefined> {
   const [row] = await db
