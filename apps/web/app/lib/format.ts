@@ -143,11 +143,6 @@ export const COACH_TIER_LABEL: Record<CoachTier, string> = {
   standard: "Standard tier",
 };
 
-export const COACH_TIER_COLOR: Record<CoachTier, string> = {
-  premium: "brand",
-  standard: "gray",
-};
-
 export const SLA_COLOR: Record<ReviewSlaState, string> = {
   on_track: "teal",
   due_soon: "orange",

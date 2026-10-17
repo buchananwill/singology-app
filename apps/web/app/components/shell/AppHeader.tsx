@@ -12,7 +12,15 @@ export interface AppHeaderProps {
 export function AppHeader({ me }: AppHeaderProps) {
   return (
     <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-      <Anchor component={Link} to={homeFor(me)} fw={700} fz="xl" c="inherit" underline="never">
+      <Anchor
+        component={Link}
+        to={homeFor(me)}
+        fw={700}
+        fz="xl"
+        lts="-0.02em"
+        c="inherit"
+        underline="never"
+      >
         Singology
       </Anchor>
       {me === null ? (

@@ -63,7 +63,7 @@ const olive: MantineColorsTuple = [
   "#3a4814",
 ];
 
-const BRAND_SHADE = 5;
+export const BRAND_SHADE = 5;
 
 export const theme = createTheme({
   primaryColor: "brand",

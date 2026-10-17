@@ -1,5 +1,7 @@
 import { alpha, type MantineTheme } from "@mantine/core";
 
+import { BRAND_SHADE, brandTokens } from "../../theme";
+
 export interface WaveformTheme {
   wave: string;
   progress: string;
@@ -11,13 +13,12 @@ export interface WaveformTheme {
 
 // wavesurfer paints on a canvas, which cannot read CSS variables, so its colours are plain values.
 export function waveformTheme(theme: MantineTheme): WaveformTheme {
-  const brand = theme.colors.brand;
-  const comment = theme.colors.orange[8];
+  const comment = theme.colors.olive[7];
   return {
-    wave: theme.colors.gray[5],
-    progress: brand[7],
-    cursor: brand[9],
-    loop: alpha(brand[7], 0.18),
+    wave: brandTokens.lineStrong,
+    progress: theme.colors.brand[BRAND_SHADE],
+    cursor: theme.black,
+    loop: alpha(brandTokens.lime100, 0.5),
     comment,
     commentMarker: {
       background: comment,
