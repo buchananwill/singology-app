@@ -19,7 +19,7 @@ import { createDrizzleRepositories } from "../../src/drizzle/createDrizzleReposi
 import { requireEnv } from "../../src/env";
 import type { Repositories } from "../../src/repositories";
 import { assignments, events, feedback, mediaAssets, submissions } from "../../src/schema";
-import { ALPHA_EMAILS } from "../../src/seed/alphaCast";
+import { CTO_EMAIL, FOUNDER_EMAIL } from "../../src/seed/alphaCast";
 import { fixtureUuid } from "../../src/seed/fixtureUuid";
 import { userIdByEmail } from "../../src/seed/userIdByEmail";
 
@@ -71,8 +71,8 @@ async function userId(email: string): Promise<string> {
 
 beforeAll(async () => {
   admin = createAdminDb(settings);
-  founderId = await userId(ALPHA_EMAILS.founder);
-  ctoId = await userId(ALPHA_EMAILS.cto);
+  founderId = await userId(FOUNDER_EMAIL);
+  ctoId = await userId(CTO_EMAIL);
   const repos = (sub?: string) =>
     createDrizzleRepositories(
       createUserDb(settings, sub === undefined ? { role: "anon" } : { role: "authenticated", sub }),

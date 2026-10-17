@@ -6,7 +6,9 @@ const ENV_FILES = { dev: ".env", test: ".env.test" } as const;
 
 export type EnvName = keyof typeof ENV_FILES;
 
-export type EnvKey = "DATABASE_URL" | "SUPABASE_SECRET_KEY" | "SUPABASE_PUBLISHABLE_KEY";
+const ENV_KEYS = ["DATABASE_URL", "SUPABASE_SECRET_KEY", "SUPABASE_PUBLISHABLE_KEY"] as const;
+
+export type EnvKey = (typeof ENV_KEYS)[number];
 
 const PACKAGE_DIR = new URL("../", import.meta.url);
 
@@ -28,24 +30,31 @@ export function assertTestEnv(): void {
   }
 }
 
-/**
- * The values `requireEnv` reads for `name` from the env files in `dir`. The file wins over the
- * inherited environment (a stale system-level value once shadowed it); the test project has no
- * fallback at all, so a missing file can never send a test run to whatever the shell holds.
- */
-export function envValues(name: EnvName, dir: URL): Record<string, string | undefined> {
+type EnvValues = Partial<Record<EnvKey, string>>;
+
+function pickKeys(source: Record<string, string | undefined>): EnvValues {
+  return Object.fromEntries(
+    ENV_KEYS.flatMap((key) => {
+      const value = source[key];
+      return value ? [[key, value]] : [];
+    }),
+  );
+}
+
+/** The file wins over the inherited environment; test never falls back to it. */
+export function envValues(name: EnvName, dir: URL): EnvValues {
   const file = new URL(ENV_FILES[name], dir);
   if (!existsSync(file)) {
     if (name === "test") {
       throw new Error(`SINGOLOGY_ENV=test needs packages/db/${ENV_FILES.test}, which is missing.`);
     }
-    return process.env;
+    return pickKeys(process.env);
   }
   const values = parseEnv(readFileSync(file, "utf8"));
-  return name === "test" ? values : { ...process.env, ...values };
+  return pickKeys(name === "test" ? values : { ...process.env, ...values });
 }
 
-let loaded: Record<string, string | undefined> | undefined;
+let loaded: EnvValues | undefined;
 
 export function requireEnv(key: EnvKey): string {
   loaded ??= envValues(selectedEnv(), PACKAGE_DIR);

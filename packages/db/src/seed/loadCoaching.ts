@@ -13,7 +13,6 @@ import {
 } from "../schema";
 import { fixtureUuid } from "./fixtureUuid";
 
-/** The seeded user who plays a fixture student or coach. */
 export type UserOfFixture = (fixtureId: string) => string;
 
 const optionalUuid = (fixtureId: string | undefined) =>

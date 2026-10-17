@@ -8,11 +8,7 @@ import * as schema from "./schema";
 export type Db = NodePgDatabase<typeof schema> & { $client: pg.Pool };
 export type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
-export interface Claims {
-  role: "authenticated" | "anon";
-  sub?: string;
-  email?: string;
-}
+export type Claims = { role: "anon" } | { role: "authenticated"; sub: string; email?: string };
 
 /** Discrete fields, never a URL, so the Worker can pass `env.HYPERDRIVE` straight through. */
 export interface ConnectionSettings {
