@@ -237,3 +237,11 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Affects.** Any future Worker import of `@singology/db/admin`, such as the webhook routes. Keep that entry free of module-scope Node-only work.
 - **Evidence.** The failed `serve:built:test` start log. After the fix the server starts, and `GET /cdn-cgi/local/scheduled?cron=*/5+*+*+*+*` returns 200 and logs `nudges {"cron":"*/5 * * * *","due":5,"sent":5,...}`.
 - **Resolution.** The lead accepted the fix. `packages/db/src/admin.test.ts` loads the entry with `SINGOLOGY_ENV` set to an invalid value and records any call to `existsSync`, `readFileSync`, Supabase's `createClient`, `pg.Pool` or `new URL(…, file:…)`. It fails when the old module-scope URL is put back. Writing the test also caught a load-order bug: `E2E_EMAILS` calls `placeholderEmail` at load, before `PLACEHOLDER_EMAIL_DOMAIN` was initialised, so the constant moved to the top of `alphaCast.ts`.
+
+## 29. A Drizzle select builder generic over its fields loses `innerJoin` after the first join
+
+- **What happened.** For `recentlyReviewedForCoach` the coach queue's four joins were to become one builder, `coachSubmissionsSelect<TFields extends SelectedFields>(tx, fields)`, so that the queue and the reviewed list each add their own filter, order and joins. `tsc` rejects it: `Property 'innerJoin' does not exist` on the builder's own second join. Calling `.$dynamic()` straight after `.from()` does not help. Drizzle's join result types do not resolve while the selection is still a type parameter.
+- **Workaround.** Each query writes its own select and join chain. They share the `queueFields` selection and a `toQueueItems` helper that loads the library items and maps rows to `CoachQueueItem`.
+- **Affects.** Any future attempt to share a join chain across selections in `packages/db/src/drizzle/`. The slice and the demo are unaffected.
+- **Evidence.** `pnpm --filter @singology/db typecheck` on the builder version: `src/drizzle/submissions.ts(64,6): error TS2339`.
+- **Resolution.** Open for the lead. The two queries in `packages/db/src/drizzle/submissions.ts` repeat four `innerJoin` lines.
