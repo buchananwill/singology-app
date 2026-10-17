@@ -102,7 +102,7 @@ export interface NotificationQueue {
 
 ## 3. Deferred (explicitly out of scope)
 
-- **Resend custom SMTP for Supabase Auth's own emails** (magic links to non-members): the user configures it in the Supabase dashboard once the domain is verified; no code.
+- ~~**Resend custom SMTP for Supabase Auth's own emails**~~ *SUPERSEDED (journal D82, D83):* custom SMTP needs Pro; Supabase's Send Email Auth Hook calls `POST /api/auth/send-email` on the Worker, which sends the magic-link email through this transport. Built; enabled in the dashboard once the Resend key exists.
 - **Per-user notification preferences and unsubscribe:** beta, with real students.
 - **Web Push:** not in Day One (journal D43).
 - **Digests and coach SLA warnings** ("a take has been waiting 48 hours"): beta.

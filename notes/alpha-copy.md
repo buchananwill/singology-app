@@ -36,7 +36,7 @@ Every string a person reads in the alpha, in one place, for a single editing pas
   →
 - **Step 3 title:** Get timestamped feedback
   →
-- **Step 3 body:** Every take is heard start to finish, and each comment is pinned to the second it's about, so you hear exactly what your coach means. Then they set your next exercises.
+- **Step 3 body:** Your coach attaches their insight and feedback directly to the moments that matter, so you can hear yourself through their ears. Then they set your next exercises. *(the user's line, 2026-10-17; the second sentence is the lead's and can go)*
   →
 - **Section eyebrow:** Who you will work with *(delegate's placeholder)*
   →
