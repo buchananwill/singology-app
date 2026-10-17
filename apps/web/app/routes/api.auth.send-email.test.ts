@@ -4,7 +4,7 @@ import { Webhook } from "standardwebhooks";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { routeArgs } from "../../test/routeArgs";
-import type * as Transport from "../../workers/notifications/transport";
+import type * as Transport from "../../workers/email/transport";
 import type { Route } from "./+types/api.auth.send-email";
 import { action, loader, type SendEmailHookEnv } from "./api.auth.send-email";
 
@@ -17,7 +17,7 @@ const sent = vi.hoisted((): Array<{ message: EmailMessage; idempotencyKey: strin
 
 vi.mock("cloudflare:workers", () => ({ env: hookEnv }));
 
-vi.mock("../../workers/notifications/transport", async (importOriginal) => {
+vi.mock("../../workers/email/transport", async (importOriginal) => {
   const real = await importOriginal<typeof Transport>();
   return {
     ...real,

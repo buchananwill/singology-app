@@ -2,15 +2,15 @@ import { SendEmailHookSchema } from "@singology/shared";
 import { env } from "cloudflare:workers";
 import { Webhook, WebhookVerificationError } from "standardwebhooks";
 
-import { magicLinkEmail } from "../../workers/notifications/templates";
-import { type TransportConfig, transportFor } from "../../workers/notifications/transport";
+import { magicLinkEmail } from "../../workers/email/templates";
+import { transportFor } from "../../workers/email/transport";
+import type { EmailEnv } from "../../workers/email/types";
 import { confirmHref, confirmLinkOrigin } from "../auth/confirmLink";
 import { parseInput } from "../lib/actionResult";
 import type { Route } from "./+types/api.auth.send-email";
 
 /** `SEND_EMAIL_HOOK_SECRET` is a secret, absent until the hook is enabled in Supabase. */
-export type SendEmailHookEnv = Record<keyof Pick<Env, "APP_ORIGIN">, string> &
-  TransportConfig & { SEND_EMAIL_HOOK_SECRET?: string };
+export type SendEmailHookEnv = EmailEnv & { SEND_EMAIL_HOOK_SECRET?: string };
 
 // Supabase shows the secret in this form; standardwebhooks wants only the base64 key.
 const SUPABASE_SECRET_PREFIX = "v1,whsec_";

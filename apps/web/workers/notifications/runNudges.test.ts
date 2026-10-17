@@ -9,7 +9,7 @@ import { NUDGE_CRONS } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
 import { type NudgeSender, sendNudges } from "./runNudges";
-import type { EmailTransport } from "./transport";
+import type { EmailTransport } from "../email/transport";
 
 const NOW = new Date("2026-10-15T09:00:00Z");
 

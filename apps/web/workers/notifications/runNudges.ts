@@ -6,9 +6,9 @@ import {
 } from "@singology/db/admin";
 import { DAY_MS, errorMessage, isoWeekStart, NUDGE_CRONS } from "@singology/shared";
 
-import { nudgeEmail } from "./templates";
-import { type EmailTransport, transportFor } from "./transport";
-import type { NudgeEnv } from "./types";
+import { nudgeEmail } from "../email/templates";
+import { type EmailTransport, transportFor } from "../email/transport";
+import type { NudgeEnv } from "../email/types";
 
 export interface NudgeRunSummary {
   cron: string;
