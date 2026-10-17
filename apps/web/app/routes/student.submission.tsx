@@ -47,6 +47,14 @@ export async function loader({ context, params }: Route.LoaderArgs) {
       assignments.filter((a) => a.status === "todo").map((a) => a.libraryItemId),
     ),
   ]);
+  if (feedback) {
+    // Every view is recorded: time to first view is read from the earliest row.
+    await repositories.events.record({
+      kind: "feedback_viewed",
+      entityId: submission.id,
+      meta: { feedbackId: feedback.id },
+    });
+  }
   return {
     submission,
     take,
