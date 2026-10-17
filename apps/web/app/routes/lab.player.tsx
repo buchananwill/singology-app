@@ -57,10 +57,10 @@ export default function PlayerLab({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="lg">
       <Stack gap="xl">
-        <div>
+        <Stack gap={0}>
           <Title order={1}>Player lab</Title>
           <Text c="dimmed">Regression page for the waveform player. Not linked from the app.</Text>
-        </div>
+        </Stack>
 
         <Stack component="section" gap="xs" data-testid="lab-audio">
           <Title order={2} size="h3">

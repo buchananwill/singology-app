@@ -12,7 +12,7 @@ export function RoleNav({ me }: RoleNavProps) {
   const { pathname } = useLocation();
   return (
     <nav aria-label="Main">
-      <Group gap="xxs" mb="md" wrap="nowrap">
+      <Group gap="xxs" mb="md">
         {navItemsFor(me).map((item) => {
           const active = isNavItemActive(item, pathname);
           return (

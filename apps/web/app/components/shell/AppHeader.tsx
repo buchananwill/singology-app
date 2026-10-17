@@ -33,7 +33,7 @@ export function AppHeader({ me }: AppHeaderProps) {
             {me.profile.displayName}
           </Text>
           {rolesOf(me).map((role) => (
-            <Badge key={role} variant="light" data-testid="role-badge">
+            <Badge key={role} variant="light" flex="none" data-testid="role-badge">
               {ROLE_LABEL[role]}
             </Badge>
           ))}
