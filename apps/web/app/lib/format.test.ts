@@ -2,7 +2,6 @@ import { HOUR_MS, MINUTE_MS } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
 import {
-  firstName,
   formatBytes,
   formatCount,
   formatDate,
@@ -58,11 +57,6 @@ describe("format", () => {
     expect(formatCount(0, "comment", "comments")).toBe("0 comments");
     expect(formatCount(1, "comment", "comments")).toBe("1 comment");
     expect(formatCount(3, "exercise", "exercises")).toBe("3 exercises");
-  });
-
-  it("takes the first word of a display name", () => {
-    expect(firstName("Ada Lovelace")).toBe("Ada");
-    expect(firstName("Ada")).toBe("Ada");
   });
 
   it("formats a turnaround in days when it is whole days, else in hours", () => {

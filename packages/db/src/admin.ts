@@ -4,7 +4,11 @@ export { assertTestEnv, requireEnv, supabaseUrlFrom } from "./env";
 export {
   createNotificationQueue,
   type DueNotification,
+  type FeedbackReadyDue,
+  type NewSubmissionDue,
   type NotificationQueue,
+  type PracticeReminderDue,
+  type Recipient,
 } from "./notificationQueue";
 export { notifications } from "./schema";
 export { CTO_DISPLAY_NAME, E2E_EMAILS, E2E_TESTERS, type E2eTester } from "./seed/alphaCast";

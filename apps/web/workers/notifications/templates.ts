@@ -1,8 +1,14 @@
-import type { DueNotification } from "@singology/db/admin";
-import type { EmailMessage } from "@singology/shared";
+import type {
+  DueNotification,
+  FeedbackReadyDue,
+  NewSubmissionDue,
+  PracticeReminderDue,
+  Recipient,
+} from "@singology/db/admin";
+import { type EmailMessage, firstName } from "@singology/shared";
 import { href } from "react-router";
 
-import { firstName } from "../../app/lib/format";
+import { formatCount } from "../../app/lib/format";
 
 export const ALPHA_FOOTER = "You're getting this because you're in the Singology alpha.";
 
@@ -25,10 +31,10 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
 }
 
-function compose(due: DueNotification, origin: string, content: EmailContent): EmailMessage {
+function compose(recipient: Recipient, origin: string, content: EmailContent): EmailMessage {
   const url = new URL(content.path, origin).href;
   return {
-    to: due.email,
+    to: recipient.email,
     subject: content.subject,
     text: [content.paragraph, `${content.linkText}: ${url}`, ALPHA_FOOTER].join("\n\n"),
     html: [
@@ -39,57 +45,50 @@ function compose(due: DueNotification, origin: string, content: EmailContent): E
   };
 }
 
-function aboutOf(due: DueNotification): NonNullable<DueNotification["about"]> {
-  if (due.about === undefined) {
-    throw new Error(`A ${due.kind} nudge names the other person and the exercise.`);
-  }
-  return due.about;
-}
+const greeting = (recipient: Recipient) => `Hi ${firstName(recipient.displayName)}`;
 
-function submissionIdOf(due: DueNotification): string {
-  if (!("submissionId" in due.link)) {
-    throw new Error(`A ${due.kind} nudge links a submission.`);
-  }
-  return due.link.submissionId;
-}
-
-export function feedbackReadyEmail(due: DueNotification, origin: string): EmailMessage {
-  const about = aboutOf(due);
-  const coach = firstName(about.displayName);
-  return compose(due, origin, {
-    subject: `${coach} has feedback on your ${about.exerciseTitle}`,
-    paragraph: `Hi ${firstName(due.displayName)}, ${coach} has listened to your take of ${about.exerciseTitle} and sent you feedback.`,
+export function feedbackReadyEmail(due: FeedbackReadyDue, origin: string): EmailMessage {
+  return compose(due.recipient, origin, {
+    subject: `${due.coachFirstName} has feedback on your ${due.exerciseTitle}`,
+    paragraph: `${greeting(due.recipient)}, ${due.coachFirstName} has listened to your take of ${due.exerciseTitle} and sent you feedback.`,
     linkText: "Read your feedback",
-    path: href("/student/submissions/:id", { id: submissionIdOf(due) }),
+    path: href("/student/submissions/:id", { id: due.submissionId }),
   });
 }
 
-export function newSubmissionEmail(due: DueNotification, origin: string): EmailMessage {
-  const about = aboutOf(due);
-  const student = firstName(about.displayName);
-  return compose(due, origin, {
-    subject: `${student} sent a take: ${about.exerciseTitle}`,
-    paragraph: `Hi ${firstName(due.displayName)}, ${student} has sent a new take of ${about.exerciseTitle} for you to review.`,
+export function newSubmissionEmail(due: NewSubmissionDue, origin: string): EmailMessage {
+  return compose(due.recipient, origin, {
+    subject: `${due.studentFirstName} sent a take: ${due.exerciseTitle}`,
+    paragraph: `${greeting(due.recipient)}, ${due.studentFirstName} has sent a new take of ${due.exerciseTitle} for you to review.`,
     linkText: "Review the take",
-    path: href("/coach/reviews/:submissionId", { submissionId: submissionIdOf(due) }),
+    path: href("/coach/reviews/:submissionId", { submissionId: due.submissionId }),
   });
 }
 
-function waitingExercises(due: DueNotification): string {
-  const count = "exerciseIds" in due.link ? due.link.exerciseIds.length : 0;
-  if (count === 0) {
+function waitingExercises(waitingCount: number): string {
+  if (waitingCount === 0) {
     return "A few minutes on any exercise keeps your practice going.";
   }
-  return count === 1
-    ? "One exercise from your coach is waiting for a take."
-    : `${count} exercises from your coach are waiting for a take.`;
+  const waiting = formatCount(waitingCount, "exercise", "exercises");
+  return `${waiting} from your coach ${waitingCount === 1 ? "is" : "are"} waiting for a take.`;
 }
 
-export function practiceReminderEmail(due: DueNotification, origin: string): EmailMessage {
-  return compose(due, origin, {
+export function practiceReminderEmail(due: PracticeReminderDue, origin: string): EmailMessage {
+  return compose(due.recipient, origin, {
     subject: "A quick take this week?",
-    paragraph: `Hi ${firstName(due.displayName)}, you haven't sent a take yet this week. ${waitingExercises(due)}`,
+    paragraph: `${greeting(due.recipient)}, you haven't sent a take yet this week. ${waitingExercises(due.waitingCount)}`,
     linkText: "Choose an exercise",
     path: href("/student"),
   });
+}
+
+export function nudgeEmail(due: DueNotification, origin: string): EmailMessage {
+  switch (due.kind) {
+    case "feedback_ready":
+      return feedbackReadyEmail(due, origin);
+    case "new_submission":
+      return newSubmissionEmail(due, origin);
+    case "practice_reminder":
+      return practiceReminderEmail(due, origin);
+  }
 }

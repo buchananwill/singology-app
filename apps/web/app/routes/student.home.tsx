@@ -1,5 +1,5 @@
 import { Anchor, Badge, Button, Card, Container, Group, Stack, Text, Title } from "@mantine/core";
-import { indexById } from "@singology/shared";
+import { firstName, indexById } from "@singology/shared";
 import { data, href, Link } from "react-router";
 
 import { repositoriesContext, studentIdContext } from "../context";
@@ -7,7 +7,6 @@ import {
   ASSIGNMENT_STATUS_COLOR,
   ASSIGNMENT_STATUS_LABEL,
   CATEGORY_LABEL,
-  firstName,
   formatDate,
   formatTurnaround,
 } from "../lib/format";

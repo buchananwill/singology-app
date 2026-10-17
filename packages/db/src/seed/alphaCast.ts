@@ -1,3 +1,6 @@
+/** Reserved by RFC 2606, so it never resolves; the nudge sender skips it so nothing bounces. */
+export const PLACEHOLDER_EMAIL_DOMAIN = "singology.test";
+
 export const FOUNDER_EMAIL = "liveandletfunk@gmail.com";
 export const CTO_EMAIL = "willwritescode@gmail.com";
 export const CTO_DISPLAY_NAME = "Singology CTO";
@@ -32,5 +35,5 @@ export const ALPHA_USERS: readonly CastMember[] = [
 
 /** The other fixture students are users with addresses that never receive mail. */
 export function placeholderEmail(fixtureId: string): string {
-  return `${fixtureId}@singology.test`;
+  return `${fixtureId}@${PLACEHOLDER_EMAIL_DOMAIN}`;
 }

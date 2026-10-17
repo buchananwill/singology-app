@@ -1,4 +1,10 @@
-import type { DueNotification, NotificationQueue } from "@singology/db/admin";
+import type {
+  DueNotification,
+  FeedbackReadyDue,
+  NewSubmissionDue,
+  NotificationQueue,
+  PracticeReminderDue,
+} from "@singology/db/admin";
 import { NUDGE_CRONS } from "@singology/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -7,23 +13,20 @@ import type { EmailTransport } from "./transport";
 
 const NOW = new Date("2026-10-15T09:00:00Z");
 
-const feedbackReady: DueNotification = {
+const feedbackReady: FeedbackReadyDue = {
   kind: "feedback_ready",
-  userId: "student-1",
-  email: "ada@singology.test",
-  entityId: "feedback-1",
-  link: { submissionId: "submission-1" },
-  displayName: "Ada Example",
-  about: { displayName: "Sam Coach", exerciseTitle: "Siren slides" },
+  recipient: { userId: "student-1", email: "ada@singology.test", displayName: "Ada Example" },
+  feedbackId: "feedback-1",
+  submissionId: "submission-1",
+  coachFirstName: "Sam",
+  exerciseTitle: "Siren slides",
 };
 
-const reminder: DueNotification = {
+const reminder: PracticeReminderDue = {
   kind: "practice_reminder",
-  userId: "student-2",
-  email: "ben@singology.test",
+  recipient: { userId: "student-2", email: "ben@singology.test", displayName: "Ben Sample" },
   periodStart: "2026-10-12",
-  link: { exerciseIds: [] },
-  displayName: "Ben Sample",
+  waitingCount: 0,
 };
 
 interface Fakes {
@@ -34,7 +37,11 @@ interface Fakes {
 }
 
 function fakes(options: {
-  due?: Partial<Record<"feedback" | "submission" | "reminder", DueNotification[]>>;
+  due?: {
+    feedback?: FeedbackReadyDue[];
+    submission?: NewSubmissionDue[];
+    reminder?: PracticeReminderDue[];
+  };
   claimed?: (due: DueNotification) => boolean;
   sendFails?: boolean;
 }): Fakes {
@@ -54,7 +61,7 @@ function fakes(options: {
     },
     claim: (due) => {
       calls.push(`claim ${due.kind}`);
-      return Promise.resolve(options.claimed?.(due) ? null : { id: `n-${due.userId}` });
+      return Promise.resolve(options.claimed?.(due) ? null : { id: `n-${due.recipient.userId}` });
     },
     markSent: (id, providerMessageId) => {
       calls.push(`markSent ${id} ${providerMessageId}`);

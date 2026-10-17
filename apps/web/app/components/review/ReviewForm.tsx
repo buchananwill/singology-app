@@ -1,7 +1,7 @@
 import { Alert, Card, Stack, Text } from "@mantine/core";
-import type { Student, Submission } from "@singology/shared";
+import { firstName, type Student, type Submission } from "@singology/shared";
 
-import { firstName, UNPLAYABLE_TAKE_MESSAGE } from "../../lib/format";
+import { UNPLAYABLE_TAKE_MESSAGE } from "../../lib/format";
 import { UploadPanel } from "../upload/UploadPanel";
 import { AddComment } from "./AddComment";
 import { AssignChecklist } from "./AssignChecklist";

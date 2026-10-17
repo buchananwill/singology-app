@@ -4,9 +4,9 @@ import {
   type DueNotification,
   type NotificationQueue,
 } from "@singology/db/admin";
-import { type EmailMessage, HOUR_MS, type NotificationKind, NUDGE_CRONS } from "@singology/shared";
+import { HOUR_MS, NUDGE_CRONS } from "@singology/shared";
 
-import { feedbackReadyEmail, newSubmissionEmail, practiceReminderEmail } from "./templates";
+import { nudgeEmail } from "./templates";
 import { createDryRunTransport, createResendTransport, type EmailTransport } from "./transport";
 
 export interface NudgeRunSummary {
@@ -32,12 +32,6 @@ type Outcome = "sent" | "skipped" | "failed";
 
 /** Feedback and takes older than this are never emailed, so an outage leaves no backlog. */
 const LOOKBACK_MS = 7 * 24 * HOUR_MS;
-
-const TEMPLATES = {
-  feedback_ready: feedbackReadyEmail,
-  new_submission: newSubmissionEmail,
-  practice_reminder: practiceReminderEmail,
-} satisfies Record<NotificationKind, (due: DueNotification, origin: string) => EmailMessage>;
 
 export function transportFor(env: { RESEND_API_KEY?: string; EMAIL_FROM: string }): EmailTransport {
   return env.RESEND_API_KEY
@@ -73,7 +67,7 @@ async function dueFor(
 }
 
 async function deliver(sender: NudgeSender, due: DueNotification): Promise<Outcome> {
-  const message = TEMPLATES[due.kind](due, sender.origin);
+  const message = nudgeEmail(due, sender.origin);
   const claim = await sender.queue.claim(due);
   if (claim === null) {
     return "skipped";

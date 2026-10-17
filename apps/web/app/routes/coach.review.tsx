@@ -1,5 +1,6 @@
 import type { Repositories } from "@singology/db";
 import {
+  firstName,
   isUnplayableStatus,
   type LibraryItem,
   type MediaAsset,
@@ -16,7 +17,7 @@ import { ReviewWorkspace } from "../components/review/ReviewWorkspace";
 import type { AssignableItem, TakeForReview } from "../components/review/types";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import { parseInput, readJson } from "../lib/actionResult";
-import { firstName, formatCount } from "../lib/format";
+import { formatCount } from "../lib/format";
 import { recordEventBestEffort } from "../lib/recordEvent";
 import type { Route } from "./+types/coach.review";
 

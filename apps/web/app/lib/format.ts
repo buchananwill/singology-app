@@ -63,10 +63,6 @@ export function formatCount(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
-export function firstName(displayName: string): string {
-  return displayName.split(" ")[0] ?? displayName;
-}
-
 export function formatTurnaround(hours: number): string {
   if (hours % 24 === 0) {
     return formatCount(hours / 24, "day", "days");
