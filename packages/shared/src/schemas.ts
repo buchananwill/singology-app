@@ -132,6 +132,18 @@ export const ConfirmLinkSchema = z.object({
 });
 export type ConfirmLink = z.infer<typeof ConfirmLinkSchema>;
 
+/** The verified body of Supabase's Send Email Auth Hook, reduced to the fields the alpha reads. */
+export const SendEmailHookSchema = z.object({
+  user: z.object({ email: z.email() }),
+  email_data: z.object({
+    token_hash: z.string().min(1),
+    email_action_type: z.string().min(1),
+    redirect_to: z.string(),
+    site_url: z.string().optional(),
+  }),
+});
+export type SendEmailHook = z.infer<typeof SendEmailHookSchema>;
+
 export const EmailMessageSchema = z.object({
   to: z.email(),
   subject: z.string().min(1),

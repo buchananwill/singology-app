@@ -28,6 +28,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router": "8.4.0",
+    "standardwebhooks": "1.1.1",
     "wavesurfer.js": "8.0.0"
   },
   "devDependencies": {

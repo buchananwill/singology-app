@@ -5,6 +5,8 @@ export default [
   route("sign-in", "routes/sign-in.tsx"),
   route("auth/confirm", "routes/auth.confirm.tsx"),
   route("sign-out", "routes/sign-out.tsx"),
+  // Supabase's Send Email Auth Hook; Supabase is the only caller.
+  route("api/auth/send-email", "routes/api.auth.send-email.ts"),
   layout("routes/student.layout.tsx", [
     route("student", "routes/student.home.tsx"),
     route("student/exercises/:id", "routes/student.exercise.tsx"),
