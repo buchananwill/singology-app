@@ -1,9 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type GoTrueAdminApi } from "@supabase/supabase-js";
 
 import { requireEnv, supabaseUrlFrom } from "./env";
 
-/** The Supabase Auth admin API, with the secret key; for the seed and test sign-in only. */
-export function createAuthAdmin() {
+/** Holds the secret key: for the seed and test sign-in only. */
+export function createAuthAdmin(): GoTrueAdminApi {
   return createClient(
     supabaseUrlFrom(requireEnv("DATABASE_URL")),
     requireEnv("SUPABASE_SECRET_KEY"),
