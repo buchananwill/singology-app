@@ -20,7 +20,8 @@ The document fixes the roster (§1) and the decisions (§2). Declarations are fi
 **`packages/db` (`@singology/db`), one mapping change**
 
 - `FeedbackRepository.send`, `EventRepository.record`, `SubmissionRepository.queueViewForCoach`, `previousFor` — used as they are.
-- `toAssignment` and the fixture assignments — now carry `feedbackId` (*AMENDED, pitfall 24:* the column existed and nothing read it; `AssignmentSchema` gains `feedbackId?` so a reviewed take can list the exercises its feedback assigned, with no migration and no new method).
+- `toAssignment` and the fixture assignments — now carry `feedbackId` (*AMENDED, pitfall 24:* the column existed and nothing read it; `AssignmentSchema` gains `feedbackId?`).
+- `AssignmentRepository.forFeedback(feedbackId)` — new on both implementations (*AMENDED, review:* "the exercises this feedback assigned" is a query, not a TypeScript filter repeated three times; this reverses journal D71's "no new method").
 
 **`apps/web`, changed**
 
@@ -51,10 +52,10 @@ The document fixes the roster (§1) and the decisions (§2). Declarations are fi
 ### The two faces of the review workspace
 
 7. **The loader returns `mode: ReviewMode`**, `"reviewed"` when `submission.status === "reviewed"` and `"reviewing"` otherwise; `processing` and `failed` submissions are not reachable from the queue and render as `reviewing` with the player absent and a status note ("still processing" for `processing`, "couldn't be processed, ask the student to upload again" for `failed`), which S4 exercises. *AMENDED (review):* after a successful send the page keeps its sent state rather than revalidating into `ReviewedView`; the next navigation shows `ReviewedView`.
-8. **`ReviewWorkspace` keeps its props and dispatches on `mode`:** `reviewing` renders the existing form (player with draft comments, add-comment, assign checklist, send card), `reviewed` renders `ReviewedView`; one component per file, the route module unchanged in role.
+8. **`ReviewWorkspace` keeps the route-to-component handoff (one spread of the loader data) and dispatches on `mode`** (*AMENDED, review:* its props are a header plus a union discriminated on `mode`, the lower-entropy form): `reviewing` renders the existing form (player with draft comments, add-comment, assign checklist, send card), `reviewed` renders `ReviewedView`; one component per file, the route module unchanged in role.
 9. **`ReviewedView` shows the sent feedback read-only:** the take on the player with the persisted comments as markers and list, the summary, the exercises assigned by this feedback (by `assignments.feedback_id`), the sent date through the UTC helpers, and a link back to the queue; no add-comment, no checklist, no send.
 10. **The send card's success state replaces the form in place** ("Sent" with the message and a "Back to the queue" link), so the coach is not shown an editable form for a review that is now immutable; the next navigation to the review shows `ReviewedView` from the loader.
-11. **The review reducer stays page-local and unchanged in shape**; its `feedbackId` is only a key for draft comments and is never sent, so the `draft-feedback-…` fallback and the loader's `feedbackId` field are deleted.
+11. **The review reducer stays page-local; its draft comments are `DraftComment = Omit<FeedbackComment, "feedbackId">`** (*AMENDED, review:* the sham `feedbackId` on drafts goes; `CommentList` and the player accept `Pick<FeedbackComment, "id" | "tSeconds" | "body">`), and the loader's `feedbackId` field and the `draft-feedback-…` fallback are deleted.
 
 ### Reading
 
