@@ -38,7 +38,7 @@ As the founder:
 1. Open "Review queue". **Expect:** the oldest take first, each with a time-left badge; nothing says overdue on a fresh seed.
 2. Open Ben's "Sustained hiss". Play it. Pause at two places and use "Add comment at current time" each time, with a short comment. **Expect:** numbered markers on the waveform and a numbered list below it, in time order; clicking a marker or a list item seeks there.
 3. Write a one-line summary. Tick one exercise under "Assign next exercises". Send.
-4. **Expect:** "Feedback sent to Ben: 2 comments, 1 new exercise." The page is no longer editable. Back in the queue, Ben's take is gone. Open it again from the student's progress later: it opens read-only with your comments and the assigned exercise.
+4. **Expect:** "Feedback sent to Ben: 2 comments, 1 new exercise." The page is no longer editable. Back in the queue, Ben's take is gone. Open it again (the browser's back button, or the same `/coach/reviews/…` address; a "Recently reviewed" list under the queue is coming): it opens read-only with your comments and the assigned exercise.
 5. Repeat steps 2 to 4 on the CTO's "Balanced onsets on 'ah'" (a video take).
 6. As the CTO: "This week" shows "Balanced onsets on 'ah'" as Feedback ready and the new exercise as To do. Open the feedback: the summary, the two markers and the comment list are there; clicking a comment seeks the take; "Next exercises" lists the one you assigned. "Progress" shows the take with its feedback; the A/B compare plays two sirens and switches at the same position.
 7. Send feedback on the same take a second time by reloading the old review page and resubmitting if you can. **Expect:** refused with "This take already has feedback."
