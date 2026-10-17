@@ -1,9 +1,11 @@
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "./styles/brand.css";
 
 import {
   AppShell,
   ColorSchemeScript,
+  Code,
   Container,
   MantineProvider,
   mantineHtmlProps,
@@ -23,7 +25,7 @@ import { describeRouteError } from "./lib/describeRouteError";
 import { meMiddleware } from "./middleware/me";
 import { repositoriesMiddleware } from "./middleware/repositories";
 import { sessionMiddleware } from "./middleware/session";
-import { theme } from "./theme";
+import { cssVariablesResolver, theme } from "./theme";
 
 export const middleware: Route.MiddlewareFunction[] = [
   sessionMiddleware,
@@ -35,18 +37,28 @@ export function loader({ context }: Route.LoaderArgs) {
   return { me: context.get(meContext) };
 }
 
+const FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,500&family=Jost:wght@300;400;500;600;700&display=swap";
+
 export function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en-GB" {...mantineHtmlProps}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href={FONTS_HREF} />
         <ColorSchemeScript defaultColorScheme="light" />
         <Meta />
         <Links />
       </head>
       <body>
-        <MantineProvider theme={theme} defaultColorScheme="light">
+        <MantineProvider
+          theme={theme}
+          cssVariablesResolver={cssVariablesResolver}
+          defaultColorScheme="light"
+        >
           <Notifications />
           {children}
         </MantineProvider>
@@ -84,11 +96,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     <Container component="main" py="xl">
       <Title order={1}>{title}</Title>
       <Text>{details}</Text>
-      {stack && (
-        <pre>
-          <code>{stack}</code>
-        </pre>
-      )}
+      {stack && <Code block>{stack}</Code>}
     </Container>
   );
 }

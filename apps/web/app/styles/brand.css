@@ -1,0 +1,47 @@
+.display {
+  font-family: var(--mantine-font-family-headings);
+  font-size: 72px;
+  line-height: 0.9;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.voice {
+  font-family: "Bodoni Moda", Didot, "Bodoni 72", "Times New Roman", serif;
+  font-size: 22px;
+  line-height: 1.4;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.portrait {
+  filter: grayscale(1);
+}
+
+.mantine-Title-root[data-order="1"] {
+  letter-spacing: -0.02em;
+}
+
+.mantine-Title-root[data-order="2"] {
+  letter-spacing: -0.01em;
+}
+
+.mantine-focus-auto:focus-visible {
+  outline: 2px solid var(--mantine-color-black);
+  outline-offset: 2px;
+}
+
+.hero-panel .mantine-focus-auto:focus-visible {
+  outline-color: var(--mantine-color-brand-5);
+}
+
+@media (max-width: 40em) {
+  html:root {
+    --mantine-h1-font-size: 34px;
+    --mantine-h2-font-size: 26px;
+  }
+
+  .display {
+    font-size: 48px;
+  }
+}
