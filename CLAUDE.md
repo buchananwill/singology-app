@@ -21,25 +21,26 @@ These are the founder's and CTO's standing priorities for the slice. Weigh every
 
 pnpm 9 workspace, Node 22+. Run from the repo root unless noted. On Windows open the shell at the correctly-cased path `D:\Coding\singology-app` (lower-case `coding` breaks pnpm filters, see pitfall 5).
 
-| Task                     | Command                                                                                                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Install                  | `pnpm install --frozen-lockfile`                                                                                                                                   |
-| Typecheck all packages   | `pnpm typecheck`                                                                                                                                                   |
-| Lint / format            | `pnpm lint`, `pnpm format` (`format:check` to verify)                                                                                                              |
-| Unit tests, all packages | `pnpm test`                                                                                                                                                        |
-| One unit test file       | `pnpm --filter @singology/web exec vitest run app/lib/format.test.ts` (same shape for `@singology/db`, `@singology/shared`, `@singology/media-jobs`)               |
-| E2E (Chromium + WebKit)  | `pnpm test:e2e`                                                                                                                                                    |
-| One e2e spec / browser   | `pnpm test:e2e e2e/review.spec.ts --project chromium`                                                                                                              |
-| Dev server               | `pnpm dev`                                                                                                                                                         |
-| Built Worker in workerd  | `pnpm preview` (port 4173)                                                                                                                                         |
-| Build                    | `pnpm build`                                                                                                                                                       |
-| Regenerate fixture media | `pnpm --filter @singology/media-jobs generate`, then `peaks` (needs ffmpeg on PATH)                                                                                |
-| RLS tests (pgTAP)        | `pnpm --filter @singology/db test:rls`, and `test:rls -- --mutate` to prove each policy's test can fail                                                            |
-| Repository integration   | `pnpm --filter @singology/db test:db`                                                                                                                              |
-| Schema change            | edit `packages/db/src/schema`, `pnpm --filter @singology/db generate`, then `pnpm --filter @singology/db supabase db push`                                         |
-| Seed the alpha database  | `pnpm --filter @singology/db seed` (idempotent), `seed:counts` to inspect                                                                                          |
-| Sign in during alpha     | `pnpm -s --filter @singology/web sign-in-link <email> --origin http://localhost:5173` prints a one-line confirm URL to paste into the browser                      |
-| Run the nudge sender     | with `pnpm dev` running, `GET http://localhost:5173/cdn-cgi/local/scheduled?cron=*/5+*+*+*+*` (`0+9+*+*+4` for the weekly reminder); one summary log line per tick |
+| Task                     | Command                                                                                                                                                                    |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install                  | `pnpm install --frozen-lockfile`                                                                                                                                           |
+| Typecheck all packages   | `pnpm typecheck`                                                                                                                                                           |
+| Lint / format            | `pnpm lint`, `pnpm format` (`format:check` to verify)                                                                                                                      |
+| Unit tests, all packages | `pnpm test`                                                                                                                                                                |
+| One unit test file       | `pnpm --filter @singology/web exec vitest run app/lib/format.test.ts` (same shape for `@singology/db`, `@singology/shared`, `@singology/media-jobs`)                       |
+| E2E (Chromium + WebKit)  | `pnpm test:e2e`                                                                                                                                                            |
+| One e2e spec / browser   | `pnpm test:e2e e2e/review.spec.ts --project chromium`                                                                                                                      |
+| Dev server               | `pnpm dev`                                                                                                                                                                 |
+| Built Worker in workerd  | `pnpm preview` (port 4173)                                                                                                                                                 |
+| Build                    | `pnpm build`                                                                                                                                                               |
+| Regenerate fixture media | `pnpm --filter @singology/media-jobs generate`, then `peaks` (needs ffmpeg on PATH)                                                                                        |
+| RLS tests (pgTAP)        | `pnpm --filter @singology/db test:rls`, and `test:rls -- --mutate` to prove each policy's test can fail                                                                    |
+| Repository integration   | `pnpm --filter @singology/db test:db`                                                                                                                                      |
+| Schema change            | edit `packages/db/src/schema`, `pnpm --filter @singology/db generate`, then `pnpm --filter @singology/db supabase db push`                                                 |
+| Seed the alpha database  | `pnpm --filter @singology/db seed` (idempotent), `seed:counts` to inspect                                                                                                  |
+| Sign in during alpha     | `pnpm -s --filter @singology/web sign-in-link <email> --origin http://localhost:5173` prints a one-line confirm URL to paste into the browser                              |
+| Run the nudge sender     | with `pnpm dev` running, `GET http://localhost:5173/cdn-cgi/local/scheduled?cron=*/5+*+*+*+*` (`0+9+*+*+4` for the weekly reminder); one summary log line per tick         |
+| Inspect the sent-log     | `pnpm --filter @singology/db sent-log` lists `notifications` with recipients; `--release-dry-runs` deletes the rows a dry-run tick claimed so a real-key tick resends them |
 
 Before any commit that touches code: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test` must all pass. Run `pnpm test:e2e` when a route, component or Worker handler changed, and `test:rls` plus `test:db` when the schema, a policy, a repository or the seed changed. Two Supabase projects: `singology-dev` (the alpha humans use; `packages/db/.env`) and `singology-test` (the suites; `packages/db/.env.test`, selected by `SINGOLOGY_ENV=test`). `test:db`, `test:rls` and `test:e2e` default to the test project, and the e2e suite reseeds it before every run; never point them at dev. The database suites are excluded from the root `pnpm test`.
 
