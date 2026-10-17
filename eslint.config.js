@@ -44,8 +44,8 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     },
   },
-  // Spec decision 61: the RLS-bypassing client is imported only by webhook resource routes and the
-  // media job, so every privileged call is visible in review. packages/db is excluded because it
+  // Spec decision 61: the RLS-bypassing client is imported only by webhook resource routes, the
+  // media job and the notification sender, so every privileged call is visible in review. packages/db is excluded because it
   // owns the factory, its seed and its database tests.
   {
     files: ["apps/**/*.{ts,tsx}", "jobs/**/*.ts", "packages/**/*.ts"],
@@ -53,6 +53,8 @@ export default tseslint.config(
       "apps/web/app/routes/api.*",
       "jobs/media/**",
       "packages/db/**",
+      // The scheduled sender; no request, no user.
+      "apps/web/workers/notifications/**",
       // Test code: the e2e suite mints sign-in tokens against the test project.
       "apps/web/e2e/**",
       // Tooling run from a shell, never served by the Worker.
@@ -65,7 +67,8 @@ export default tseslint.config(
           paths: [
             {
               name: "@singology/db/admin",
-              message: "adminDb bypasses RLS: only webhook routes and jobs may use it.",
+              message:
+                "adminDb bypasses RLS: only webhook routes, jobs and the notification sender may use it.",
             },
           ],
         },

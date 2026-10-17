@@ -10,8 +10,6 @@ const ENV_KEYS = ["DATABASE_URL", "SUPABASE_SECRET_KEY", "SUPABASE_PUBLISHABLE_K
 
 export type EnvKey = (typeof ENV_KEYS)[number];
 
-const PACKAGE_DIR = new URL("../", import.meta.url);
-
 function selectedEnv(): EnvName {
   const value = process.env.SINGOLOGY_ENV;
   if (value === undefined || value === "") {
@@ -57,7 +55,8 @@ export function envValues(name: EnvName, dir: URL): EnvValues {
 let loaded: EnvValues | undefined;
 
 export function requireEnv(key: EnvKey): string {
-  loaded ??= envValues(selectedEnv(), PACKAGE_DIR);
+  // Resolved on first use: workerd bundles this module and has no file URL to resolve against.
+  loaded ??= envValues(selectedEnv(), new URL("../", import.meta.url));
   const value = loaded[key];
   if (!value) {
     throw new Error(`${key} is not set in packages/db/${ENV_FILES[selectedEnv()]}`);

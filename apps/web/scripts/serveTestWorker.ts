@@ -22,6 +22,9 @@ const wrangler = spawn(
     `SUPABASE_URL:${supabaseUrlFrom(databaseUrl)}`,
     "--var",
     `SUPABASE_PUBLISHABLE_KEY:${requireEnv("SUPABASE_PUBLISHABLE_KEY")}`,
+    // The suite always sends through the dry-run transport, whatever `.dev.vars` holds.
+    "--var",
+    "RESEND_API_KEY:",
   ],
   {
     stdio: "inherit",

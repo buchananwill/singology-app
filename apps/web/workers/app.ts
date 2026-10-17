@@ -1,6 +1,7 @@
 import { createRequestHandler } from "react-router";
 
 import { MEDIA_PATH_PREFIX, serveMedia } from "./media/serveMedia";
+import { runNudges } from "./notifications/runNudges";
 
 const requestHandler = createRequestHandler(
   () => import("virtual:react-router/server-build"),
@@ -15,5 +16,8 @@ export default {
       return serveMedia(request, env.ASSETS);
     }
     return requestHandler(request);
+  },
+  async scheduled(controller, env) {
+    await runNudges(env, controller.cron, new Date(controller.scheduledTime));
   },
 } satisfies ExportedHandler<Env>;

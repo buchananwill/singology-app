@@ -18,5 +18,11 @@
   "vars": {
     "SUPABASE_URL": "https://hfiefxdyomlpxzjiedwi.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Ys3JgtZch5lN5kk_Q3VT3A_DHBn07v3",
+    // Placeholders until the founder's sending domain is verified in Resend. The secret
+    // RESEND_API_KEY is absent until then, and the nudges go through the dry-run transport.
+    "EMAIL_FROM": "Singology <hello@singology.example>",
+    "APP_ORIGIN": "https://singology-facade.resort-reference-gallery.workers.dev",
   },
+  // The nudge sender; keep in sync with NUDGE_CRONS in packages/shared.
+  "triggers": { "crons": ["*/5 * * * *", "0 9 * * 4"] },
 }
