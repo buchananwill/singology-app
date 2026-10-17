@@ -18,8 +18,9 @@
   "vars": {
     "SUPABASE_URL": "https://hfiefxdyomlpxzjiedwi.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Ys3JgtZch5lN5kk_Q3VT3A_DHBn07v3",
-    // Placeholders until the founder's sending domain is verified in Resend.
-    "EMAIL_FROM": "Singology <hello@singology.example>",
+    // The CTO's verified Resend domain carries alpha mail until the founder's domain is verified.
+    "EMAIL_FROM": "Singology <alpha@shipbornsoftwaresolutions.co.uk>",
+    // Placeholder until the slice is deployed.
     "APP_ORIGIN": "https://singology-facade.resort-reference-gallery.workers.dev",
   },
   "triggers": { "crons": ["*/5 * * * *", "0 9 * * 4"] },
