@@ -1,7 +1,7 @@
 ---
 title: "Slice Nudge Emails: Fixed Design Decisions"
 type: decision-spec
-status: proposed
+status: implemented
 ---
 
 # Slice Nudge Emails

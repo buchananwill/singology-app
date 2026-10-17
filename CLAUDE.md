@@ -21,24 +21,25 @@ These are the founder's and CTO's standing priorities for the slice. Weigh every
 
 pnpm 9 workspace, Node 22+. Run from the repo root unless noted. On Windows open the shell at the correctly-cased path `D:\Coding\singology-app` (lower-case `coding` breaks pnpm filters, see pitfall 5).
 
-| Task                     | Command                                                                                                                                              |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Install                  | `pnpm install --frozen-lockfile`                                                                                                                     |
-| Typecheck all packages   | `pnpm typecheck`                                                                                                                                     |
-| Lint / format            | `pnpm lint`, `pnpm format` (`format:check` to verify)                                                                                                |
-| Unit tests, all packages | `pnpm test`                                                                                                                                          |
-| One unit test file       | `pnpm --filter @singology/web exec vitest run app/lib/format.test.ts` (same shape for `@singology/db`, `@singology/shared`, `@singology/media-jobs`) |
-| E2E (Chromium + WebKit)  | `pnpm test:e2e`                                                                                                                                      |
-| One e2e spec / browser   | `pnpm test:e2e e2e/review.spec.ts --project chromium`                                                                                                |
-| Dev server               | `pnpm dev`                                                                                                                                           |
-| Built Worker in workerd  | `pnpm preview` (port 4173)                                                                                                                           |
-| Build                    | `pnpm build`                                                                                                                                         |
-| Regenerate fixture media | `pnpm --filter @singology/media-jobs generate`, then `peaks` (needs ffmpeg on PATH)                                                                  |
-| RLS tests (pgTAP)        | `pnpm --filter @singology/db test:rls`, and `test:rls -- --mutate` to prove each policy's test can fail                                              |
-| Repository integration   | `pnpm --filter @singology/db test:db`                                                                                                                |
-| Schema change            | edit `packages/db/src/schema`, `pnpm --filter @singology/db generate`, then `pnpm --filter @singology/db supabase db push`                           |
-| Seed the alpha database  | `pnpm --filter @singology/db seed` (idempotent), `seed:counts` to inspect                                                                            |
-| Sign in during alpha     | `pnpm -s --filter @singology/web sign-in-link <email> --origin http://localhost:5173` prints a one-line confirm URL to paste into the browser        |
+| Task                     | Command                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Install                  | `pnpm install --frozen-lockfile`                                                                                                                                   |
+| Typecheck all packages   | `pnpm typecheck`                                                                                                                                                   |
+| Lint / format            | `pnpm lint`, `pnpm format` (`format:check` to verify)                                                                                                              |
+| Unit tests, all packages | `pnpm test`                                                                                                                                                        |
+| One unit test file       | `pnpm --filter @singology/web exec vitest run app/lib/format.test.ts` (same shape for `@singology/db`, `@singology/shared`, `@singology/media-jobs`)               |
+| E2E (Chromium + WebKit)  | `pnpm test:e2e`                                                                                                                                                    |
+| One e2e spec / browser   | `pnpm test:e2e e2e/review.spec.ts --project chromium`                                                                                                              |
+| Dev server               | `pnpm dev`                                                                                                                                                         |
+| Built Worker in workerd  | `pnpm preview` (port 4173)                                                                                                                                         |
+| Build                    | `pnpm build`                                                                                                                                                       |
+| Regenerate fixture media | `pnpm --filter @singology/media-jobs generate`, then `peaks` (needs ffmpeg on PATH)                                                                                |
+| RLS tests (pgTAP)        | `pnpm --filter @singology/db test:rls`, and `test:rls -- --mutate` to prove each policy's test can fail                                                            |
+| Repository integration   | `pnpm --filter @singology/db test:db`                                                                                                                              |
+| Schema change            | edit `packages/db/src/schema`, `pnpm --filter @singology/db generate`, then `pnpm --filter @singology/db supabase db push`                                         |
+| Seed the alpha database  | `pnpm --filter @singology/db seed` (idempotent), `seed:counts` to inspect                                                                                          |
+| Sign in during alpha     | `pnpm -s --filter @singology/web sign-in-link <email> --origin http://localhost:5173` prints a one-line confirm URL to paste into the browser                      |
+| Run the nudge sender     | with `pnpm dev` running, `GET http://localhost:5173/cdn-cgi/local/scheduled?cron=*/5+*+*+*+*` (`0+9+*+*+4` for the weekly reminder); one summary log line per tick |
 
 Before any commit that touches code: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test` must all pass. Run `pnpm test:e2e` when a route, component or Worker handler changed, and `test:rls` plus `test:db` when the schema, a policy, a repository or the seed changed. Two Supabase projects: `singology-dev` (the alpha humans use; `packages/db/.env`) and `singology-test` (the suites; `packages/db/.env.test`, selected by `SINGOLOGY_ENV=test`). `test:db`, `test:rls` and `test:e2e` default to the test project, and the e2e suite reseeds it before every run; never point them at dev. The database suites are excluded from the root `pnpm test`.
 
@@ -75,6 +76,10 @@ Things to know about the toolchain:
 ### The waveform player
 
 `app/components/player/` is the shared media player used by the student feedback view, the A/B compare and the coach review workspace. Read its `README.md` before touching it. Key invariants: wavesurfer.js 8 attaches to our own media element and draws pre-computed peaks from `asset.peaksSrc` (never decodes media); wavesurfer, Regions and hls.js are dynamically imported inside an effect so SSR never touches `window`; high-frequency media time never enters React state above 4 updates a second; one `WaveformPlayer` per `PlayerProvider`. `/lab/player` is its unlinked regression page.
+
+### Nudge emails
+
+`apps/web/workers/notifications/` is the scheduled sender: `scheduled()` in `workers/app.ts` runs `runNudges` on two Cron Triggers (`*/5 * * * *` for feedback-ready and new-submission, `0 9 * * 4` for the weekly practice reminder; a unit test keeps `wrangler.jsonc` in step with `NUDGE_CRONS`). The queue in `packages/db/src/notificationQueue.ts` runs on `adminDb`, and every send is claim, send, mark against the `notifications` table's unique indexes, so nothing sends twice. With no `RESEND_API_KEY` the dry-run transport logs the recipient and subject and records `dry-run:<id>`; placeholder seed addresses are never due. Recipient addresses come from `auth.users`, not `profiles`.
 
 ### Fixture media
 
