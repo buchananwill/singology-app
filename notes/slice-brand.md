@@ -1,7 +1,7 @@
 ---
 title: "Slice Brand: Fixed Design Decisions"
 type: decision-spec
-status: proposed
+status: implemented
 ---
 
 # Slice Brand
