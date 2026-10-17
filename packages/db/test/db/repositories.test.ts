@@ -1,5 +1,5 @@
-// Integration tests for createDrizzleRepositories against the seeded alpha database
-// (`pnpm --filter @singology/db test:db`). Every row a test writes is deleted again in afterAll.
+// Integration tests for createDrizzleRepositories against the test project, which the globalSetup
+// reseeds before the run (`pnpm --filter @singology/db test:db`).
 import {
   CoachSchema,
   CollectionSchema,
@@ -10,15 +10,15 @@ import {
   type RegisterMedia,
   SubmissionSchema,
 } from "@singology/shared";
-import { and, eq, gte, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, assert, beforeAll, describe, expect, it } from "vitest";
 
 import { connectionSettingsFromUrl, createAdminDb, type Db } from "../../src/admin";
-import { createUserDb } from "../../src/client";
+import { authenticatedClaims, createUserDb } from "../../src/client";
 import { createDrizzleRepositories } from "../../src/drizzle/createDrizzleRepositories";
 import { requireEnv } from "../../src/env";
 import type { Repositories } from "../../src/repositories";
-import { assignments, events, feedback, mediaAssets, submissions } from "../../src/schema";
+import { events, feedback, mediaAssets, submissions } from "../../src/schema";
 import { CTO_EMAIL, FOUNDER_EMAIL } from "../../src/seed/alphaCast";
 import { fixtureUuid } from "../../src/seed/fixtureUuid";
 import { userIdByEmail } from "../../src/seed/userIdByEmail";
@@ -33,7 +33,7 @@ let ctoId: string;
 let asFounder: Repositories;
 let asCto: Repositories;
 let asAnon: Repositories;
-const created = { media: [] as string[], submissions: [] as string[], feedback: [] as string[] };
+const takes: string[] = [];
 
 const upload = (storeKey: string): RegisterMedia => ({
   kind: "audio",
@@ -75,7 +75,7 @@ beforeAll(async () => {
   ctoId = await userId(CTO_EMAIL);
   const repos = (sub?: string) =>
     createDrizzleRepositories(
-      createUserDb(settings, sub === undefined ? { role: "anon" } : { role: "authenticated", sub }),
+      createUserDb(settings, sub === undefined ? { role: "anon" } : authenticatedClaims(sub)),
       { now: startedAt },
     );
   asFounder = repos(founderId);
@@ -84,17 +84,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  if (created.feedback.length > 0) {
-    await admin.delete(assignments).where(inArray(assignments.feedbackId, created.feedback));
-    await admin.delete(feedback).where(inArray(feedback.id, created.feedback));
-  }
-  if (created.submissions.length > 0) {
-    await admin.delete(submissions).where(inArray(submissions.id, created.submissions));
-  }
-  if (created.media.length > 0) {
-    await admin.delete(mediaAssets).where(inArray(mediaAssets.id, created.media));
-  }
-  await admin.delete(events).where(and(eq(events.userId, ctoId), gte(events.at, startedAt)));
   await admin.$client.end();
 });
 
@@ -213,7 +202,6 @@ describe("the coaching loop", () => {
 
   it("registers a pending upload that reads as missing until it is ready", async () => {
     const { id } = await asCto.media.register(upload("tests/first.m4a"));
-    created.media.push(id);
     expect(await asCto.media.get(id)).toBeUndefined();
     firstTake = id;
   });
@@ -225,7 +213,7 @@ describe("the coaching loop", () => {
       mediaId: firstTake,
       note: "Integration test take",
     });
-    created.submissions.push(submission.id);
+    takes.push(submission.id);
     expect(SubmissionSchema.parse(submission).status).toBe("processing");
     await markReady(firstTake, submission.id);
     expect((await asCto.submissions.forStudent(ctoId)).map((s) => s.id)).toContain(submission.id);
@@ -244,7 +232,7 @@ describe("the coaching loop", () => {
   });
 
   it("queues the take for the coach, with student, exercise and media kind", async () => {
-    const [submissionId] = created.submissions;
+    const [submissionId] = takes;
     const queue = await asFounder.submissions.queueViewForCoach(founderId);
     const row = queue.find((r) => r.submission.id === submissionId);
     assert(row, "the take is in the founder's queue");
@@ -256,7 +244,7 @@ describe("the coaching loop", () => {
   });
 
   it("gets the submission for its student and its coach only", async () => {
-    const [submissionId] = created.submissions;
+    const [submissionId] = takes;
     assert(submissionId, "a submission was created");
     expect((await asCto.submissions.getForStudent(ctoId, submissionId))?.enrolment.id).toBe(
       CTO_AS_ADA_ENROLMENT_ID,
@@ -268,10 +256,9 @@ describe("the coaching loop", () => {
   });
 
   it("sends a whole review in one transaction", async () => {
-    const [submissionId] = created.submissions;
+    const [submissionId] = takes;
     assert(submissionId, "a submission was created");
     const { id: replyId } = await asFounder.media.register(upload("tests/reply.m4a"));
-    created.media.push(replyId);
     const sent = await asFounder.feedback.send({
       intent: "send",
       submissionId,
@@ -285,7 +272,6 @@ describe("the coaching loop", () => {
       assignLibraryItemIds: [fixtureUuid("lib-breath-lip-trill")],
     });
     feedbackId = sent.feedback.id;
-    created.feedback.push(feedbackId);
     expect(sent.feedback.coachId).toBe(founderId);
     expect(sent.comments.map((c) => c.tSeconds)).toEqual([4, 20]);
     expect(await asCto.feedback.forSubmissionWithComments(submissionId)).toEqual(sent);
@@ -299,13 +285,26 @@ describe("the coaching loop", () => {
         (a) => a.libraryItemId === fixtureUuid("lib-breath-lip-trill") && a.status === "todo",
       ),
     ).toBe(true);
-    expect(assigned.filter((a) => a.feedbackId === feedbackId).map((a) => a.libraryItemId)).toEqual(
-      [fixtureUuid("lib-breath-lip-trill")],
-    );
+    const fromReview = await asFounder.assignments.forFeedback(feedbackId);
+    expect(fromReview.map((a) => [a.libraryItemId, a.feedbackId])).toEqual([
+      [fixtureUuid("lib-breath-lip-trill"), feedbackId],
+    ]);
+  });
+
+  it("lists a seeded review's assignments for its coach and its student only", async () => {
+    const benReview = fixtureUuid("fb-ben-hiss-1");
+    expect((await asFounder.assignments.forFeedback(benReview)).map((a) => a.id)).toEqual([
+      fixtureUuid("asg-ben-hiss"),
+    ]);
+    expect(await asCto.assignments.forFeedback(benReview)).toEqual([]);
+    const adaReview = fixtureUuid("fb-ada-siren-1");
+    const inOrder = [fixtureUuid("asg-ada-siren-2"), fixtureUuid("asg-ada-onset")];
+    expect((await asCto.assignments.forFeedback(adaReview)).map((a) => a.id)).toEqual(inOrder);
+    expect((await asFounder.assignments.forFeedback(adaReview)).map((a) => a.id)).toEqual(inOrder);
   });
 
   it("rolls the whole review back when any part fails", async () => {
-    const [submissionId] = created.submissions;
+    const [submissionId] = takes;
     assert(submissionId, "a submission was created");
     await expect(
       asFounder.feedback.send({
@@ -327,7 +326,6 @@ describe("the coaching loop", () => {
     );
     assert(todo, "the review assigned the lip trill");
     const { id } = await asCto.media.register(upload("tests/assigned.m4a"));
-    created.media.push(id);
     const take = await asCto.submissions.create({
       enrolmentId: CTO_AS_ADA_ENROLMENT_ID,
       assignmentId: todo.id,
@@ -335,7 +333,7 @@ describe("the coaching loop", () => {
       mediaId: id,
       note: "",
     });
-    created.submissions.push(take.id);
+    takes.push(take.id);
     const after = (await asCto.assignments.forStudent(ctoId)).find((a) => a.id === todo.id);
     expect(after?.status).toBe("submitted");
     await expect(
@@ -351,20 +349,23 @@ describe("the coaching loop", () => {
 
   it("finds the previous take of the same exercise", async () => {
     const { id } = await asCto.media.register(upload("tests/second.m4a"));
-    created.media.push(id);
     const second = await asCto.submissions.create({
       enrolmentId: CTO_AS_ADA_ENROLMENT_ID,
       libraryItemId: fixtureUuid("lib-breath-hiss"),
       mediaId: id,
       note: "Second go",
     });
-    created.submissions.push(second.id);
+    takes.push(second.id);
     secondTake = second.id;
-    expect((await asFounder.submissions.previousFor(secondTake))?.id).toBe(created.submissions[0]);
+    expect((await asFounder.submissions.previousFor(secondTake))?.id).toBe(takes[0]);
   });
 
   it("records the caller's own event", async () => {
-    await asCto.events.record({ kind: "feedback_viewed", meta: { submissionId: secondTake } });
+    await asCto.events.record({
+      kind: "feedback_viewed",
+      entityId: secondTake,
+      meta: { feedbackId },
+    });
     const rows = await admin
       .select()
       .from(events)

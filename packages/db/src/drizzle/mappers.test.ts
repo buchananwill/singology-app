@@ -15,7 +15,7 @@ import {
 } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
-import type { mediaAssets, tags } from "../schema";
+import type { assignments, mediaAssets, tags } from "../schema";
 import {
   type Row,
   toAssignment,
@@ -54,6 +54,15 @@ const readyMedia = {
   failureReason: null,
   ...timestamps,
 } satisfies Row<typeof mediaAssets>;
+
+const assignmentRow = {
+  id: uuid(9),
+  enrolmentId: uuid(6),
+  libraryItemId: uuid(7),
+  assignedAt: at,
+  feedbackId: null,
+  createdAt: at,
+} satisfies Row<typeof assignments>;
 
 const tagRow = {
   id: uuid(2),
@@ -176,32 +185,12 @@ describe("mappers", () => {
   });
 
   it("project coaching rows onto the shared schemas", () => {
-    const assignment = toAssignment(
-      {
-        id: uuid(9),
-        enrolmentId: uuid(6),
-        libraryItemId: uuid(7),
-        assignedAt: at,
-        feedbackId: null,
-        createdAt: at,
-      },
-      "todo",
-    );
+    const assignment = toAssignment(assignmentRow, "todo");
     expect(AssignmentSchema.parse(assignment)).toEqual(assignment);
     expect(assignment.feedbackId).toBeUndefined();
-    expect(
-      toAssignment(
-        {
-          id: uuid(9),
-          enrolmentId: uuid(6),
-          libraryItemId: uuid(7),
-          assignedAt: at,
-          feedbackId: uuid(11),
-          createdAt: at,
-        },
-        "todo",
-      ).feedbackId,
-    ).toBe(uuid(11));
+    expect(toAssignment({ ...assignmentRow, feedbackId: uuid(11) }, "todo").feedbackId).toBe(
+      uuid(11),
+    );
 
     const submission = toSubmission({
       id: uuid(10),

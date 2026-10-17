@@ -191,7 +191,7 @@ export const AssignmentSchema = z.object({
   libraryItemId: IdSchema,
   assignedAt: IsoDateTimeSchema,
   status: AssignmentStatusSchema,
-  /** The feedback that assigned it; absent when seeded or assigned directly. */
+  /** Absent when seeded or assigned directly. */
   feedbackId: IdSchema.optional(),
 });
 export type Assignment = z.infer<typeof AssignmentSchema>;
@@ -308,11 +308,33 @@ export const RegisterMediaSchema = z.object({
 });
 export type RegisterMedia = z.infer<typeof RegisterMediaSchema>;
 
-export const RecordEventSchema = z.object({
-  kind: EventKindSchema,
-  entityId: IdSchema.optional(),
-  meta: z.record(z.string(), z.json()).optional(),
-});
+const CountSchema = z.number().int().nonnegative();
+
+/** What each event kind carries, for the pilot metrics. */
+const EVENT_META_SCHEMAS = {
+  signed_in: z.object({}),
+  submission_created: z.object({ enrolmentId: IdSchema, libraryItemId: IdSchema }),
+  feedback_sent: z.object({
+    submissionId: IdSchema,
+    commentCount: CountSchema,
+    assignedCount: CountSchema,
+  }),
+  feedback_viewed: z.object({ feedbackId: IdSchema }),
+} satisfies Record<EventKind, z.ZodObject>;
+
+function eventAbout<K extends Exclude<EventKind, "signed_in">>(kind: K) {
+  return z.object({ kind: z.literal(kind), entityId: IdSchema, meta: EVENT_META_SCHEMAS[kind] });
+}
+
+export const RecordEventSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("signed_in"),
+    meta: EVENT_META_SCHEMAS.signed_in.optional(),
+  }),
+  eventAbout("submission_created"),
+  eventAbout("feedback_sent"),
+  eventAbout("feedback_viewed"),
+]);
 export type RecordEvent = z.infer<typeof RecordEventSchema>;
 
 /** What "Send feedback" is checked against beyond its shape. */

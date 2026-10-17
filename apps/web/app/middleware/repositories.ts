@@ -9,7 +9,7 @@ import type { MiddlewareFunction } from "react-router";
 
 import { claimsContext, repositoriesContext, requestTimeContext } from "../context";
 
-/** The one place the app builds repositories; the confirm route needs them for a new session. */
+/** The one place the app builds repositories. */
 export function repositoriesFor(claims: Claims, now: Date): Repositories {
   return createDrizzleRepositories(createUserDb(env.HYPERDRIVE, claims), { now });
 }

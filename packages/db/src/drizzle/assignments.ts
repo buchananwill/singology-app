@@ -32,5 +32,14 @@ export function drizzleAssignments(db: UserDb): AssignmentRepository {
           .orderBy(asc(assignments.assignedAt), asc(assignments.createdAt));
         return rows.map((row) => toAssignment(row.assignment, row.status));
       }),
+    forFeedback: (feedbackId) =>
+      db(async (tx) => {
+        const rows = await tx
+          .select({ assignment: assignments, status: assignmentStatus })
+          .from(assignments)
+          .where(eq(assignments.feedbackId, feedbackId))
+          .orderBy(asc(assignments.assignedAt), asc(assignments.createdAt));
+        return rows.map((row) => toAssignment(row.assignment, row.status));
+      }),
   };
 }

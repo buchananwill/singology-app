@@ -10,6 +10,12 @@ export type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 export type Claims = { role: "anon" } | { role: "authenticated"; sub: string; email?: string };
 
+export function authenticatedClaims(sub: string, email?: string): Claims {
+  return email === undefined
+    ? { role: "authenticated", sub }
+    : { role: "authenticated", sub, email };
+}
+
 /** Discrete fields, never a URL, so the Worker can pass `env.HYPERDRIVE` straight through. */
 export interface ConnectionSettings {
   host: string;

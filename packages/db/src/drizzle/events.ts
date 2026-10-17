@@ -11,7 +11,7 @@ export function drizzleEvents(db: UserDb): EventRepository {
         await tx.insert(events).values({
           userId: authUid,
           kind: input.kind,
-          entityId: input.entityId,
+          entityId: input.kind === "signed_in" ? null : input.entityId,
           meta: input.meta ?? {},
         });
       }),

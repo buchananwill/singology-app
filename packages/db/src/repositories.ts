@@ -64,6 +64,8 @@ export interface EventRepository {
 
 export interface AssignmentRepository {
   forStudent(studentId: string): Promise<Assignment[]>;
+  /** The exercises one review assigned, oldest first. */
+  forFeedback(feedbackId: string): Promise<Assignment[]>;
 }
 
 export interface OwnedSubmission {

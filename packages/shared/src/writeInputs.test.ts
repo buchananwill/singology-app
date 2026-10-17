@@ -47,10 +47,35 @@ describe("RegisterMediaSchema", () => {
 });
 
 describe("RecordEventSchema", () => {
-  it("accepts a known kind with JSON meta and rejects an unknown kind", () => {
+  it("accepts each kind with its own meta and rejects an unknown kind", () => {
+    expect(RecordEventSchema.safeParse({ kind: "signed_in" }).success).toBe(true);
     expect(
-      RecordEventSchema.safeParse({ kind: "feedback_viewed", meta: { submissionId: "s" } }).success,
+      RecordEventSchema.safeParse({
+        kind: "feedback_viewed",
+        entityId: "s",
+        meta: { feedbackId: "f" },
+      }).success,
+    ).toBe(true);
+    expect(
+      RecordEventSchema.safeParse({
+        kind: "feedback_sent",
+        entityId: "f",
+        meta: { submissionId: "s", commentCount: 2, assignedCount: 0 },
+      }).success,
     ).toBe(true);
     expect(RecordEventSchema.safeParse({ kind: "page_viewed" }).success).toBe(false);
+  });
+
+  it("rejects a meta that belongs to another kind", () => {
+    expect(
+      RecordEventSchema.safeParse({
+        kind: "feedback_sent",
+        entityId: "f",
+        meta: { feedbackId: "f" },
+      }).success,
+    ).toBe(false);
+    expect(
+      RecordEventSchema.safeParse({ kind: "feedback_viewed", meta: { feedbackId: "f" } }).success,
+    ).toBe(false);
   });
 });

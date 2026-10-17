@@ -1,4 +1,5 @@
-import { notInArray } from "drizzle-orm";
+import { groupBy } from "@singology/shared";
+import { inArray, notInArray } from "drizzle-orm";
 
 import type { Transaction } from "../client";
 import type { FixtureData } from "../fixtures/data";
@@ -88,4 +89,21 @@ export async function loadCoaching(
       body: comment.body,
     })),
   );
+
+  // Linked last: assignments, submissions and feedback reference each other in a cycle.
+  const fromFeedback = groupBy(
+    fixtures.assignments.filter((assignment) => assignment.feedbackId !== undefined),
+    (assignment) => assignment.feedbackId,
+  );
+  for (const [feedbackId, assigned] of fromFeedback) {
+    await tx
+      .update(assignments)
+      .set({ feedbackId: optionalUuid(feedbackId) })
+      .where(
+        inArray(
+          assignments.id,
+          assigned.map((assignment) => fixtureUuid(assignment.id)),
+        ),
+      );
+  }
 }

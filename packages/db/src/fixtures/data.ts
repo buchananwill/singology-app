@@ -292,24 +292,28 @@ const assignments = (at: At): FixtureData["assignments"] => [
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-range-siren",
     assignedAt: at(-9 * DAY),
+    feedbackId: "fb-ada-siren-1",
   },
   {
     id: "asg-ada-onset",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-onset-balanced",
     assignedAt: at(-8 * DAY),
+    feedbackId: "fb-ada-siren-1",
   },
   {
     id: "asg-ada-runs",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-agility-five-note",
     assignedAt: at(-4 * DAY),
+    feedbackId: "fb-ada-siren-2",
   },
   {
     id: "asg-ada-hiss",
     enrolmentId: "enrol-ada",
     libraryItemId: "lib-breath-hiss",
     assignedAt: at(-4 * DAY),
+    feedbackId: "fb-ada-siren-2",
   },
   {
     id: "asg-ben-hiss-1",
@@ -322,6 +326,7 @@ const assignments = (at: At): FixtureData["assignments"] => [
     enrolmentId: "enrol-ben",
     libraryItemId: "lib-breath-hiss",
     assignedAt: at(-5 * DAY),
+    feedbackId: "fb-ben-hiss-1",
   },
   {
     id: "asg-cara-arpeggio",

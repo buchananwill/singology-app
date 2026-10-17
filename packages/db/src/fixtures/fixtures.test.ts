@@ -201,6 +201,18 @@ describe("fixture data", () => {
     }
   });
 
+  it("assigns from a feedback only after it was sent, on the same enrolment", () => {
+    for (const assignment of fixtureData.assignments) {
+      if (assignment.feedbackId === undefined) {
+        continue;
+      }
+      const sent = feedback.get(assignment.feedbackId);
+      assert(sent, `${assignment.id} names an existing feedback`);
+      expect(assignment.assignedAt >= sent.sentAt).toBe(true);
+      expect(submissions.get(sent.submissionId)?.enrolmentId).toBe(assignment.enrolmentId);
+    }
+  });
+
   it("references a matching enrolment, assignment, library item and media from submissions", () => {
     for (const submission of fixtureData.submissions) {
       expect(enrolments.has(submission.enrolmentId)).toBe(true);
@@ -518,9 +530,19 @@ describe("createFixtureRepositories writes", () => {
     expect(
       assignments.some((a) => a.libraryItemId === "lib-onset-hum-to-vowel" && a.status === "todo"),
     ).toBe(true);
-    expect(
-      assignments.filter((a) => a.feedbackId === sent.feedback.id).map((a) => a.libraryItemId),
-    ).toEqual(["lib-onset-hum-to-vowel"]);
+    const fromReview = await repos.assignments.forFeedback(sent.feedback.id);
+    expect(fromReview.map((a) => [a.libraryItemId, a.feedbackId])).toEqual([
+      ["lib-onset-hum-to-vowel", sent.feedback.id],
+    ]);
+  });
+
+  it("lists a seeded review's assignments in time order", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    expect((await repos.assignments.forFeedback("fb-ada-siren-1")).map((a) => a.id)).toEqual([
+      "asg-ada-siren-2",
+      "asg-ada-onset",
+    ]);
+    expect(await repos.assignments.forFeedback("fb-cara-arpeggio")).toEqual([]);
   });
 
   it("keeps each instance's writes to itself", async () => {

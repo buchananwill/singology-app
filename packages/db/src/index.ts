@@ -1,5 +1,6 @@
 export type * from "./repositories";
 export {
+  authenticatedClaims,
   type Claims,
   type ConnectionSettings,
   createUserDb,

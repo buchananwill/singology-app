@@ -1,3 +1,4 @@
+import { authenticatedClaims } from "@singology/db";
 import type { MiddlewareFunction } from "react-router";
 
 import { logAuthError } from "../auth/logAuthError";
@@ -18,9 +19,7 @@ export const sessionMiddleware: MiddlewareFunction<Response> = async (
   }
   context.set(
     claimsContext,
-    data === null
-      ? { role: "anon" }
-      : { role: "authenticated", sub: data.claims.sub, email: data.claims.email },
+    data === null ? { role: "anon" } : authenticatedClaims(data.claims.sub, data.claims.email),
   );
   const response = await next();
   mergeSessionHeaders(response, supabase.headers);

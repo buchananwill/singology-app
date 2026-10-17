@@ -1,9 +1,11 @@
+import { authenticatedClaims } from "@singology/db";
 import { ConfirmLinkSchema } from "@singology/shared";
 import { href, redirect } from "react-router";
 
 import { logAuthError } from "../auth/logAuthError";
 import { SIGN_IN_LINK_FAILED_HREF } from "../auth/signInLinkFailed";
 import { requestTimeContext, supabaseContext } from "../context";
+import { recordEventBestEffort } from "../lib/recordEvent";
 import { repositoriesFor } from "../middleware/repositories";
 import type { Route } from "./+types/auth.confirm";
 
@@ -22,11 +24,9 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   }
   if (data.user !== null) {
     // The request's repositories carry the claims from before the link was verified.
-    const claims = { role: "authenticated", sub: data.user.id, email: data.user.email } as const;
-    await repositoriesFor(claims, context.get(requestTimeContext))
-      .events.record({ kind: "signed_in" })
-      // A sign-in never fails on its analytics row.
-      .catch((recordError: unknown) => console.error("signed_in event not recorded", recordError));
+    const claims = authenticatedClaims(data.user.id, data.user.email);
+    const { events } = repositoriesFor(claims, context.get(requestTimeContext));
+    await recordEventBestEffort(events, { kind: "signed_in" });
   }
   throw redirect(href("/sign-in"), { headers });
 }
