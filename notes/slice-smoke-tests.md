@@ -8,7 +8,7 @@ status: active
 
 Four scripts, one per core coaching function (journal decision 43), for the founder and the CTO to run by hand on the alpha. Each says what must be true before you start, the steps, what you should see, and what to write down if it goes wrong. Run them in order the first time; after that, any one on its own.
 
-**Where:** the alpha deployment behind Cloudflare Access (journal D46), or `pnpm dev` at `http://localhost:5173` against the dev project. **Accounts:** the founder's (`liveandletfunk@gmail.com`, coach) and the CTO's (`willwritescode@gmail.com`, student and coach). **Signing in:** the magic-link email for an address that receives mail, or the printed link: `pnpm -s --filter @singology/web sign-in-link <email> --origin <origin>`. **Reporting:** one line per problem in `notes/facade-pitfalls.md`'s format (what happened, what you expected, the page, the time), or tell the CTO.
+**Where:** `pnpm dev` at `http://localhost:5173` against the dev project today; the alpha deployment behind Cloudflare Access (journal D46) once the slice is deployed. **Until that deploy, the live workers.dev URL is still the September facade** and none of these scripts apply to it. **Accounts:** the founder's (`liveandletfunk@gmail.com`, coach) and the CTO's (`willwritescode@gmail.com`, student and coach). **Signing in:** the magic-link email for an address that receives mail, or the printed link: `pnpm -s --filter @singology/web sign-in-link <email> --origin <origin>`. **Reporting:** one line per problem in `notes/facade-pitfalls.md`'s format (what happened, what you expected, the page, the time), or tell the CTO.
 
 ## 0. Before any run
 
@@ -50,7 +50,7 @@ Three emails exist: feedback-ready to the student, new-submission to the coach, 
 
 **Today, dry-run (no mail leaves):**
 1. Locally: with `pnpm dev` running, open `http://localhost:5173/cdn-cgi/local/scheduled?cron=*/5+*+*+*+*`. **Expect:** `200`, and one log line in the dev server like `nudges {"cron":"*/5 * * * *","due":N,"sent":N,"skipped":0,"failed":0}`, with a `dry-run` line per email naming the recipient and the subject. Open the URL again: `due:0`.
-2. Deployed: `pnpm --filter @singology/web exec wrangler tail` and wait for the five-minute tick; the same summary line appears. The Thursday 09:00 UTC tick logs the reminders.
+2. Deployed, **after the alpha deploy** (the Worker currently live is the September facade and has no scheduled handler, so `wrangler tail` shows nothing until the slice is deployed): `pnpm --filter @singology/web exec wrangler tail` and wait for the five-minute tick; the same summary line appears. The Thursday 09:00 UTC tick logs the reminders.
 3. Check the sent-log: `notifications` rows with `provider_message_id` starting `dry-run:` (visible in the Supabase table editor, or through the `seed:counts` line's `notifications` count rising and then holding).
 
 **After Resend is wired** (the founder verifies the domain; the CTO sets `RESEND_API_KEY` and `EMAIL_FROM`): run script 3 step 3 again on a fresh take; within five minutes the student's inbox has "{Coach} has feedback on your {exercise}" with a link that opens the feedback; upload a take (script 1) and the coach's inbox has "{Student} sent a take: {exercise}". Placeholder students never receive mail.
