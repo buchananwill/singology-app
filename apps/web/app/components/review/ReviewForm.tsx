@@ -77,7 +77,7 @@ export function ReviewForm({
               fetcherKey={keys.reply}
             />
           )}
-          <Card withBorder padding="lg">
+          <Card padding="lg">
             <AssignChecklist
               items={library}
               value={review.assigned}

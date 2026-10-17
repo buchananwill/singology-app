@@ -12,7 +12,14 @@ export function CoachCard({ displayName, tier, bio, avatarSrc, turnaroundHours }
   return (
     <Card padding="lg" h="100%">
       <Stack gap="sm" align="center" ta="center">
-        <Avatar src={avatarSrc} alt="" size={120} color="gray" className="portrait" />
+        <Avatar
+          src={avatarSrc}
+          name={displayName}
+          alt=""
+          size={120}
+          color="gray"
+          className="portrait"
+        />
         <Text className="voice" data-testid="coach-name">
           {displayName}
         </Text>

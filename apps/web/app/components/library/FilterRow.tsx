@@ -34,7 +34,6 @@ export function FilterRow<FilterValue extends string>({
               component={Link}
               to={hrefFor(value)}
               size="compact-sm"
-              radius="xl"
               variant={selected ? "filled" : "default"}
               aria-current={selected ? "true" : undefined}
               preventScrollReset

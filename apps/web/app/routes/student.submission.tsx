@@ -113,7 +113,7 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
             <Title id="coach-title" order={2} size="h3">
               From your coach
             </Title>
-            <Card withBorder padding="md">
+            <Card padding="md">
               <Stack gap="sm">
                 <Group gap="sm" wrap="nowrap">
                   <Avatar src={coach.avatarSrc} alt="" />

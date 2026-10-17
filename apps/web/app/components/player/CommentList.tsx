@@ -24,7 +24,7 @@ export function CommentList({ comments }: CommentListProps) {
             style={{ borderRadius: "var(--mantine-radius-sm)" }}
           >
             <Text size="sm">
-              <Text span fw={700} c="orange.8">
+              <Text span fw={700} c="var(--mantine-color-olive-text)">
                 {index + 1}
               </Text>{" "}
               <Text span ff="monospace" c="dimmed">

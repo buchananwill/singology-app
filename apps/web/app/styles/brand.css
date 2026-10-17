@@ -1,14 +1,12 @@
-.display {
-  font-family: var(--mantine-font-family-headings);
-  font-size: 72px;
+:where(.display) {
+  font-size: 4.5rem;
   line-height: 0.9;
-  font-weight: 700;
   letter-spacing: -0.035em;
 }
 
-.voice {
+:where(.voice) {
   font-family: "Bodoni Moda", Didot, "Bodoni 72", "Times New Roman", serif;
-  font-size: 22px;
+  font-size: 1.375rem;
   line-height: 1.4;
   font-weight: 400;
   font-style: italic;
@@ -18,7 +16,6 @@
   filter: grayscale(1);
 }
 
-/* :where() keeps the display class able to override the h1 tracking. */
 :where(.mantine-Title-root[data-order="1"]) {
   letter-spacing: -0.02em;
 }
@@ -28,21 +25,21 @@
 }
 
 .mantine-focus-auto:focus-visible {
-  outline: 2px solid var(--mantine-color-black);
-  outline-offset: 2px;
+  outline-color: var(--mantine-color-black);
 }
 
 .hero-panel .mantine-focus-auto:focus-visible {
-  outline-color: var(--mantine-color-brand-5);
+  outline-color: var(--mantine-primary-color-filled);
 }
 
 @media (max-width: 40em) {
+  /* Doubled specificity: Mantine declares these variables on :root after this stylesheet loads. */
   html:root {
-    --mantine-h1-font-size: 34px;
-    --mantine-h2-font-size: 26px;
+    --mantine-h1-font-size: 2.125rem;
+    --mantine-h2-font-size: 1.625rem;
   }
 
-  .display {
-    font-size: 48px;
+  :where(.display) {
+    font-size: 3rem;
   }
 }

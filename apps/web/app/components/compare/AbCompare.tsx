@@ -22,7 +22,7 @@ export function AbCompare({ a, b }: AbCompareProps) {
 
   return (
     <Stack gap="md" data-testid="ab-compare">
-      <Card withBorder padding="sm">
+      <Card padding="sm">
         <Group gap="sm" wrap="wrap">
           <Button onClick={togglePlay} data-testid="ab-play" w={96}>
             {playing ? "Pause" : "Play"}
@@ -46,7 +46,6 @@ export function AbCompare({ a, b }: AbCompareProps) {
         {(["a", "b"] as const).map((side) => (
           <Card
             key={side}
-            withBorder
             padding="sm"
             data-testid={`ab-take-${side}`}
             data-active={active === side ? "true" : "false"}

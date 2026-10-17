@@ -27,7 +27,7 @@ export function ReviewHeader({
   sent,
 }: ReviewHeaderProps & ReviewHeaderState) {
   return (
-    <Stack gap={0}>
+    <Stack gap={0} align="flex-start">
       <Anchor component={Link} to={href("/coach")} size="sm">
         ← Review queue
       </Anchor>

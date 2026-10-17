@@ -1,5 +1,5 @@
 import { Box, Container, Stack, Text, Title } from "@mantine/core";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 
 import { brandTokens } from "../../theme";
 import { Eyebrow } from "./Eyebrow";
@@ -13,18 +13,19 @@ export interface HeroPanelProps {
 }
 
 export function HeroPanel({ eyebrow, title, lead, aside, action }: HeroPanelProps) {
+  const titleId = useId();
   return (
     <Box
       className="hero-panel"
-      bg="brand.5"
+      bg="brand"
       py="xl"
       mx="calc(var(--mantine-spacing-md) * -1)"
       mt="calc(var(--mantine-spacing-md) * -1)"
     >
       <Container size="md">
-        <Stack component="section" gap="md" aria-labelledby="hero-title" bg="navy.7" p="xl">
-          <Eyebrow c="brand.5">{eyebrow}</Eyebrow>
-          <Title id="hero-title" order={1} className="display" c="white">
+        <Stack component="section" gap="md" aria-labelledby={titleId} bg="black" p="xl">
+          <Eyebrow c="brand">{eyebrow}</Eyebrow>
+          <Title id={titleId} order={1} className="display" c="white">
             {title}
           </Title>
           <Text size="lg" c="white">

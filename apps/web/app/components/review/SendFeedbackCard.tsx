@@ -15,7 +15,7 @@ export function SendFeedbackCard({ session, studentFirstName }: SendFeedbackCard
   const { review, dispatch, reply, sendState, send } = session;
   const hydrated = useHydrated();
   return (
-    <Card withBorder padding="lg" data-testid="send-feedback">
+    <Card padding="lg" data-testid="send-feedback">
       <Stack gap="md">
         <Title order={2} size="h3">
           Send feedback

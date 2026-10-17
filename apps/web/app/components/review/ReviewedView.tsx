@@ -28,7 +28,7 @@ export function ReviewedView({ student, take, feedback, comments, assigned }: Re
         />
       }
       side={
-        <Card withBorder padding="lg" data-testid="sent-feedback">
+        <Card padding="lg" data-testid="sent-feedback">
           <Stack gap="md">
             <Title order={2} size="h3">
               Feedback sent

@@ -63,6 +63,9 @@ const olive: MantineColorsTuple = [
   "#3a4814",
 ];
 
+const SANS =
+  'Jost, "Futura PT", Futura, "Avenir Next", Avenir, system-ui, -apple-system, sans-serif';
+
 export const BRAND_SHADE = 5;
 
 export const theme = createTheme({
@@ -73,14 +76,12 @@ export const theme = createTheme({
   autoContrast: true,
   defaultRadius: "sm",
   spacing: { xxs: rem(4), xxl: rem(48) },
-  fontFamily:
-    'Jost, "Futura PT", Futura, "Avenir Next", Avenir, system-ui, -apple-system, sans-serif',
+  fontFamily: SANS,
   headings: {
-    fontFamily:
-      'Jost, "Futura PT", Futura, "Avenir Next", Avenir, system-ui, -apple-system, sans-serif',
+    fontFamily: SANS,
     fontWeight: "700",
     sizes: {
-      h1: { fontSize: rem(44), fontWeight: "700", lineHeight: "1" },
+      h1: { fontSize: rem(44), lineHeight: "1" },
       h2: { fontSize: rem(30), fontWeight: "600", lineHeight: "1.1" },
       h3: { fontSize: rem(21), fontWeight: "500", lineHeight: "1.25" },
       h4: { fontSize: rem(18), fontWeight: "500", lineHeight: "1.3" },

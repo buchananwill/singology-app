@@ -40,7 +40,11 @@ export function loader({ context }: Route.LoaderArgs) {
 const FONTS_HREF =
   "https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,500&family=Jost:wght@300;400;500;600;700&display=swap";
 
-export function Layout({ children }: { children: ReactNode }) {
+export interface LayoutProps {
+  children: ReactNode;
+}
+
+export function Layout({ children }: LayoutProps) {
   return (
     <html lang="en-GB" {...mantineHtmlProps}>
       <head>

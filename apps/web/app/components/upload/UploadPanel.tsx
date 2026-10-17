@@ -53,7 +53,7 @@ export function UploadPanel({
   const succeeded = result?.ok === true;
 
   return (
-    <Card withBorder padding="lg" data-testid="upload-panel">
+    <Card padding="lg" data-testid="upload-panel">
       <Stack gap="md">
         <Title order={2} size="h3">
           {title}
