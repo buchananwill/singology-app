@@ -1,7 +1,7 @@
 import { Webhook, WebhookVerificationError } from "standardwebhooks";
 
 /** The body Supabase reads a hook failure from; success is an empty object. */
-export interface SendEmailHookError {
+interface SendEmailHookError {
   error: { http_code: number; message: string };
 }
 
@@ -12,24 +12,27 @@ export interface VerifiedHook {
 }
 
 // Supabase shows the secret in this form; standardwebhooks wants only the base64 key.
-const SUPABASE_SECRET_PREFIX = "v1,whsec_";
+export const SUPABASE_SECRET_PREFIX = "v1,whsec_";
 
 export function hookError(httpCode: number, message: string): Response {
   const body: SendEmailHookError = { error: { http_code: httpCode, message } };
   return Response.json(body, { status: httpCode });
 }
 
-function webhookKey(secret: string): string {
+export function webhookKey(secret: string): string {
   return secret.startsWith(SUPABASE_SECRET_PREFIX)
     ? secret.slice(SUPABASE_SECRET_PREFIX.length)
     : secret;
 }
 
-/** Throws the 401 `hookError` response when the request was not signed with `secret`. */
-export async function verifiedHook(request: Request, secret: string): Promise<VerifiedHook> {
+/** The 401 `hookError` response when the request was not signed with `secret`. */
+export async function verifiedHook(
+  request: Request,
+  secret: string,
+): Promise<VerifiedHook | Response> {
   const messageId = request.headers.get("webhook-id");
   if (messageId === null) {
-    throw hookError(401, "Missing the webhook-id header");
+    return hookError(401, "Missing the webhook-id header");
   }
   const body = await request.text();
   try {
@@ -40,7 +43,7 @@ export async function verifiedHook(request: Request, secret: string): Promise<Ve
     return { messageId, payload };
   } catch (error) {
     if (error instanceof WebhookVerificationError) {
-      throw hookError(401, error.message);
+      return hookError(401, error.message);
     }
     throw error;
   }

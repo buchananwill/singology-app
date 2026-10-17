@@ -29,7 +29,7 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
 }
 
-export type EmailFrame = Pick<EmailMessage, "to"> & Omit<EmailContent, "path"> & { url: URL };
+type EmailFrame = Pick<EmailMessage, "to"> & Omit<EmailContent, "path"> & { url: URL };
 
 function compose({ to, subject, paragraph, linkText, url }: EmailFrame): EmailMessage {
   return {

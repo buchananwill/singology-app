@@ -29,7 +29,11 @@ export async function action({ request }: Route.ActionArgs): Promise<Response> {
   if (!config.SEND_EMAIL_HOOK_SECRET) {
     return hookError(503, "send-email hook is not configured");
   }
-  const { messageId, payload } = await verifiedHook(request, config.SEND_EMAIL_HOOK_SECRET);
+  const verified = await verifiedHook(request, config.SEND_EMAIL_HOOK_SECRET);
+  if (verified instanceof Response) {
+    return verified;
+  }
+  const { messageId, payload } = verified;
   const parsed = parseInput(SendEmailHookSchema, payload, "The hook payload was not valid.");
   if (!parsed.ok) {
     return hookError(400, parsed.error);

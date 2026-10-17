@@ -1,10 +1,11 @@
-import type { SendEmailHook } from "@singology/shared";
+import { MAGIC_LINK_TYPE, type SendEmailHook } from "@singology/shared";
 import { RouterContextProvider } from "react-router";
 import { Webhook } from "standardwebhooks";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { routeArgs } from "../../test/routeArgs";
 import { magicLinkEmail } from "../../workers/email/templates";
+import { SUPABASE_SECRET_PREFIX } from "../auth/sendEmailHook";
 import type * as Transport from "../../workers/email/transport";
 import type { Route } from "./+types/api.auth.send-email";
 import { action, loader, type SendEmailHookEnv } from "./api.auth.send-email";
@@ -40,7 +41,7 @@ const base: SendEmailHook = {
   user: { email: "ada@example.com" },
   email_data: {
     token_hash: "hash-1",
-    email_action_type: "magiclink",
+    email_action_type: MAGIC_LINK_TYPE,
     site_url: "http://localhost:5173",
   },
 };
@@ -78,20 +79,8 @@ function signedRequest(body: string, key = BASE64_KEY): Request {
   });
 }
 
-// A thrown Response is what React Router would send, so the test receives it the same way.
-function respond(request: Request): Promise<Response> {
-  const args: Route.ActionArgs = routeArgs(
-    new RouterContextProvider(),
-    request,
-    "/api/auth/send-email",
-    {},
-  );
-  return action(args).catch((thrown: unknown) => {
-    if (thrown instanceof Response) {
-      return thrown;
-    }
-    throw thrown;
-  });
+function actionArgs(request: Request): Route.ActionArgs {
+  return routeArgs(new RouterContextProvider(), request, "/api/auth/send-email", {});
 }
 
 beforeEach(() => {
@@ -99,7 +88,7 @@ beforeEach(() => {
     APP_ORIGIN,
     EMAIL_FROM: "Singology <hello@singology.example>",
     RESEND_API_KEY: undefined,
-    SEND_EMAIL_HOOK_SECRET: `v1,whsec_${BASE64_KEY}`,
+    SEND_EMAIL_HOOK_SECRET: `${SUPABASE_SECRET_PREFIX}${BASE64_KEY}`,
   } satisfies SendEmailHookEnv);
   sent.length = 0;
   vi.spyOn(console, "log").mockImplementation(() => undefined);
@@ -112,7 +101,7 @@ afterEach(() => {
 
 describe("the send-email hook", () => {
   it("emails a verified magic link once, keyed by the webhook id, on the site's origin", async () => {
-    const response = await respond(signedRequest(hookBody()));
+    const response = await action(actionArgs(signedRequest(hookBody())));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({});
     const expected = magicLinkEmail({
@@ -123,7 +112,7 @@ describe("the send-email hook", () => {
   });
 
   it("links the app's origin when Supabase names a foreign site", async () => {
-    await respond(signedRequest(hookBody({ site_url: "https://elsewhere.example" })));
+    await action(actionArgs(signedRequest(hookBody({ site_url: "https://elsewhere.example" }))));
     const expected = magicLinkEmail({
       to: "ada@example.com",
       url: new URL(`${APP_ORIGIN}/auth/confirm?token_hash=hash-1&type=magiclink`),
@@ -133,7 +122,7 @@ describe("the send-email hook", () => {
 
   it("refuses a request signed with another secret, sending nothing", async () => {
     const otherKey = btoa("another secret of thirty-two byte");
-    const response = await respond(signedRequest(hookBody(), otherKey));
+    const response = await action(actionArgs(signedRequest(hookBody(), otherKey)));
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({
       error: { http_code: 401, message: expect.any(String) },
@@ -142,7 +131,9 @@ describe("the send-email hook", () => {
   });
 
   it("answers other email types with an empty success and sends nothing", async () => {
-    const response = await respond(signedRequest(hookBody({ email_action_type: "recovery" })));
+    const response = await action(
+      actionArgs(signedRequest(hookBody({ email_action_type: "recovery" }))),
+    );
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({});
     expect(sent).toEqual([]);
@@ -150,7 +141,7 @@ describe("the send-email hook", () => {
 
   it("answers 503 and sends nothing while the secret is unset", async () => {
     hookEnv.SEND_EMAIL_HOOK_SECRET = undefined;
-    const response = await respond(signedRequest(hookBody()));
+    const response = await action(actionArgs(signedRequest(hookBody())));
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({
       error: { http_code: 503, message: "send-email hook is not configured" },
@@ -162,7 +153,7 @@ describe("the send-email hook", () => {
     const get = loader();
     expect(get.status).toBe(405);
     expect(get.headers.get("Allow")).toBe("POST");
-    const put = await respond(new Request(HOOK_URL, { method: "PUT", body: "{}" }));
+    const put = await action(actionArgs(new Request(HOOK_URL, { method: "PUT", body: "{}" })));
     expect(put.status).toBe(405);
     expect(sent).toEqual([]);
   });
@@ -173,7 +164,7 @@ describe("the send-email hook", () => {
       "fetch",
       vi.fn(() => Promise.resolve(new Response("domain not verified", { status: 403 }))),
     );
-    const response = await respond(signedRequest(hookBody()));
+    const response = await action(actionArgs(signedRequest(hookBody())));
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
       error: { http_code: 500, message: "Resend refused the email: 403 domain not verified" },
