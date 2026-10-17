@@ -2,7 +2,6 @@ import { expect, type Locator, test } from "@playwright/test";
 import { fixtureUuid } from "@singology/db";
 import { CTO_DISPLAY_NAME } from "@singology/db/admin";
 
-import { firstName } from "../app/lib/format";
 import { storageStateFor } from "./auth";
 import { currentTime, mediaFixture, readyWaveforms, settle, trackErrors } from "./helpers";
 
@@ -23,10 +22,15 @@ async function seekTo(media: Locator, timeSec: number): Promise<void> {
   await expect.poll(() => currentTime(media)).toBeCloseTo(timeSec, 1);
 }
 
-async function addCommentAt(take: Locator, timeSec: number, body: string): Promise<void> {
+/** Opens the comment draft at a time in the take and returns its input. */
+async function openDraftAt(take: Locator, timeSec: number): Promise<Locator> {
   await seekTo(take.getByTestId("player-media"), timeSec);
   await take.getByRole("button", { name: ADD_COMMENT }).click();
-  const draft = take.getByTestId("comment-draft");
+  return take.getByTestId("comment-draft");
+}
+
+async function addCommentAt(take: Locator, timeSec: number, body: string): Promise<void> {
+  const draft = await openDraftAt(take, timeSec);
   await draft.fill(body);
   await draft.press("Enter");
 }
@@ -61,9 +65,7 @@ test.describe("the coach review workspace", () => {
     await expect(readyWaveforms(take)).toHaveCount(1);
     const media = take.getByTestId("player-media");
 
-    await seekTo(media, 30);
-    await take.getByRole("button", { name: ADD_COMMENT }).click();
-    const draft = take.getByTestId("comment-draft");
+    const draft = await openDraftAt(take, 30);
     await expect(take.getByText("Comment at 0:30")).toBeVisible();
     await draft.fill("The hiss wobbles here: keep the ribs wide.");
     await draft.press("Enter");
@@ -140,7 +142,7 @@ test.describe("the coach review workspace", () => {
       await send.getByLabel(/^Summary for /).fill(summary);
       await send.getByRole("button", { name: "Send feedback" }).click();
       await expect(send.getByTestId("send-success")).toContainText(
-        `Feedback sent to ${firstName(CTO_DISPLAY_NAME)}: 2 comments, 1 new exercise.`,
+        `Feedback sent to ${CTO_DISPLAY_NAME.split(" ")[0]}: 2 comments, 1 new exercise.`,
       );
       await expect(take.getByRole("button", { name: ADD_COMMENT })).toHaveCount(0);
       await expect(page.getByTestId("review-submitted")).not.toContainText("ago");
