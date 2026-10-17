@@ -3,7 +3,7 @@ import type { MediaAsset, Student, Submission } from "@singology/shared";
 import { useReducer } from "react";
 import { useFetcher } from "react-router";
 
-import { firstName } from "../../lib/format";
+import { firstName, UNPLAYABLE_TAKE_MESSAGE } from "../../lib/format";
 import { CommentList } from "../player/CommentList";
 import { StandalonePlayer } from "../player/StandalonePlayer";
 import { UploadPanel } from "../upload/UploadPanel";
@@ -54,8 +54,10 @@ export function ReviewForm({ submission, student, take, previous, library }: Rev
               The take
             </Title>
             {take === null ? (
-              <Alert variant="light" data-testid="take-processing">
-                This take is still processing, so there is nothing to play yet.
+              <Alert variant="light" data-testid="take-unplayable">
+                {submission.status === "processing" || submission.status === "failed"
+                  ? UNPLAYABLE_TAKE_MESSAGE[submission.status]
+                  : null}
               </Alert>
             ) : (
               <StandalonePlayer

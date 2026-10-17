@@ -6,6 +6,7 @@ import {
   type MediaKind,
   MINUTE_MS,
   type ReviewSlaState,
+  type SubmissionStatus,
   type UserRole,
   type VoiceType,
 } from "@singology/shared";
@@ -130,6 +131,15 @@ export const ASSIGNMENT_STATUS_COLOR: Record<AssignmentStatus, string> = {
   todo: "gray",
   submitted: "blue",
   feedback_ready: "green",
+};
+
+/** A take in these states has no playable media yet. */
+export const UNPLAYABLE_TAKE_MESSAGE: Record<
+  Extract<SubmissionStatus, "processing" | "failed">,
+  string
+> = {
+  processing: "This take is still processing, so there is nothing to play yet.",
+  failed: "This take couldn't be processed. Ask the student to upload it again.",
 };
 
 export const COACH_TIER_LABEL: Record<CoachTier, string> = {
