@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   ALPHA_FOOTER,
   feedbackReadyEmail,
+  magicLinkEmail,
   newSubmissionEmail,
   nudgeEmail,
   practiceReminderEmail,
@@ -74,6 +75,17 @@ describe("nudge templates", () => {
     );
   });
 
+  it("sends a sign-in link without a greeting, since the hook knows only the address", () => {
+    const link = new URL(`${ORIGIN}/auth/confirm?token_hash=abc&type=magiclink`);
+    const email = magicLinkEmail({ to: "ada@example.com", link });
+    expect(EmailMessageSchema.parse(email)).toEqual(email);
+    expect(email.to).toBe("ada@example.com");
+    expect(email.subject).toBe("Your Singology sign-in link");
+    expect(email.text).toMatch(/^Here's your link to sign in\. It works once and expires soon\./);
+    expect(email.text).toContain(link.href);
+    expect(email.html).toContain(`href="${ORIGIN}/auth/confirm?token_hash=abc&amp;type=magiclink"`);
+  });
+
   it("renders each kind through its own template", () => {
     expect(nudgeEmail(feedbackReady, ORIGIN)).toEqual(feedbackReadyEmail(feedbackReady, ORIGIN));
     expect(nudgeEmail(newSubmission, ORIGIN)).toEqual(newSubmissionEmail(newSubmission, ORIGIN));
@@ -85,6 +97,7 @@ describe("nudge templates", () => {
       feedbackReadyEmail(feedbackReady, ORIGIN),
       newSubmissionEmail(newSubmission, ORIGIN),
       practiceReminderEmail(reminder(1), ORIGIN),
+      magicLinkEmail({ to: "ada@example.com", link: new URL(`${ORIGIN}/auth/confirm`) }),
     ];
     for (const email of emails) {
       const [paragraph, link, footer] = email.text.split("\n\n");
