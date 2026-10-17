@@ -194,3 +194,19 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Affects.** The slice's e2e coverage of `requireCoach`'s 403 branch. A ruling could add a student-only tester to `signInAs` (for example `student-ben`'s placeholder user, which the admin API can sign in without email).
 - **Evidence.** `apps/web/e2e/smoke.spec.ts`, "the header shows the coach role, and the student pages are refused with 403".
 - **Resolution.** The lead's ruling: a third tester, `ben` (the seeded `student-ben`, student only), joins `ALPHA_TESTERS` in `alphaCast.ts`. The setup project signs him in, and "a student is refused the coach queue with 403" runs as decision 27 says. The founder-refused-`/student` mirror stays.
+
+## 24. Slice-feedback decision 9's "exercises assigned by this feedback" has no read path
+
+- **What happened.** Decision 9 asks `ReviewedView` to show the exercises assigned by the sent feedback, "by `assignments.feedback_id`". The column exists and `feedback.send` writes it, but nothing reads it. `Assignment` in `packages/shared` has no `feedbackId`, `toAssignment` drops the column, and the only assignment query is `assignments.forStudent`. The roster says `packages/db` is unchanged and journal decision 60 says S5 adds no repository method, so the decision cannot be met as written.
+- **Workaround.** None. `ReviewedView` shows the take with the persisted comments, the summary, the sent date and the link back to the queue, and has no assignments section. Matching on `assignedAt === sentAt` (both are `now()` in the one transaction) would work, but it is a guess, not the column the decision names.
+- **Affects.** The coach's reviewed face only. The student side is unaffected: the new exercise shows under "Next exercises" and on "This week".
+- **Possible ruling.** Add `feedbackId: IdSchema.optional()` to `AssignmentSchema`, map it in `toAssignment` and in the fixture data. Then the loader filters `assignments.forStudent(enrolment.studentId)` by `feedbackId` (the coach's select policy already covers those rows) and resolves the titles with `library.getMany`. That is one optional field and one mapper line, with no new method and no migration.
+- **Evidence.** `packages/shared/src/schemas.ts` `AssignmentSchema`; `packages/db/src/drizzle/mappers.ts` `toAssignment`; `packages/db/src/repositories.ts` `AssignmentRepository`.
+
+## 25. Slice-feedback decision 16's "`/student` shows the assignment as `feedback_ready`" fails on the four-item home
+
+- **What happened.** After the founder reviews `sub-ada-onset`, its assignment (`asg-ada-onset`, "Balanced onsets on 'ah'") becomes `feedback_ready`. But `/student` lists only the four most recent assignments (`THIS_WEEK_LIMIT`). The new exercise takes the top place, and `asg-ada-onset` ties with `asg-ada-siren-2` at nine days ago with the same `created_at`, so it drops off the list. The run showed "Hum into a vowel", "Five-note runs", "Sustained hiss" and "Siren slides" (feedback ready). Decision 12 says the home changes no query.
+- **Workaround.** None for the case as written. The e2e asserts what `/student` does show after the send: the new exercise first on "This week", and the latest-feedback card for "Balanced onsets on 'ah'" with 2 timestamped comments. The `feedback_ready` assertion is left out.
+- **Affects.** Decision 16's last student-side check only.
+- **Possible ruling.** Seed `asg-ada-onset` later than `asg-ada-siren-2` (for example `-8 * DAY`), so it holds a place in the four. Or assert the status on `/student/exercises/<onset>`, whose badge reads the latest assignment of that exercise. Or raise the limit.
+- **Evidence.** `apps/web/app/routes/student.home.tsx` `THIS_WEEK_LIMIT = 4`; `packages/db/src/fixtures/data.ts` assignments; the failed run's page snapshot of `/student`.
