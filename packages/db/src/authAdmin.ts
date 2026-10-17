@@ -1,3 +1,4 @@
+import { MAGIC_LINK_TYPE } from "@singology/shared";
 import { createClient, type GoTrueAdminApi } from "@supabase/supabase-js";
 
 import { requireEnv, supabaseUrlFrom } from "./env";
@@ -13,7 +14,7 @@ export function createAuthAdmin(): GoTrueAdminApi {
 
 /** A single-use token hash that `/auth/confirm` exchanges for a session, without sending email. */
 export async function magicLinkTokenFor(email: string): Promise<string> {
-  const { data, error } = await createAuthAdmin().generateLink({ type: "magiclink", email });
+  const { data, error } = await createAuthAdmin().generateLink({ type: MAGIC_LINK_TYPE, email });
   if (error) {
     throw error;
   }

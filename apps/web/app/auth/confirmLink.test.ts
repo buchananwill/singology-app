@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { confirmLinkOrigin } from "./confirmLink";
+import { confirmLinkOrigin, confirmUrl } from "./confirmLink";
 
 const APP_ORIGIN = "https://singology.example";
+
+describe("confirmUrl", () => {
+  it("puts the confirm path and a magic-link token on the given origin", () => {
+    expect(confirmUrl("hash-1", APP_ORIGIN).href).toBe(
+      `${APP_ORIGIN}/auth/confirm?token_hash=hash-1&type=magiclink`,
+    );
+  });
+});
 
 describe("confirmLinkOrigin", () => {
   it("keeps the app's own origin and any local one, dropping a path", () => {

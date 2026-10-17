@@ -1,3 +1,6 @@
+/** Sign-in is magic link only, so it is the one email link type the alpha issues or accepts. */
+export const MAGIC_LINK_TYPE = "magiclink";
+
 /** The founder coaches on the premium tier. */
 export const COACH_TIERS = ["premium", "standard"] as const;
 

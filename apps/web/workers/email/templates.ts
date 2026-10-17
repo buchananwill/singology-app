@@ -29,7 +29,7 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
 }
 
-type EmailFrame = Pick<EmailMessage, "to"> & Omit<EmailContent, "path"> & { url: URL };
+export type EmailFrame = Pick<EmailMessage, "to"> & Omit<EmailContent, "path"> & { url: URL };
 
 function compose({ to, subject, paragraph, linkText, url }: EmailFrame): EmailMessage {
   return {
@@ -55,15 +55,15 @@ function nudge(recipient: Recipient, origin: string, content: EmailContent): Ema
   });
 }
 
-export type MagicLinkEmail = Pick<EmailFrame, "to"> & { link: URL };
+export type MagicLinkEmailInput = Pick<EmailFrame, "to" | "url">;
 
-export function magicLinkEmail({ to, link }: MagicLinkEmail): EmailMessage {
+export function magicLinkEmail({ to, url }: MagicLinkEmailInput): EmailMessage {
   return compose({
     to,
     subject: "Your Singology sign-in link",
     paragraph: "Here's your link to sign in. It works once and expires soon.",
     linkText: "Sign in to Singology",
-    url: link,
+    url,
   });
 }
 

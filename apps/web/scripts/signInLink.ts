@@ -4,7 +4,7 @@ import { parseArgs } from "node:util";
 
 import { magicLinkTokenFor } from "@singology/db/admin";
 
-import { confirmHref } from "../app/auth/confirmLink";
+import { confirmUrl } from "../app/auth/confirmLink";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -15,4 +15,4 @@ if (email === undefined || positionals.length !== 1) {
   throw new Error("Usage: sign-in-link <email> [--origin <origin>]");
 }
 
-console.log(new URL(confirmHref(await magicLinkTokenFor(email)), values.origin).href);
+console.log(confirmUrl(await magicLinkTokenFor(email), values.origin).href);

@@ -7,6 +7,7 @@ import {
   ENROLMENT_STATUSES,
   EVENT_KINDS,
   LIBRARY_CATEGORIES,
+  MAGIC_LINK_TYPE,
   MEDIA_KINDS,
   MEDIA_STATUSES,
   MEDIA_STORES,
@@ -128,7 +129,7 @@ export const SignInSchema = z.object({
 /** The query a sign-in link carries to `/auth/confirm`; the alpha only issues magic links. */
 export const ConfirmLinkSchema = z.object({
   token_hash: z.string().min(1),
-  type: z.literal("magiclink"),
+  type: z.literal(MAGIC_LINK_TYPE),
 });
 export type ConfirmLink = z.infer<typeof ConfirmLinkSchema>;
 
@@ -136,9 +137,8 @@ export type ConfirmLink = z.infer<typeof ConfirmLinkSchema>;
 export const SendEmailHookSchema = z.object({
   user: z.object({ email: z.email() }),
   email_data: z.object({
-    token_hash: z.string().min(1),
+    token_hash: ConfirmLinkSchema.shape.token_hash,
     email_action_type: z.string().min(1),
-    redirect_to: z.string(),
     site_url: z.string().optional(),
   }),
 });
