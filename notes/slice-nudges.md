@@ -29,14 +29,14 @@ export interface Recipient {
   email: string;
   displayName: string;
 }
-export type DueNotification =
-  | { kind: "feedback_ready"; recipient: Recipient; coachFirstName: string; exerciseTitle: string; submissionId: string }
-  | { kind: "new_submission"; recipient: Recipient; studentFirstName: string; exerciseTitle: string; submissionId: string }
-  | { kind: "practice_reminder"; recipient: Recipient; waitingCount: number; periodStart: string };
+export interface FeedbackReadyDue { kind: "feedback_ready"; recipient: Recipient; coachFirstName: string; exerciseTitle: string; submissionId: string; feedbackId: string }
+export interface NewSubmissionDue { kind: "new_submission"; recipient: Recipient; studentFirstName: string; exerciseTitle: string; submissionId: string }
+export interface PracticeReminderDue { kind: "practice_reminder"; recipient: Recipient; waitingCount: number; periodStart: string }
+export type DueNotification = FeedbackReadyDue | NewSubmissionDue | PracticeReminderDue;
 export interface NotificationQueue {
-  dueFeedbackReady(since: Date): Promise<DueNotification[]>;
-  dueNewSubmission(since: Date): Promise<DueNotification[]>;
-  duePracticeReminders(periodStart: string): Promise<DueNotification[]>;
+  dueFeedbackReady(since: Date): Promise<FeedbackReadyDue[]>;
+  dueNewSubmission(since: Date): Promise<NewSubmissionDue[]>;
+  duePracticeReminders(periodStart: string): Promise<PracticeReminderDue[]>;
   claim(due: DueNotification): Promise<{ id: string } | null>; // null when already sent
   markSent(id: string, providerMessageId: string): Promise<void>;
   release(id: string): Promise<void>; // the send failed; the row goes, the next tick retries
