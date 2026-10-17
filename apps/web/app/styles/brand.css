@@ -18,11 +18,12 @@
   filter: grayscale(1);
 }
 
-.mantine-Title-root[data-order="1"] {
+/* :where() keeps the display class able to override the h1 tracking. */
+:where(.mantine-Title-root[data-order="1"]) {
   letter-spacing: -0.02em;
 }
 
-.mantine-Title-root[data-order="2"] {
+:where(.mantine-Title-root[data-order="2"]) {
   letter-spacing: -0.01em;
 }
 

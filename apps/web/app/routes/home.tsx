@@ -1,18 +1,10 @@
-import {
-  Box,
-  Button,
-  Container,
-  SimpleGrid,
-  Stack,
-  Table,
-  Text,
-  ThemeIcon,
-  Title,
-} from "@mantine/core";
+import { Button, Container, SimpleGrid, Stack, Table, Text, ThemeIcon, Title } from "@mantine/core";
 import type { CoachOffer } from "@singology/shared";
 import { href, Link } from "react-router";
 
 import { CoachCard } from "../components/CoachCard";
+import { Eyebrow } from "../components/landing/Eyebrow";
+import { HeroPanel } from "../components/landing/HeroPanel";
 import { repositoriesContext } from "../context";
 import { formatCount, formatPence } from "../lib/format";
 import type { Route } from "./+types/home";
@@ -60,98 +52,99 @@ const STEPS = [
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { coaches } = loaderData;
   return (
-    <Container size="md">
-      <Stack gap="xxl" py="lg">
-        <Stack component="section" gap="md" aria-labelledby="hero-title">
-          <Title id="hero-title" order={1}>
-            Personal singing feedback between choir rehearsals
-          </Title>
-          <Text size="lg">
-            Singology is for people who sing in community choirs and want to improve on their own
-            voice. Practise a short exercise, record it on your phone, and a coach sends back
-            comments pinned to the moments that matter.
-          </Text>
-          <Box>
-            <Button component={Link} to={href("/sign-in")} size="md">
-              Sign in
-            </Button>
-          </Box>
-        </Stack>
-
-        <Stack component="section" gap="md" aria-labelledby="how-title">
-          <Title id="how-title" order={2}>
-            How it works
-          </Title>
-          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="lg">
-            {STEPS.map((step, index) => (
-              <Stack key={step.title} gap="xs">
-                <ThemeIcon radius="xl" size="lg" variant="light">
-                  {index + 1}
-                </ThemeIcon>
-                <Title order={3} size="h4">
-                  {step.title}
-                </Title>
-                <Text size="sm">{step.body}</Text>
-              </Stack>
-            ))}
-          </SimpleGrid>
-        </Stack>
-
-        <Stack component="section" gap="md" aria-labelledby="coaches-title">
-          <Title id="coaches-title" order={2}>
-            The coaches
-          </Title>
-          <SimpleGrid cols={{ base: 1, sm: 2 }}>
-            {coaches.map(({ coach }) => (
-              <CoachCard key={coach.id} {...coach} />
-            ))}
-          </SimpleGrid>
-        </Stack>
-
-        <Stack component="section" gap="md" aria-labelledby="pricing-title">
-          <Title id="pricing-title" order={2}>
-            Pricing
-          </Title>
-          <Table withTableBorder data-testid="pricing-table">
-            <Table.Caption>
-              Illustrative pricing. These figures show how plans could work and are not final.
-            </Table.Caption>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Coach</Table.Th>
-                <Table.Th>Monthly plan</Table.Th>
-                <Table.Th>Single review</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {coaches.map(({ coach, monthly, single }) => (
-                <Table.Tr key={coach.id}>
-                  <Table.Th scope="row">{coach.displayName}</Table.Th>
-                  <Table.Td>{monthly ? formatMonthlyOffer(monthly) : "–"}</Table.Td>
-                  <Table.Td>{single ? formatPence(single.pricePence) : "–"}</Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-          <Text size="sm" c="dimmed">
-            A monthly plan includes the number of reviews shown, every month. A single review is a
-            way to try it once.
-          </Text>
-        </Stack>
-
-        <Stack component="section" gap="sm" align="flex-start" aria-labelledby="cta-title">
-          <Title id="cta-title" order={2} size="h3">
-            Already invited?
-          </Title>
-          <Text>
-            Singology is in a private alpha. If you have an invitation, sign in with your email
-            address and we'll send you a link.
-          </Text>
-          <Button component={Link} to={href("/sign-in")}>
+    <>
+      <HeroPanel
+        eyebrow="For choir singers"
+        title="Personal singing feedback between choir rehearsals"
+        lead="Singology is for people who sing in community choirs and want to improve on their own voice. Practise a short exercise, record it on your phone, and a coach sends back comments pinned to the moments that matter."
+        aside="If you've never had a lesson, you're exactly who this is for."
+        action={
+          <Button component={Link} to={href("/sign-in")} size="md">
             Sign in
           </Button>
+        }
+      />
+      <Container size="md">
+        <Stack gap="xxl" py="lg">
+          <Stack component="section" gap="md" aria-labelledby="how-title">
+            <Eyebrow>Three steps</Eyebrow>
+            <Title id="how-title" order={2}>
+              How it works
+            </Title>
+            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="lg">
+              {STEPS.map((step, index) => (
+                <Stack key={step.title} gap="xs">
+                  <ThemeIcon radius="xl" size="lg" variant="light">
+                    {index + 1}
+                  </ThemeIcon>
+                  <Title order={3} size="h4">
+                    {step.title}
+                  </Title>
+                  <Text size="sm">{step.body}</Text>
+                </Stack>
+              ))}
+            </SimpleGrid>
+          </Stack>
+
+          <Stack component="section" gap="md" aria-labelledby="coaches-title">
+            <Eyebrow>Who you will work with</Eyebrow>
+            <Title id="coaches-title" order={2}>
+              The coaches
+            </Title>
+            <SimpleGrid cols={{ base: 1, sm: 2 }}>
+              {coaches.map(({ coach }) => (
+                <CoachCard key={coach.id} {...coach} />
+              ))}
+            </SimpleGrid>
+          </Stack>
+
+          <Stack component="section" gap="md" aria-labelledby="pricing-title">
+            <Eyebrow>Plans</Eyebrow>
+            <Title id="pricing-title" order={2}>
+              Pricing
+            </Title>
+            <Table withTableBorder data-testid="pricing-table">
+              <Table.Caption>
+                Illustrative pricing. These figures show how plans could work and are not final.
+              </Table.Caption>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Coach</Table.Th>
+                  <Table.Th>Monthly plan</Table.Th>
+                  <Table.Th>Single review</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {coaches.map(({ coach, monthly, single }) => (
+                  <Table.Tr key={coach.id}>
+                    <Table.Th scope="row">{coach.displayName}</Table.Th>
+                    <Table.Td>{monthly ? formatMonthlyOffer(monthly) : "–"}</Table.Td>
+                    <Table.Td>{single ? formatPence(single.pricePence) : "–"}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+            <Text size="sm" c="dimmed">
+              A monthly plan includes the number of reviews shown, every month. A single review is a
+              way to try it once.
+            </Text>
+          </Stack>
+
+          <Stack component="section" gap="sm" align="flex-start" aria-labelledby="cta-title">
+            <Eyebrow>Private alpha</Eyebrow>
+            <Title id="cta-title" order={2} size="h3">
+              Already invited?
+            </Title>
+            <Text>
+              Singology is in a private alpha. If you have an invitation, sign in with your email
+              address and we'll send you a link.
+            </Text>
+            <Button component={Link} to={href("/sign-in")}>
+              Sign in
+            </Button>
+          </Stack>
         </Stack>
-      </Stack>
-    </Container>
+      </Container>
+    </>
   );
 }
