@@ -76,9 +76,13 @@ export const WaveformPeaksSchema = z.object({
 });
 export type WaveformPeaks = z.infer<typeof WaveformPeaksSchema>;
 
-export const CoachSchema = z.object({
+export const ProfileSchema = z.object({
   id: IdSchema,
   displayName: z.string().min(1),
+});
+export type Profile = z.infer<typeof ProfileSchema>;
+
+export const CoachSchema = ProfileSchema.extend({
   tier: CoachTierSchema,
   bio: z.string(),
   avatarSrc: z.string().min(1),
@@ -102,18 +106,11 @@ export const CoachOfferSchema = z.object({
 });
 export type CoachOffer = z.infer<typeof CoachOfferSchema>;
 
-export const StudentSchema = z.object({
-  id: IdSchema,
-  displayName: z.string().min(1),
+export const StudentSchema = ProfileSchema.extend({
   voiceType: VoiceTypeSchema,
 });
 export type Student = z.infer<typeof StudentSchema>;
 
-/** The signed-in user's own profile row. */
-export const ProfileSchema = StudentSchema.pick({ id: true, displayName: true });
-export type Profile = z.infer<typeof ProfileSchema>;
-
-/** Who is signed in, and which roles they hold; a user may hold both. */
 export const MeSchema = z.object({
   profile: ProfileSchema,
   student: StudentSchema.nullable(),
@@ -121,8 +118,16 @@ export const MeSchema = z.object({
 });
 export type Me = z.infer<typeof MeSchema>;
 
-export const SignInSchema = z.object({ email: z.email("Enter an email address.") });
-export type SignIn = z.infer<typeof SignInSchema>;
+export const SignInSchema = z.object({
+  email: z.email("Enter the email address you were invited with."),
+});
+
+/** The query a sign-in link carries to `/auth/confirm`; the alpha only issues magic links. */
+export const ConfirmLinkSchema = z.object({
+  token_hash: z.string().min(1),
+  type: z.literal("magiclink"),
+});
+export type ConfirmLink = z.infer<typeof ConfirmLinkSchema>;
 
 export const EnrolmentStatusSchema = z.enum(ENROLMENT_STATUSES);
 export type EnrolmentStatus = z.infer<typeof EnrolmentStatusSchema>;

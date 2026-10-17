@@ -4,7 +4,7 @@ export const COACH_TIERS = ["premium", "standard"] as const;
 /** A monthly plan with a set number of reviews, or one single review. */
 export const OFFER_BILLING = ["monthly", "single"] as const;
 
-/** The roles a user can hold; one user may hold both. */
+/** In display order: the nav and the header list a user's roles in this order. */
 export const USER_ROLES = ["student", "coach"] as const;
 
 export const LIBRARY_CATEGORIES = ["breath", "onset", "range", "agility"] as const;
