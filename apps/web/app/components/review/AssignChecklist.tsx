@@ -1,9 +1,6 @@
-import { Badge, Checkbox, Group, Stack, Text } from "@mantine/core";
-import type { LibraryItem } from "@singology/shared";
+import { Checkbox, Stack } from "@mantine/core";
 
-import { CATEGORY_LABEL } from "../../lib/format";
-
-export type AssignableItem = Pick<LibraryItem, "id" | "title" | "category">;
+import { type AssignableItem, AssignableItemLabel } from "./AssignableItemLabel";
 
 export interface AssignChecklistProps {
   items: readonly AssignableItem[];
@@ -27,16 +24,7 @@ export function AssignChecklist({ items, value, onChange, disabled }: AssignChec
             key={item.id}
             value={item.id}
             disabled={disabled}
-            label={
-              <Group gap="xxs" wrap="nowrap" component="span">
-                <Text span size="sm">
-                  {item.title}
-                </Text>
-                <Badge variant="light" size="xs" component="span">
-                  {CATEGORY_LABEL[item.category]}
-                </Badge>
-              </Group>
-            }
+            label={<AssignableItemLabel item={item} />}
           />
         ))}
       </Stack>

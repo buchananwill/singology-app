@@ -4,6 +4,8 @@ import { RouterContextProvider } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { coachIdContext, repositoriesContext } from "../context";
+import { routeArgs } from "../lib/routeArgs";
+import type { Route } from "./+types/coach.review";
 import { action } from "./coach.review";
 
 const send: SendFeedback = {
@@ -14,20 +16,13 @@ const send: SendFeedback = {
   assignLibraryItemIds: [],
 };
 
-function actionArgs(context: RouterContextProvider, submissionId: string) {
-  const url = `http://localhost/coach/reviews/${submissionId}`;
-  const request = new Request(url, {
+function actionArgs(context: RouterContextProvider, submissionId: string): Route.ActionArgs {
+  const request = new Request(`http://localhost/coach/reviews/${submissionId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(send),
   });
-  return {
-    context,
-    request,
-    url: new URL(url),
-    params: { submissionId },
-    pattern: "/coach/reviews/:submissionId",
-  };
+  return routeArgs(context, request, "/coach/reviews/:submissionId", { submissionId });
 }
 
 describe("the review action", () => {

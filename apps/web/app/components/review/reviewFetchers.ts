@@ -1,16 +1,44 @@
-import type { RecordingUpload } from "@singology/shared";
+import type { Feedback, RecordingUpload } from "@singology/shared";
 
-import type { MessageResult } from "../../lib/actionResult";
+import type { ActionResult } from "../../lib/actionResult";
 
-/** A reply upload echoes its metadata back; a sent review returns the feedback's id. */
-export type ReviewActionResult = MessageResult & { upload?: RecordingUpload; feedbackId?: string };
+export interface ReplyAttached {
+  message: string;
+  upload: RecordingUpload;
+}
 
-/** The fetcher key the reply's upload panel shares with the page, one per submission. */
+export interface FeedbackSent {
+  message: string;
+  feedbackId: Feedback["id"];
+}
+
+export type ReviewActionResult = ActionResult<ReplyAttached> | ActionResult<FeedbackSent>;
+
+export function isFeedbackSent(result: unknown): result is { ok: true } & FeedbackSent {
+  return (
+    typeof result === "object" &&
+    result !== null &&
+    "ok" in result &&
+    result.ok === true &&
+    "feedbackId" in result &&
+    typeof result.feedbackId === "string"
+  );
+}
+
+export function isReplyAttached(result: unknown): result is { ok: true } & ReplyAttached {
+  return (
+    typeof result === "object" &&
+    result !== null &&
+    "ok" in result &&
+    result.ok === true &&
+    "upload" in result
+  );
+}
+
 export function replyFetcherKey(submissionId: string): string {
   return `coach-reply-${submissionId}`;
 }
 
-/** The fetcher key the send card shares with the page, one per submission. */
 export function sendFetcherKey(submissionId: string): string {
   return `coach-send-${submissionId}`;
 }

@@ -1,6 +1,5 @@
 import { Box, Button, Card, Stack, Text, Textarea, Title } from "@mantine/core";
-import type { RecordingUpload, SendFeedback } from "@singology/shared";
-import type { Dispatch } from "react";
+import type { SendFeedback } from "@singology/shared";
 import { href, Link, useFetcher } from "react-router";
 
 import { formatCount } from "../../lib/format";
@@ -8,29 +7,19 @@ import { useActionNotification } from "../../lib/useActionNotification";
 import { useHydrated } from "../../lib/useHydrated";
 import { SuccessState } from "../SuccessState";
 import type { ReviewActionResult } from "./reviewFetchers";
-import type { ReviewEvent, ReviewState } from "./reviewReducer";
+import type { ReviewSession } from "./useReviewSession";
 
 export interface SendFeedbackCardProps {
-  review: ReviewState;
-  dispatch: Dispatch<ReviewEvent>;
-  reply: RecordingUpload | null;
+  session: ReviewSession;
   studentFirstName: string;
-  /** Lets the page read the send's result with `useFetcher({ key })`. */
-  fetcherKey: string;
 }
 
 /** Posts the whole review as JSON to the route action, which persists it in one go. */
-export function SendFeedbackCard({
-  review,
-  dispatch,
-  reply,
-  studentFirstName,
-  fetcherKey,
-}: SendFeedbackCardProps) {
+export function SendFeedbackCard({ session, studentFirstName }: SendFeedbackCardProps) {
+  const { review, dispatch, reply, sent, keys } = session;
   const hydrated = useHydrated();
-  const fetcher = useFetcher<ReviewActionResult>({ key: fetcherKey });
+  const fetcher = useFetcher<ReviewActionResult>({ key: keys.send });
   const result = useActionNotification(fetcher, "Feedback sent");
-  const sent = result?.ok === true;
 
   function onSend() {
     // Typed as the parsed shape: JSON-safe (the schema's input type has `unknown` coerced numbers).
@@ -50,7 +39,7 @@ export function SendFeedbackCard({
         <Title order={2} size="h3">
           Send feedback
         </Title>
-        {sent ? (
+        {sent && result?.ok === true ? (
           <SuccessState title="Sent" message={result.message} testId="send-success">
             <Button component={Link} to={href("/coach")} variant="light">
               Back to the queue

@@ -1,11 +1,12 @@
 import type { FeedbackComment } from "@singology/shared";
 
+/** The server gives a sent comment its feedback. */
+export type DraftComment = Omit<FeedbackComment, "feedbackId">;
+
 /** Page-local to the review form until the whole review is sent. */
 export interface ReviewState {
-  /** A page-local key for draft comments; never sent. */
-  feedbackId: string;
   /** Sorted by time, so list numbers match the waveform markers. */
-  comments: readonly FeedbackComment[];
+  comments: readonly DraftComment[];
   nextCommentNumber: number;
   /** Pinned at the time the draft was opened at. */
   draft: { tSeconds: number } | null;
@@ -21,18 +22,13 @@ export type ReviewEvent =
   | { type: "setAssigned"; libraryItemIds: readonly string[] }
   | { type: "setSummary"; summary: string };
 
-export function initialReviewState(
-  feedbackId: string,
-  comments: readonly FeedbackComment[],
-  summary = "",
-): ReviewState {
+export function initialReviewState(comments: readonly DraftComment[] = []): ReviewState {
   return {
-    feedbackId,
     comments: comments.toSorted((a, b) => a.tSeconds - b.tSeconds),
     nextCommentNumber: 1,
     draft: null,
     assigned: [],
-    summary,
+    summary: "",
   };
 }
 
@@ -47,9 +43,8 @@ export function reviewReducer(state: ReviewState, event: ReviewEvent): ReviewSta
       if (state.draft === null || body === "") {
         return state;
       }
-      const comment: FeedbackComment = {
+      const comment: DraftComment = {
         id: `draft-comment-${state.nextCommentNumber}`,
-        feedbackId: state.feedbackId,
         tSeconds: state.draft.tSeconds,
         body,
       };

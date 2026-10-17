@@ -10,6 +10,7 @@
     "e2e/**/*",
     "scripts/**/*",
     "app/auth/confirmLink.ts",
+    "app/lib/format.ts",
     "test/**/*"
   ],
   "compilerOptions": {

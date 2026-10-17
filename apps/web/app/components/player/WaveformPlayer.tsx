@@ -1,5 +1,5 @@
 import { Box, Stack, Text, useMantineTheme } from "@mantine/core";
-import type { FeedbackComment, MediaAsset } from "@singology/shared";
+import type { MediaAsset } from "@singology/shared";
 import {
   type Ref,
   type SyntheticEvent,
@@ -15,14 +15,15 @@ import { PlayerControls } from "./PlayerControls";
 import { type PlayerHandle, usePlayer } from "./PlayerProvider";
 import { shouldReportMediaTime } from "./playerReducer";
 import { useWaveformInstance } from "./useWaveformInstance";
+import type { PlayerComment } from "./waveformDom";
 import { waveformTheme } from "./waveformTheme";
 
-const NO_COMMENTS: readonly FeedbackComment[] = [];
+const NO_COMMENTS: readonly PlayerComment[] = [];
 
 export interface WaveformPlayerProps {
   asset: MediaAsset;
   /** Coach comments to pin on the waveform; clicking one seeks to it. */
-  comments?: readonly FeedbackComment[];
+  comments?: readonly PlayerComment[];
   /** Accessible name for the player, e.g. "Student take". */
   label: string;
   /** Waveform height in pixels. */

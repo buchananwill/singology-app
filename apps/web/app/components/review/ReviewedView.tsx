@@ -1,50 +1,32 @@
-import { Box, Button, Card, Grid, List, Stack, Text, Title } from "@mantine/core";
-import type { Feedback, FeedbackComment, MediaAsset, Student } from "@singology/shared";
+import { Box, Button, Card, List, Stack, Text, Title } from "@mantine/core";
+import type { FeedbackWithComments } from "@singology/db";
+import type { MediaAsset, Student } from "@singology/shared";
 import { href, Link } from "react-router";
 
-import { CATEGORY_LABEL, formatDate } from "../../lib/format";
-import { CommentList } from "../player/CommentList";
-import { StandalonePlayer } from "../player/StandalonePlayer";
-import type { AssignableItem } from "./AssignChecklist";
+import { formatDate } from "../../lib/format";
+import { type AssignableItem, AssignableItemLabel } from "./AssignableItemLabel";
+import { ReviewColumns } from "./ReviewColumns";
+import { ReviewTake } from "./ReviewTake";
 
-export interface ReviewedViewProps {
+export type ReviewedViewProps = Readonly<FeedbackWithComments> & {
   student: Student;
   take: MediaAsset;
-  feedback: Feedback;
-  /** In time order, so list numbers match the waveform markers. */
-  comments: readonly FeedbackComment[];
-  /** The exercises this feedback assigned. */
   assigned: readonly AssignableItem[];
-}
+};
 
-/** The sent feedback, read-only: sent feedback is never edited. */
 export function ReviewedView({ student, take, feedback, comments, assigned }: ReviewedViewProps) {
   return (
-    <Grid gap="lg" data-testid="reviewed-view">
-      <Grid.Col span={{ base: 12, md: 7 }}>
-        <Stack component="section" gap="sm" aria-labelledby="take-title" data-testid="review-take">
-          <Title id="take-title" order={2} size="h3">
-            The take
-          </Title>
-          <StandalonePlayer
-            asset={take}
-            comments={comments}
-            label={`${student.displayName}'s take`}
-          >
-            <Title order={3} size="h4">
-              Comments ({comments.length})
-            </Title>
-            {comments.length > 0 ? (
-              <CommentList comments={comments} />
-            ) : (
-              <Text size="sm" c="dimmed">
-                No timestamped comments on this take.
-              </Text>
-            )}
-          </StandalonePlayer>
-        </Stack>
-      </Grid.Col>
-      <Grid.Col span={{ base: 12, md: 5 }}>
+    <ReviewColumns
+      testId="reviewed-view"
+      main={
+        <ReviewTake
+          take={take}
+          studentName={student.displayName}
+          comments={comments}
+          emptyText="No timestamped comments on this take."
+        />
+      }
+      side={
         <Card withBorder padding="lg" data-testid="sent-feedback">
           <Stack gap="md">
             <Title order={2} size="h3">
@@ -68,7 +50,7 @@ export function ReviewedView({ student, take, feedback, comments, assigned }: Re
                 <List size="sm">
                   {assigned.map((item) => (
                     <List.Item key={item.id}>
-                      {item.title} · {CATEGORY_LABEL[item.category]}
+                      <AssignableItemLabel item={item} />
                     </List.Item>
                   ))}
                 </List>
@@ -85,7 +67,7 @@ export function ReviewedView({ student, take, feedback, comments, assigned }: Re
             </Box>
           </Stack>
         </Card>
-      </Grid.Col>
-    </Grid>
+      }
+    />
   );
 }

@@ -1,27 +1,38 @@
 import { Anchor, Badge, Container, Group, Stack, Text, Title } from "@mantine/core";
-import type { LibraryItem, ReviewMode, Student, Submission } from "@singology/shared";
+import type { Coach, LibraryItem, ReviewMode, Student, Submission } from "@singology/shared";
 import { href, Link } from "react-router";
 
 import { CATEGORY_LABEL, formatDate } from "../../lib/format";
 import { ReviewedView, type ReviewedViewProps } from "./ReviewedView";
-import { ReviewForm, type ReviewFormProps } from "./ReviewForm";
+import { ReviewForm, type ReviewFormData } from "./ReviewForm";
 import { SubmittedAgo } from "./SubmittedAgo";
+import { useReviewSession } from "./useReviewSession";
 
-interface ReviewHeaderProps {
+export interface ReviewHeaderProps {
   now: number;
-  turnaroundHours: number;
+  turnaroundHours: Coach["turnaroundHours"];
   submission: Submission;
   student: Student;
   item: LibraryItem;
 }
 
-export type ReviewWorkspaceProps = ReviewHeaderProps &
-  (
-    | ({ mode: Extract<ReviewMode, "reviewing"> } & ReviewFormProps)
-    | ({ mode: Extract<ReviewMode, "reviewed"> } & ReviewedViewProps)
-  );
+export type ReviewingFace = { mode: Extract<ReviewMode, "reviewing"> } & ReviewFormData;
+export type ReviewedFace = { mode: Extract<ReviewMode, "reviewed"> } & ReviewedViewProps;
+export type ReviewWorkspaceProps = ReviewHeaderProps & (ReviewingFace | ReviewedFace);
 
-function ReviewHeader({ now, turnaroundHours, submission, student, item }: ReviewHeaderProps) {
+interface ReviewHeaderState {
+  /** A sent review has no deadline left to count. */
+  sent: boolean;
+}
+
+function ReviewHeader({
+  now,
+  turnaroundHours,
+  submission,
+  student,
+  item,
+  sent,
+}: ReviewHeaderProps & ReviewHeaderState) {
   return (
     <div>
       <Anchor component={Link} to={href("/coach")} size="sm">
@@ -32,26 +43,47 @@ function ReviewHeader({ now, turnaroundHours, submission, student, item }: Revie
         <Text c="dimmed">{item.title}</Text>
         <Badge variant="light">{CATEGORY_LABEL[item.category]}</Badge>
       </Group>
-      <Text size="sm" c="dimmed">
-        Submitted {formatDate(submission.submittedAt)} (
-        <SubmittedAgo
-          serverNow={now}
-          submittedAt={submission.submittedAt}
-          turnaroundHours={turnaroundHours}
-        />
-        )
+      <Text size="sm" c="dimmed" data-testid="review-submitted">
+        Submitted {formatDate(submission.submittedAt)}
+        {!sent && (
+          <>
+            {" "}
+            (
+            <SubmittedAgo
+              serverNow={now}
+              submittedAt={submission.submittedAt}
+              turnaroundHours={turnaroundHours}
+            />
+            )
+          </>
+        )}
       </Text>
     </div>
   );
 }
 
-/** A review still being written, or the read-only feedback once it is sent. */
+function Reviewing(props: ReviewHeaderProps & ReviewingFace) {
+  const session = useReviewSession(props.submission.id);
+  return (
+    <>
+      <ReviewHeader {...props} sent={session.sent} />
+      <ReviewForm {...props} session={session} />
+    </>
+  );
+}
+
 export function ReviewWorkspace(props: ReviewWorkspaceProps) {
   return (
     <Container size="lg">
       <Stack gap="lg">
-        <ReviewHeader {...props} />
-        {props.mode === "reviewed" ? <ReviewedView {...props} /> : <ReviewForm {...props} />}
+        {props.mode === "reviewed" ? (
+          <>
+            <ReviewHeader {...props} sent />
+            <ReviewedView {...props} />
+          </>
+        ) : (
+          <Reviewing {...props} />
+        )}
       </Stack>
     </Container>
   );

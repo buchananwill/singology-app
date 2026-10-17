@@ -1,18 +1,22 @@
 import type { Repositories } from "@singology/db";
 import {
   type LibraryItem,
+  type MediaAsset,
   reviewActionSchemaFor,
-  type ReviewMode,
+  reviewModeOf,
   type Submission,
 } from "@singology/shared";
 import { data, type ShouldRevalidateFunctionArgs } from "react-router";
 
-import type { AssignableItem } from "../components/review/AssignChecklist";
-import type { ReviewActionResult } from "../components/review/reviewFetchers";
-import { ReviewWorkspace } from "../components/review/ReviewWorkspace";
+import type { AssignableItem } from "../components/review/AssignableItemLabel";
+import type { PreviousTakeProps } from "../components/review/PreviousTake";
+import { isFeedbackSent, type ReviewActionResult } from "../components/review/reviewFetchers";
+import type { TakeForReview } from "../components/review/ReviewForm";
+import { ReviewWorkspace, type ReviewHeaderProps } from "../components/review/ReviewWorkspace";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import { parseInput, readJson } from "../lib/actionResult";
-import { firstName, formatCount } from "../lib/format";
+import { firstName, formatCount, isUnplayableStatus } from "../lib/format";
+import { recordEventBestEffort } from "../lib/recordEvent";
 import type { Route } from "./+types/coach.review";
 
 export const meta: Route.MetaFunction = ({ loaderData }) => [
@@ -23,12 +27,20 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
   },
 ];
 
-function reviewModeOf(submission: Submission): ReviewMode {
-  return submission.status === "reviewed" ? "reviewed" : "reviewing";
-}
-
 function toAssignable({ id, title, category }: LibraryItem): AssignableItem {
   return { id, title, category };
+}
+
+function takeForReview(
+  submission: Submission,
+  asset: MediaAsset | undefined,
+): TakeForReview | undefined {
+  if (asset) {
+    return { playable: true, asset };
+  }
+  return isUnplayableStatus(submission.status)
+    ? { playable: false, status: submission.status }
+    : undefined;
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {
@@ -41,7 +53,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     throw data("Submission not found", { status: 404 });
   }
   const { submission, enrolment } = found;
-  const [coach, student, item, take] = await Promise.all([
+  const [coach, student, item, asset] = await Promise.all([
     repositories.coaches.get(enrolment.coachId),
     repositories.students.get(enrolment.studentId),
     repositories.library.get(submission.libraryItemId),
@@ -56,28 +68,24 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     submission,
     student,
     item,
-  };
+  } satisfies ReviewHeaderProps;
   if (reviewModeOf(submission) === "reviewed") {
-    const [sent, assignments] = await Promise.all([
-      repositories.feedback.forSubmissionWithComments(submission.id),
-      repositories.assignments.forStudent(enrolment.studentId),
-    ]);
-    if (!take || !sent) {
+    const sent = await repositories.feedback.forSubmissionWithComments(submission.id);
+    if (!asset || !sent) {
       throw data("Feedback not found", { status: 404 });
     }
-    const assigned = await repositories.library.getMany(
-      assignments.filter((a) => a.feedbackId === sent.feedback.id).map((a) => a.libraryItemId),
-    );
+    const assignments = await repositories.assignments.forFeedback(sent.feedback.id);
+    const assigned = await repositories.library.getMany(assignments.map((a) => a.libraryItemId));
     return {
       ...header,
       mode: "reviewed" as const,
-      take,
+      take: asset,
       ...sent,
       assigned: assigned.map(toAssignable),
     };
   }
-  // Only a processing or failed take has no playable media yet.
-  if (!take && submission.status === "awaiting_review") {
+  const take = takeForReview(submission, asset);
+  if (!take) {
     throw data("Submission media not found", { status: 404 });
   }
   const [previous, library] = await Promise.all([
@@ -87,7 +95,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   return {
     ...header,
     mode: "reviewing" as const,
-    take: take ?? null,
+    take,
     previous,
     library: library.map(toAssignable),
   };
@@ -103,7 +111,7 @@ export async function action({ context, params, request }: Route.ActionArgs) {
     return data<ReviewActionResult>({ ok: false, error: "Submission not found." }, { status: 404 });
   }
   const { submission, enrolment } = found;
-  // Sent feedback is immutable; the database's unique constraint is the backstop.
+  // The database's unique constraint is the backstop.
   if (reviewModeOf(submission) === "reviewed") {
     return data<ReviewActionResult>(
       { ok: false, error: "This take already has feedback." },
@@ -136,18 +144,15 @@ export async function action({ context, params, request }: Route.ActionArgs) {
     });
   }
   const sent = await repositories.feedback.send({ ...input, submissionId: submission.id });
-  await repositories.events
-    .record({
-      kind: "feedback_sent",
-      entityId: sent.feedback.id,
-      meta: {
-        submissionId: submission.id,
-        commentCount: sent.comments.length,
-        assignedCount: input.assignLibraryItemIds.length,
-      },
-    })
-    // The review is sent whatever happens to its analytics row, so the coach is told it was.
-    .catch((error: unknown) => console.error("feedback_sent event not recorded", error));
+  await recordEventBestEffort(repositories.events, {
+    kind: "feedback_sent",
+    entityId: sent.feedback.id,
+    meta: {
+      submissionId: submission.id,
+      commentCount: sent.comments.length,
+      assignedCount: input.assignLibraryItemIds.length,
+    },
+  });
   const studentName = student ? firstName(student.displayName) : "the student";
   return data<ReviewActionResult>({
     ok: true,
@@ -160,14 +165,15 @@ export async function action({ context, params, request }: Route.ActionArgs) {
 export function shouldRevalidate({
   actionResult,
   defaultShouldRevalidate,
-}: ShouldRevalidateFunctionArgs) {
-  const sentHere =
-    typeof actionResult === "object" && actionResult !== null && "feedbackId" in actionResult;
-  return sentHere ? false : defaultShouldRevalidate;
+}: ShouldRevalidateFunctionArgs): boolean {
+  return isFeedbackSent(actionResult) ? false : defaultShouldRevalidate;
 }
 
 /** The student's previous take of the same exercise, with its media and any comments. */
-async function loadPreviousTake(repositories: Repositories, submissionId: string) {
+async function loadPreviousTake(
+  repositories: Repositories,
+  submissionId: string,
+): Promise<PreviousTakeProps | null> {
   const previous = await repositories.submissions.previousFor(submissionId);
   if (!previous) {
     return null;

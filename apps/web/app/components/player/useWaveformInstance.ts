@@ -1,10 +1,10 @@
-import type { FeedbackComment, MediaAsset } from "@singology/shared";
+import type { MediaAsset } from "@singology/shared";
 import { type Dispatch, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 
 import { attachMediaSource, type SourceMode } from "./attachMediaSource";
 import type { LoopState, PlayerEvent } from "./playerReducer";
-import { commentMarker, fetchPeaks } from "./waveformDom";
+import { commentMarker, fetchPeaks, type PlayerComment } from "./waveformDom";
 import type { WaveformTheme } from "./waveformTheme";
 
 type Regions = InstanceType<typeof RegionsPlugin>;
@@ -16,7 +16,7 @@ export interface WaveformInstanceOptions {
   containerRef: RefObject<HTMLElement | null>;
   mediaRef: RefObject<HTMLMediaElement | null>;
   asset: Pick<MediaAsset, "src" | "hlsSrc" | "peaksSrc">;
-  comments: readonly FeedbackComment[];
+  comments: readonly PlayerComment[];
   loop: LoopState;
   dispatch: Dispatch<PlayerEvent>;
   height: number;

@@ -1,84 +1,66 @@
-import { Alert, Card, Grid, Stack, Text, Title } from "@mantine/core";
+import { Alert, Card, Stack, Text } from "@mantine/core";
 import type { MediaAsset, Student, Submission } from "@singology/shared";
-import { useReducer } from "react";
-import { useFetcher } from "react-router";
 
-import { firstName, UNPLAYABLE_TAKE_MESSAGE } from "../../lib/format";
-import { CommentList } from "../player/CommentList";
-import { StandalonePlayer } from "../player/StandalonePlayer";
+import { firstName, UNPLAYABLE_TAKE_MESSAGE, type UnplayableStatus } from "../../lib/format";
 import { UploadPanel } from "../upload/UploadPanel";
 import { AddComment } from "./AddComment";
-import { type AssignableItem, AssignChecklist } from "./AssignChecklist";
+import type { AssignableItem } from "./AssignableItemLabel";
+import { AssignChecklist } from "./AssignChecklist";
 import { PreviousTake, type PreviousTakeProps } from "./PreviousTake";
-import { type ReviewActionResult, replyFetcherKey, sendFetcherKey } from "./reviewFetchers";
-import { initialReviewState, reviewReducer } from "./reviewReducer";
+import { ReviewColumns } from "./ReviewColumns";
+import { ReviewTake } from "./ReviewTake";
 import { SendFeedbackCard } from "./SendFeedbackCard";
+import type { ReviewSession } from "./useReviewSession";
 
-export interface ReviewFormProps {
+export type TakeForReview =
+  { playable: true; asset: MediaAsset } | { playable: false; status: UnplayableStatus };
+
+/** What the loader sends for a review still being written. */
+export interface ReviewFormData {
   submission: Submission;
   student: Student;
-  /** `null` while the take is processing or after it failed. */
-  take: MediaAsset | null;
+  take: TakeForReview;
   previous: PreviousTakeProps | null;
   library: readonly AssignableItem[];
 }
 
-/** Draft comments only key the page-local state; the server assigns the real ids. */
-const DRAFT_FEEDBACK_KEY = "draft";
+export interface ReviewFormProps extends ReviewFormData {
+  session: ReviewSession;
+}
 
-export function ReviewForm({ submission, student, take, previous, library }: ReviewFormProps) {
-  const [review, dispatch] = useReducer(reviewReducer, null, () =>
-    initialReviewState(DRAFT_FEEDBACK_KEY, []),
-  );
-  const replyFetcher = useFetcher<ReviewActionResult>({ key: replyFetcherKey(submission.id) });
-  const reply = replyFetcher.data?.ok === true ? (replyFetcher.data.upload ?? null) : null;
-  // Once sent the review is immutable, so nothing on the page stays editable.
-  const sent = useFetcher<ReviewActionResult>({ key: sendFetcherKey(submission.id) }).data?.ok;
+export function ReviewForm({
+  submission,
+  student,
+  take,
+  previous,
+  library,
+  session,
+}: ReviewFormProps) {
+  const { review, dispatch, sent, keys } = session;
   const studentFirstName = firstName(student.displayName);
   return (
-    <Grid gap="lg">
-      <Grid.Col span={{ base: 12, md: 7 }}>
+    <ReviewColumns
+      main={
         <Stack gap="md">
           {submission.note !== "" && (
             <Text data-testid="review-note">
               <strong>{studentFirstName}'s note:</strong> {submission.note}
             </Text>
           )}
-          <Stack
-            component="section"
-            gap="sm"
-            aria-labelledby="take-title"
-            data-testid="review-take"
-          >
-            <Title id="take-title" order={2} size="h3">
-              The take
-            </Title>
-            {take === null ? (
-              <Alert variant="light" data-testid="take-unplayable">
-                {submission.status === "processing" || submission.status === "failed"
-                  ? UNPLAYABLE_TAKE_MESSAGE[submission.status]
-                  : null}
-              </Alert>
-            ) : (
-              <StandalonePlayer
-                asset={take}
-                comments={review.comments}
-                label={`${student.displayName}'s take`}
-              >
-                {sent !== true && <AddComment draft={review.draft} dispatch={dispatch} />}
-                <Title order={3} size="h4">
-                  Comments ({review.comments.length})
-                </Title>
-                {review.comments.length > 0 ? (
-                  <CommentList comments={review.comments} />
-                ) : (
-                  <Text size="sm" c="dimmed">
-                    No comments yet. Pause where you hear something and add one.
-                  </Text>
-                )}
-              </StandalonePlayer>
-            )}
-          </Stack>
+          {take.playable ? (
+            <ReviewTake
+              take={take.asset}
+              studentName={student.displayName}
+              comments={review.comments}
+              emptyText="No comments yet. Pause where you hear something and add one."
+            >
+              {!sent && <AddComment draft={review.draft} dispatch={dispatch} />}
+            </ReviewTake>
+          ) : (
+            <Alert variant="light" data-testid="take-unplayable">
+              {UNPLAYABLE_TAKE_MESSAGE[take.status]}
+            </Alert>
+          )}
           {previous !== null ? (
             <PreviousTake {...previous} />
           ) : (
@@ -87,16 +69,16 @@ export function ReviewForm({ submission, student, take, previous, library }: Rev
             </Text>
           )}
         </Stack>
-      </Grid.Col>
-      <Grid.Col span={{ base: 12, md: 5 }}>
+      }
+      side={
         <Stack gap="md">
-          {sent !== true && (
+          {!sent && (
             <UploadPanel
               title="Reply (optional)"
               submitLabel="Attach reply"
               successTitle="Reply attached"
               fields={{ intent: "reply" }}
-              fetcherKey={replyFetcherKey(submission.id)}
+              fetcherKey={keys.reply}
             />
           )}
           <Card withBorder padding="lg">
@@ -104,18 +86,12 @@ export function ReviewForm({ submission, student, take, previous, library }: Rev
               items={library}
               value={review.assigned}
               onChange={(libraryItemIds) => dispatch({ type: "setAssigned", libraryItemIds })}
-              disabled={sent === true}
+              disabled={sent}
             />
           </Card>
-          <SendFeedbackCard
-            review={review}
-            dispatch={dispatch}
-            reply={reply}
-            studentFirstName={studentFirstName}
-            fetcherKey={sendFetcherKey(submission.id)}
-          />
+          <SendFeedbackCard session={session} studentFirstName={studentFirstName} />
         </Stack>
-      </Grid.Col>
-    </Grid>
+      }
+    />
   );
 }

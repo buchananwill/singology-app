@@ -3,9 +3,12 @@ import { type FeedbackComment, WaveformPeaksSchema } from "@singology/shared";
 import { formatTimestamp } from "../../lib/format";
 import type { WaveformTheme } from "./waveformTheme";
 
+/** A sent comment or a coach's unsent draft: the player needs only its time and text. */
+export type PlayerComment = Pick<FeedbackComment, "id" | "tSeconds" | "body">;
+
 export function commentMarker(
   index: number,
-  comment: FeedbackComment,
+  comment: PlayerComment,
   theme: WaveformTheme,
 ): HTMLElement {
   const marker = document.createElement("span");

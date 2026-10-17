@@ -2,10 +2,13 @@ import { RouterContextProvider } from "react-router";
 import { describe, expect, it } from "vitest";
 
 import { claimsContext, meContext } from "../context";
+import { routeArgs } from "../lib/routeArgs";
+import type { Route } from "./+types/sign-in";
 import { loader } from "./sign-in";
 
 function loaderArgs(context: RouterContextProvider, url = "http://localhost/sign-in") {
-  return { context, request: new Request(url), url: new URL(url), params: {}, pattern: "/sign-in" };
+  const args: Route.LoaderArgs = routeArgs(context, new Request(url), "/sign-in", {});
+  return args;
 }
 
 describe("the sign-in loader", () => {
