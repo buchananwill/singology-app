@@ -1,7 +1,7 @@
 ---
 title: "Slice Auth and Sessions: Fixed Design Decisions"
 type: decision-spec
-status: proposed
+status: implemented
 ---
 
 # Slice Auth and Sessions
