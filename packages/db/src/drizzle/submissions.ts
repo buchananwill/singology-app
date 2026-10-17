@@ -1,5 +1,6 @@
-import { indexById, type MediaKind } from "@singology/shared";
+import { indexById } from "@singology/shared";
 import { and, asc, desc, eq, inArray, lt } from "drizzle-orm";
+import type { SelectResultFields } from "drizzle-orm/query-builders/select.types";
 
 import { assertAssignmentMatches } from "../assertAssignmentMatches";
 import type { Transaction, UserDb } from "../client";
@@ -22,7 +23,7 @@ import {
   submissions,
 } from "../schema";
 import { libraryItemsWhere } from "./library";
-import { type Row, toEnrolment, toFeedback, toStudent, toSubmission } from "./mappers";
+import { toEnrolment, toFeedback, toStudent, toSubmission } from "./mappers";
 import { assertCallersMedia } from "./queries";
 
 async function ownedSubmission(
@@ -46,12 +47,7 @@ const queueFields = {
   mediaKind: mediaAssets.kind,
 };
 
-interface QueueRow {
-  submission: Row<typeof submissions>;
-  student: Row<typeof students>;
-  displayName: string;
-  mediaKind: MediaKind;
-}
+type QueueRow = SelectResultFields<typeof queueFields>;
 
 async function toQueueItems<TRow extends QueueRow, TItem>(
   tx: Transaction,

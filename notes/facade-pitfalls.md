@@ -244,4 +244,4 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** Each query writes its own select and join chain. They share the `queueFields` selection and a `toQueueItems` helper that loads the library items and maps rows to `CoachQueueItem`.
 - **Affects.** Any future attempt to share a join chain across selections in `packages/db/src/drizzle/`. The slice and the demo are unaffected.
 - **Evidence.** `pnpm --filter @singology/db typecheck` on the builder version: `src/drizzle/submissions.ts(64,6): error TS2339`.
-- **Resolution.** Open for the lead. The two queries in `packages/db/src/drizzle/submissions.ts` repeat four `innerJoin` lines.
+- **Resolution.** Accepted. The two queries in `packages/db/src/drizzle/submissions.ts` repeat four `innerJoin` lines. Drizzle 0.45's `PgSelectJoin` is a deferred conditional while the selection is a type parameter, so no type-safe shared join chain exists for two differing selections, and the alternatives add a concept to remove four lines.

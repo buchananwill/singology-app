@@ -25,7 +25,7 @@ export function fixtureSubmissions(state: FixtureState): SubmissionRepository {
       : undefined;
   };
 
-  const toQueueItems = <TRow extends { submission: Submission }, TItem>(
+  const toQueueItems = <TRow extends Pick<CoachQueueItem, "submission">, TItem>(
     rows: TRow[],
     extend: (row: TRow, item: CoachQueueItem) => TItem,
   ): TItem[] => {
