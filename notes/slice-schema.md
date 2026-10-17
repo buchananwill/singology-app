@@ -160,11 +160,8 @@ The document fixes the roster (§1) and the decisions (§2). It carries no imple
 60. **`createUserDb(connection, claims)` returns a `UserDb`**, a function `<T>(work: (tx: Transaction) => Promise<T>) => Promise<T>` that opens one connection, runs decision 43's two statements, runs `work`, and commits; **each repository method is one `UserDb` call**, so a loader's `Promise.all` of several methods is several short transactions, which is the right shape for Hyperdrive, which pools in transaction mode. *AMENDED (pitfall 19):* the factories take **discrete connection settings, never a URL**, because Wrangler's local Hyperdrive emulation rebuilds `connectionString` with the password decoded, which breaks URL parsing for any password with reserved characters; the Worker passes `env.HYPERDRIVE`'s fields straight through, and only the scripts parse `DATABASE_URL`, through `connectionSettingsFromUrl`.
 
 ```ts
-export interface Claims {
-  role: "authenticated" | "anon";
-  sub?: string;
-  email?: string;
-}
+// AMENDED (S3 type review): a discriminated union, so "authenticated without sub" cannot compile.
+export type Claims = { role: "anon" } | { role: "authenticated"; sub: string; email?: string };
 export interface ConnectionSettings {
   host: string;
   port: number;
