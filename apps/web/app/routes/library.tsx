@@ -1,14 +1,4 @@
-import {
-  Anchor,
-  Badge,
-  Card,
-  Container,
-  Group,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Anchor, Badge, Card, Container, Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import {
   LIBRARY_CATEGORIES,
   type LibraryFilter,
@@ -21,6 +11,7 @@ import { FilterRow } from "../components/library/FilterRow";
 import { meContext, repositoriesContext } from "../context";
 import { CATEGORY_LABEL, formatCount, VOICE_TYPE_LABEL } from "../lib/format";
 import { holdsRole } from "../lib/roles";
+import { PageTitle } from "../components/shell/PageTitle";
 import type { Route } from "./+types/library";
 
 export const meta: Route.MetaFunction = () => [{ title: "Exercise library | Singology" }];
@@ -63,10 +54,10 @@ export default function Library({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="lg">
-        <Stack gap={0}>
-          <Title order={1}>Exercise library</Title>
-          <Text c="dimmed">Short exercises for breath, onsets, range and agility.</Text>
-        </Stack>
+        <PageTitle
+          title="Exercise library"
+          description="Short exercises for breath, onsets, range and agility."
+        />
 
         <Stack gap="sm">
           <FilterRow

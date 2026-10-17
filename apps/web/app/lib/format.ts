@@ -129,8 +129,8 @@ export const ASSIGNMENT_STATUS_LABEL: Record<AssignmentStatus, string> = {
 
 export const ASSIGNMENT_STATUS_COLOR: Record<AssignmentStatus, string> = {
   todo: "gray",
-  submitted: "blue",
-  feedback_ready: "green",
+  submitted: "olive",
+  feedback_ready: "brand",
 };
 
 export const UNPLAYABLE_TAKE_MESSAGE: Record<UnplayableStatus, string> = {
@@ -144,8 +144,8 @@ export const COACH_TIER_LABEL: Record<CoachTier, string> = {
 };
 
 export const SLA_COLOR: Record<ReviewSlaState, string> = {
-  on_track: "teal",
-  due_soon: "orange",
+  on_track: "brand",
+  due_soon: "olive",
   overdue: "red",
 };
 

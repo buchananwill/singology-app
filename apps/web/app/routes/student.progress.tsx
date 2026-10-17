@@ -5,6 +5,7 @@ import { href, Link } from "react-router";
 import { AbCompare } from "../components/compare/AbCompare";
 import { repositoriesContext, studentIdContext } from "../context";
 import { CATEGORY_LABEL, formatDate } from "../lib/format";
+import { PageTitle } from "../components/shell/PageTitle";
 import type { Route } from "./+types/student.progress";
 
 export const meta: Route.MetaFunction = () => [{ title: "Progress | Singology" }];
@@ -55,10 +56,7 @@ export default function StudentProgress({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="xl">
-        <Stack gap={0}>
-          <Title order={1}>Progress</Title>
-          <Text c="dimmed">Every take you've sent, by exercise.</Text>
-        </Stack>
+        <PageTitle title="Progress" description="Every take you've sent, by exercise." />
 
         {compare?.a && compare.b && (
           <Stack component="section" gap="sm" aria-labelledby="compare-title">

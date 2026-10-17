@@ -1,4 +1,4 @@
-import { Badge, Button, Card, Container, Group, List, Stack, Text, Title } from "@mantine/core";
+import { Badge, Button, Card, Container, Group, List, Stack, Text } from "@mantine/core";
 import { reviewSla } from "@singology/shared";
 import { data, href, Link } from "react-router";
 
@@ -13,6 +13,7 @@ import {
   SLA_COLOR,
 } from "../lib/format";
 import { useNow } from "../lib/useNow";
+import { PageTitle } from "../components/shell/PageTitle";
 import type { Route } from "./+types/coach.home";
 
 export const meta: Route.MetaFunction = () => [{ title: "Review queue | Singology" }];
@@ -42,13 +43,15 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="lg">
-        <Stack gap={0}>
-          <Title order={1}>Review queue</Title>
-          <Text c="dimmed">
-            Oldest first. You promise feedback within {formatTurnaround(turnaroundHours)} of each
-            upload.
-          </Text>
-        </Stack>
+        <PageTitle
+          title="Review queue"
+          description={
+            <>
+              Oldest first. You promise feedback within {formatTurnaround(turnaroundHours)} of each
+              upload.
+            </>
+          }
+        />
 
         {items.length === 0 ? (
           <Text>Nothing waiting for review. Well done.</Text>
@@ -58,7 +61,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
               const sla = reviewSla(submission.submittedAt, now, turnaroundHours);
               return (
                 <List.Item key={submission.id}>
-                  <Card withBorder padding="md" data-testid="queue-item" data-sla={sla.state}>
+                  <Card padding="md" data-testid="queue-item" data-sla={sla.state}>
                     <Stack gap="xs">
                       <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
                         <Stack gap={0}>

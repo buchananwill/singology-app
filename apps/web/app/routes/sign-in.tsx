@@ -1,4 +1,4 @@
-import { Alert, Button, Container, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Alert, Button, Container, Stack, TextInput } from "@mantine/core";
 import { SignInSchema } from "@singology/shared";
 import type { AuthError } from "@supabase/supabase-js";
 import { data, Form, href, redirect } from "react-router";
@@ -8,6 +8,7 @@ import { isSignInLinkFailed } from "../auth/signInLinkFailed";
 import { claimsContext, meContext, supabaseContext } from "../context";
 import { type MessageResult, parseInput } from "../lib/actionResult";
 import { homeFor } from "../lib/roles";
+import { PageTitle } from "../components/shell/PageTitle";
 import type { Route } from "./+types/sign-in";
 
 export const meta: Route.MetaFunction = () => [{ title: "Sign in | Singology" }];
@@ -59,12 +60,12 @@ export default function SignIn({ loaderData, actionData }: Route.ComponentProps)
   return (
     <Container size="xs">
       <Stack gap="md">
-        <Stack gap={0}>
-          <Title order={1}>Sign in</Title>
-          <Text c="dimmed">We'll email you a link that signs you in. No password needed.</Text>
-        </Stack>
+        <PageTitle
+          title="Sign in"
+          description="We'll email you a link that signs you in. No password needed."
+        />
         {loaderData.notSetUp ? (
-          <Alert color="yellow" variant="light" data-testid="sign-in-not-set-up">
+          <Alert color="olive" variant="light" data-testid="sign-in-not-set-up">
             This account isn't set up yet. Ask the Singology team.
           </Alert>
         ) : (

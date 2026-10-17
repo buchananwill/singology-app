@@ -1,4 +1,4 @@
-import { Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Container, SimpleGrid, Stack, Title } from "@mantine/core";
 import { fixtureUuid } from "@singology/db";
 import type { FeedbackComment } from "@singology/shared";
 import { data } from "react-router";
@@ -6,6 +6,7 @@ import { data } from "react-router";
 import { StandalonePlayer } from "../components/player/StandalonePlayer";
 import { repositoriesContext } from "../context";
 import { requireSignedIn } from "../middleware/me";
+import { PageTitle } from "../components/shell/PageTitle";
 import type { Route } from "./+types/lab.player";
 
 /** Lab test data, not fixtures. */
@@ -57,10 +58,10 @@ export default function PlayerLab({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="lg">
       <Stack gap="xl">
-        <Stack gap={0}>
-          <Title order={1}>Player lab</Title>
-          <Text c="dimmed">Regression page for the waveform player. Not linked from the app.</Text>
-        </Stack>
+        <PageTitle
+          title="Player lab"
+          description="Regression page for the waveform player. Not linked from the app."
+        />
 
         <Stack component="section" gap="xs" data-testid="lab-audio">
           <Title order={2} size="h3">

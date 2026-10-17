@@ -11,6 +11,7 @@ import {
   formatDate,
   formatTurnaround,
 } from "../lib/format";
+import { PageTitle } from "../components/shell/PageTitle";
 import type { Route } from "./+types/student.home";
 
 export const meta: Route.MetaFunction = () => [{ title: "This week | Singology" }];
@@ -72,13 +73,15 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="lg">
-        <Stack gap={0}>
-          <Title order={1}>This week</Title>
-          <Text c="dimmed">
-            Hello {firstName}. {coach.name} replies within {formatTurnaround(coach.turnaroundHours)}{" "}
-            of your upload.
-          </Text>
-        </Stack>
+        <PageTitle
+          title="This week"
+          description={
+            <>
+              Hello {firstName}. {coach.name} replies within{" "}
+              {formatTurnaround(coach.turnaroundHours)} of your upload.
+            </>
+          }
+        />
 
         <Stack component="section" gap="sm" aria-labelledby="assigned-title">
           <Title id="assigned-title" order={2} size="h3">
@@ -125,7 +128,7 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
             <Title id="latest-title" order={2} size="h3">
               Latest feedback
             </Title>
-            <Card withBorder padding="md" data-testid="latest-feedback">
+            <Card padding="md" data-testid="latest-feedback">
               <Stack gap="xs">
                 <Text fw={600}>{latestFeedback.exerciseTitle}</Text>
                 <Text size="sm" c="dimmed">
