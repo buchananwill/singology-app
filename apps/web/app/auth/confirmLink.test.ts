@@ -13,7 +13,7 @@ describe("confirmUrl", () => {
 });
 
 describe("confirmLinkOrigin", () => {
-  it("keeps the app's own origin and any local one, dropping a path", () => {
+  it("keeps the app's own origin and our local dev servers, dropping a path", () => {
     expect(confirmLinkOrigin("https://singology.example/welcome", APP_ORIGIN)).toBe(APP_ORIGIN);
     expect(confirmLinkOrigin("http://localhost:5173", APP_ORIGIN)).toBe("http://localhost:5173");
     expect(confirmLinkOrigin("http://localhost:4173/", APP_ORIGIN)).toBe("http://localhost:4173");
@@ -25,6 +25,8 @@ describe("confirmLinkOrigin", () => {
       "",
       "not a url",
       "https://elsewhere.example",
+      "http://localhost:3000",
+      "http://localhost:5174",
       "https://localhost:5173",
       "http://localhost.elsewhere.example:5173",
       "http://localhost:5173@elsewhere.example",
