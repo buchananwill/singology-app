@@ -16,7 +16,7 @@
 
 ## Signing in during alpha
 
-Until S6 wires Resend, `pnpm -s --filter @singology/db sign-in-link <email> [--origin <app origin>]` prints a single-use sign-in URL for a seeded user (dev by default, `SINGOLOGY_ENV=test` for the test project).
+Until S6 wires Resend, `pnpm -s --filter @singology/web sign-in-link <email> [--origin <app origin>]` prints a single-use sign-in URL for a seeded user (dev by default, `SINGOLOGY_ENV=test` for the test project).
 
 ## Day to day
 

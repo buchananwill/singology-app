@@ -21,7 +21,6 @@ interface RouteCase {
 const ROUTES: readonly RouteCase[] = [
   { name: "landing", path: "/", as: null, heading: /singing feedback/i, waveforms: 0 },
   { name: "sign-in", path: "/sign-in", as: null, heading: "Sign in", waveforms: 0 },
-  // A missing token lands back on the sign-in page.
   {
     name: "auth-confirm-failed",
     path: "/auth/confirm",
@@ -145,6 +144,20 @@ test("role-scoped routes redirect to /sign-in when signed out", async ({ page })
     await page.goto(path);
     await expect(page).toHaveURL(/\/sign-in$/);
   }
+});
+
+test.describe("signed in as Ben, who is only a student", () => {
+  test.use({ storageState: storageStateFor("ben") });
+
+  test("a student is refused the coach queue with 403", async ({ page }) => {
+    await page.goto("/student");
+    await expect(page.getByTestId("role-badge")).toHaveText(["Student"]);
+    const refused = await page.goto("/coach");
+    expect(refused?.status()).toBe(403);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Not available to your account" }),
+    ).toBeVisible();
+  });
 });
 
 test.describe("signed in as the founder, who coaches and is not a student", () => {

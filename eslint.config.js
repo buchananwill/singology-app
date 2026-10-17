@@ -55,6 +55,8 @@ export default tseslint.config(
       "packages/db/**",
       // Test code: the e2e suite mints sign-in tokens against the test project.
       "apps/web/e2e/**",
+      // Tooling run from a shell, never served by the Worker.
+      "apps/web/scripts/**",
     ],
     rules: {
       "no-restricted-imports": [

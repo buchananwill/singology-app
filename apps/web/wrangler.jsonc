@@ -15,7 +15,6 @@
   // singology-dev-db, caching disabled.
   "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "997b46ccb23e49e394a600075a67e994" }],
   // singology-dev. Public by design: the publishable key reaches no data (the Data API is off).
-  // The e2e server overrides both with the test project's values from packages/db/.env.test.
   "vars": {
     "SUPABASE_URL": "https://hfiefxdyomlpxzjiedwi.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Ys3JgtZch5lN5kk_Q3VT3A_DHBn07v3",
