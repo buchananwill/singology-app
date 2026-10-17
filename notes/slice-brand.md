@@ -34,7 +34,7 @@ The document fixes the roster (§1) and the decisions (§2). Declarations are fi
 2. **Text on Singology Green is always navy, never white:** `theme.black` is `#373b4d` and `autoContrast` is on, so every filled brand button and badge gets navy text through Mantine's own contrast rule, and nothing hand-sets white on green; the README's contrast finding (white on green is 1.8:1) is the reason.
 3. **Body text is the site's charcoal `#494947`, headings are Stage Navy, muted text is `#696969`, links are `green-700`,** set through the theme's CSS variables resolver (`--mantine-color-text`, `--mantine-color-dimmed`, `--mantine-color-anchor`) and a `Title` default prop `c: "black"` (*AMENDED:* Mantine 9.6.2 has no `headings.color`; `theme.black` is Stage Navy, so the default prop lands the same colour), so `Text`, `Title` and `Anchor` carry the brand without per-use props.
 4. **Olive appears only where a coach appears:** the coach tier badge and the coach-side accents use `olive`; students and the rest of the UI never do.
-5. **Danger is the one non-brand hue** and keeps Mantine's `red`; it always arrives with a word, never as a colour alone.
+5. **Danger is the one non-brand hue** and keeps Mantine's `red`; it always arrives with a word, never as a colour alone. *AMENDED (review):* every status colour map (turnaround state, assignment and submission status, tier) draws only on `brand`, `olive`, `gray`/`black` and `red`: on track is brand, due soon is olive, overdue is red; to do is gray, submitted is olive, feedback ready is brand.
 6. **Light only in alpha:** `defaultColorScheme="light"` stays and no dark-mode mapping is built; the tokens file carries the dark theme for beta.
 
 ### Type
@@ -59,7 +59,7 @@ The document fixes the roster (§1) and the decisions (§2). Declarations are fi
 
 ### Coaches
 
-18. **`CoachCard` becomes the design system's coach treatment:** a 120px circular portrait with `filter: grayscale(1)` (a `brand.css` class on the `Avatar`), the display name in the `voice` serif class, the tier badge in olive, then the bio and the turnaround line in muted text, centred; it keeps `data-testid="coach-name"` so the smoke test holds.
+18. **`CoachCard` becomes the design system's coach treatment:** a 120px circular portrait with `filter: grayscale(1)` (a `brand.css` class on the `Avatar`), the display name in the `voice` serif class, the tier badge in olive, then the bio in body text and the turnaround line in muted text (*AMENDED, review:* the bio stays body ink for readability), centred; it keeps `data-testid="coach-name"` so the smoke test holds.
 19. **An avatar with no image shows the initial** in a `surface-alt` disc, which is Mantine's `Avatar` fallback with `color="gray"`.
 
 ### Wordmark, waveform, focus
