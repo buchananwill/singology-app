@@ -220,6 +220,7 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Affects.** The roster declaration of `DueNotification` in `packages/db/src/notificationQueue.ts`, which now differs from the spec by one optional field.
 - **Possible ruling.** Adopt `about` into the roster as it is. Or make `DueNotification` a union on `kind` so the field is required where it is used.
 - **Evidence.** `notes/slice-nudges.md` §1 and decisions 10 and 16; `apps/web/workers/notifications/templates.ts`; `packages/db/test/db/notificationQueue.test.ts` asserts `about` on the seeded rows.
+- **Resolution.** The lead's ruling: `DueNotification` is a union on `kind`, with no optional `about`. Every arm carries `recipient: Recipient` (`{ userId, email, displayName }`). The arms are `FeedbackReadyDue` (`coachFirstName`, `exerciseTitle`, `submissionId`), `NewSubmissionDue` (`studentFirstName`, `exerciseTitle`, `submissionId`) and `PracticeReminderDue` (`waitingCount`, `periodStart`). `FeedbackReadyDue` also carries `feedbackId`, because decision 7 claims on `entity_id = feedback.id` and the ruling's arm had no field for it. Each template takes its own arm, and `nudgeEmail` switches on `kind`, so the wrong arm does not compile. The queue builds the first names with `firstName`, which moved to `packages/shared` so that `packages/db` can use it. The reminder's `link.exerciseIds` is replaced by `waitingCount`, counted in the query. A bounce guard came with the ruling: the queue skips any address at `PLACEHOLDER_EMAIL_DOMAIN`, which `placeholderEmail` also uses. `test:db`: 33 passed.
 
 ## 27. Slice-nudges decisions 12 and 13 need the notification id inside `EmailTransport.send`
 
@@ -227,6 +228,7 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** `send(message, idempotencyKey)`. `runNudges` passes the claim's id. `EmailMessageSchema` stays as the roster declares it.
 - **Affects.** The transport signature in `apps/web/workers/notifications/transport.ts` only.
 - **Evidence.** `runNudges.test.ts` checks the Resend request's `Idempotency-Key` and the dry-run id.
+- **Resolution.** The lead adopted `send(message, idempotencyKey)` as the transport signature and is amending the spec roster.
 
 ## 28. `@singology/db/admin` crashed the Worker at start-up: `new URL("../", import.meta.url)` at module scope
 
@@ -234,3 +236,4 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** The URL is now resolved inside `requireEnv` on first use. The Worker never calls it, since it reads `env.HYPERDRIVE`. Node scripts and tests behave as before.
 - **Affects.** Any future Worker import of `@singology/db/admin`, such as the webhook routes. Keep that entry free of module-scope Node-only work.
 - **Evidence.** The failed `serve:built:test` start log. After the fix the server starts, and `GET /cdn-cgi/local/scheduled?cron=*/5+*+*+*+*` returns 200 and logs `nudges {"cron":"*/5 * * * *","due":5,"sent":5,...}`.
+- **Resolution.** The lead accepted the fix. `packages/db/src/admin.test.ts` loads the entry with `SINGOLOGY_ENV` set to an invalid value and records any call to `existsSync`, `readFileSync`, Supabase's `createClient`, `pg.Pool` or `new URL(…, file:…)`. It fails when the old module-scope URL is put back. Writing the test also caught a load-order bug: `E2E_EMAILS` calls `placeholderEmail` at load, before `PLACEHOLDER_EMAIL_DOMAIN` was initialised, so the constant moved to the top of `alphaCast.ts`.
