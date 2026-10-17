@@ -193,3 +193,4 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Workaround.** None for the case as written. The suite checks the mirror instead: the founder, who coaches and is not a student, is refused `/student` with a 403. That runs the same guard path (`requireStudent` beside `requireCoach`, one helper).
 - **Affects.** The slice's e2e coverage of `requireCoach`'s 403 branch. A ruling could add a student-only tester to `signInAs` (for example `student-ben`'s placeholder user, which the admin API can sign in without email).
 - **Evidence.** `apps/web/e2e/smoke.spec.ts`, "the header shows the coach role, and the student pages are refused with 403".
+- **Resolution.** The lead's ruling: a third tester, `ben` (the seeded `student-ben`, student only), joins `ALPHA_TESTERS` in `alphaCast.ts`. The setup project signs him in, and "a student is refused the coach queue with 403" runs as decision 27 says. The founder-refused-`/student` mirror stays.
