@@ -202,6 +202,7 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Affects.** The coach's reviewed face only. The student side is unaffected: the new exercise shows under "Next exercises" and on "This week".
 - **Possible ruling.** Add `feedbackId: IdSchema.optional()` to `AssignmentSchema`, map it in `toAssignment` and in the fixture data. Then the loader filters `assignments.forStudent(enrolment.studentId)` by `feedbackId` (the coach's select policy already covers those rows) and resolves the titles with `library.getMany`. That is one optional field and one mapper line, with no new method and no migration.
 - **Evidence.** `packages/shared/src/schemas.ts` `AssignmentSchema`; `packages/db/src/drizzle/mappers.ts` `toAssignment`; `packages/db/src/repositories.ts` `AssignmentRepository`.
+- **Resolution.** The lead adopted the suggested ruling. `AssignmentSchema` gains `feedbackId: IdSchema.optional()`. `toAssignment` maps the column, and the fixture `feedback.send` sets it on the assignments it creates. In reviewed mode the review loader filters `assignments.forStudent(enrolment.studentId)` by `feedbackId === feedback.id` and resolves the titles with `library.getMany`. `ReviewedView` lists them under "Exercises assigned". There is no migration and no new method. The mapper unit test, the fixture send test and `test:db` (21 passed) assert the field. The e2e asserts "Hum into a vowel · Onset" on the reviewed face.
 
 ## 25. Slice-feedback decision 16's "`/student` shows the assignment as `feedback_ready`" fails on the four-item home
 
@@ -210,3 +211,4 @@ One entry per real problem hit while building the facade (spec decision 28): wha
 - **Affects.** Decision 16's last student-side check only.
 - **Possible ruling.** Seed `asg-ada-onset` later than `asg-ada-siren-2` (for example `-8 * DAY`), so it holds a place in the four. Or assert the status on `/student/exercises/<onset>`, whose badge reads the latest assignment of that exercise. Or raise the limit.
 - **Evidence.** `apps/web/app/routes/student.home.tsx` `THIS_WEEK_LIMIT = 4`; `packages/db/src/fixtures/data.ts` assignments; the failed run's page snapshot of `/student`.
+- **Resolution.** The lead's ruling: `asg-ada-onset` is seeded at `-8 * DAY`, so it no longer ties with `asg-ada-siren-2` and keeps its place in the four. The decision-16 check is restored, and after the send `/student` shows "Balanced onsets on 'ah'" as "Feedback ready". The two extra assertions stay: the new exercise first, and the latest-feedback card. `pnpm test:e2e`: 67 passed, 3 skipped.
