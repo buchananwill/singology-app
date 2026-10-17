@@ -3,18 +3,17 @@ import type { MiddlewareFunction } from "react-router";
 import { logAuthError } from "../auth/logAuthError";
 import { mergeSessionHeaders } from "../auth/mergeSessionHeaders";
 import { createSupabaseServerClient } from "../auth/supabase.server";
-import { claimsContext } from "../context";
+import { claimsContext, supabaseContext } from "../context";
 
-// getClaims verifies the access token locally (refreshing it when it has expired), which is
-// enough to scope the database transaction; getUser's round trip to Auth is not needed.
 export const sessionMiddleware: MiddlewareFunction<Response> = async (
   { request, context },
   next,
 ) => {
-  const { client, headers } = createSupabaseServerClient(request);
-  const { data, error } = await client.auth.getClaims();
+  const supabase = createSupabaseServerClient(request);
+  context.set(supabaseContext, supabase);
+  const { data, error } = await supabase.client.auth.getClaims();
   if (error !== null) {
-    // An invalid or expired session reads as anon; the log says why.
+    // An invalid or expired session reads as anon.
     logAuthError("getClaims", error);
   }
   context.set(
@@ -24,6 +23,6 @@ export const sessionMiddleware: MiddlewareFunction<Response> = async (
       : { role: "authenticated", sub: data.claims.sub, email: data.claims.email },
   );
   const response = await next();
-  mergeSessionHeaders(response, headers);
+  mergeSessionHeaders(response, supabase.headers);
   return response;
 };

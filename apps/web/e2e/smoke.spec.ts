@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import type { AlphaTester } from "@singology/db/admin";
+import type { E2eTester } from "@singology/db/admin";
 import { fixtureUuid } from "@singology/db";
 
 import { storageStateFor } from "./auth";
@@ -12,7 +12,7 @@ interface RouteCase {
   name: string;
   path: string;
   /** The seeded tester whose session the page needs; `null` when signed out. */
-  as: AlphaTester | null;
+  as: E2eTester | null;
   heading: string | RegExp;
   /** Number of waveform players that must finish drawing before the screenshot. */
   waveforms: number;

@@ -4,14 +4,13 @@ function cookieName(setCookie: string): string {
 }
 
 /**
- * Copies the session middleware's headers onto a response. A cookie the response already sets
- * keeps the response's value, so a route that signed in or out is not overridden by a token
- * refresh earlier in the same request.
+ * Puts the request's Supabase headers on the response. A route that already returned them (a
+ * redirect carrying the bag) has every cookie once: names the response sets are skipped.
  */
 export function mergeSessionHeaders(response: Response, headers: Headers): void {
-  const setByRoute = new Set(response.headers.getSetCookie().map(cookieName));
+  const alreadySet = new Set(response.headers.getSetCookie().map(cookieName));
   for (const cookie of headers.getSetCookie()) {
-    if (!setByRoute.has(cookieName(cookie))) {
+    if (!alreadySet.has(cookieName(cookie))) {
       response.headers.append("Set-Cookie", cookie);
     }
   }
