@@ -31,7 +31,7 @@ The document fixes the roster (§1) and the decisions (§2). Declarations are fi
 **`apps/web`, new**
 
 - `app/auth/supabase.server.ts` — `createSupabaseServerClient(request): { client, headers }`: the `@supabase/ssr` server client bound to the request's cookies and the headers bag the caller returns (*AMENDED, review:* returned together, one form at four call sites).
-- `app/auth/confirmLink.ts` — `confirmHref(tokenHash)` and the confirm-params schema; the one spelling of the `/auth/confirm` URL shape, used by the route, the e2e helper and the sign-in-link script.
+- `app/auth/confirmLink.ts` — `confirmHref(tokenHash)`; the one spelling of the `/auth/confirm` URL shape, used by the route, the e2e helper and the sign-in-link script. The confirm-params schema (`ConfirmLinkSchema`) lives in `packages/shared` like every other request schema.
 - `app/lib/roles.ts` — `holdsRole(me, role)`, `rolesOf(me)`, `homeFor(me)`: pure role logic (*AMENDED, review:* moved out of the shell components).
 - `app/middleware/session.ts` — `sessionMiddleware`: reads the session claims, sets `claimsContext`, copies any refreshed-cookie headers onto the response.
 - `app/middleware/me.ts` — `meMiddleware`: sets `meContext` from `repositories.me.get()`; `requireSignedIn`, `requireStudent`, `requireCoach` guard constants (*AMENDED, review:* constants, not zero-argument factories; one private `requireRole(role)` behind the two role guards) that also set `studentIdContext` / `coachIdContext`.
