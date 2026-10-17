@@ -1,5 +1,6 @@
 import type { Repositories } from "@singology/db";
 import {
+  isUnplayableStatus,
   type LibraryItem,
   type MediaAsset,
   reviewActionSchemaFor,
@@ -8,14 +9,14 @@ import {
 } from "@singology/shared";
 import { data, type ShouldRevalidateFunctionArgs } from "react-router";
 
-import type { AssignableItem } from "../components/review/AssignableItemLabel";
 import type { PreviousTakeProps } from "../components/review/PreviousTake";
 import { isFeedbackSent, type ReviewActionResult } from "../components/review/reviewFetchers";
-import type { TakeForReview } from "../components/review/ReviewForm";
-import { ReviewWorkspace, type ReviewHeaderProps } from "../components/review/ReviewWorkspace";
+import type { ReviewHeaderProps } from "../components/review/ReviewHeader";
+import { ReviewWorkspace } from "../components/review/ReviewWorkspace";
+import type { AssignableItem, TakeForReview } from "../components/review/types";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
 import { parseInput, readJson } from "../lib/actionResult";
-import { firstName, formatCount, isUnplayableStatus } from "../lib/format";
+import { firstName, formatCount } from "../lib/format";
 import { recordEventBestEffort } from "../lib/recordEvent";
 import type { Route } from "./+types/coach.review";
 

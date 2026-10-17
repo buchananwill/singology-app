@@ -23,7 +23,7 @@ import { WaveformPlayer } from "../components/player/WaveformPlayer";
 - **`PlayerProvider`** holds one player's state and its media element ref. Put exactly one `WaveformPlayer` inside each provider. Two players side by side need two providers.
 - **`WaveformPlayer`** takes these props:
   - `asset: MediaAsset`
-  - `comments?: readonly PlayerComment[]` (`Pick<FeedbackComment, "id" | "tSeconds" | "body">`, so unsent drafts fit too)
+  - `comments?: readonly PlayerComment[]`, from `types.ts` (`Pick<FeedbackComment, "id" | "tSeconds" | "body">`, so unsent drafts fit too)
   - `label: string`, the accessible name
   - `height?: number`, in pixels (default 96)
   - `ref?: Ref<PlayerHandle>`

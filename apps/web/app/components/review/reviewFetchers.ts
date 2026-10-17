@@ -2,43 +2,54 @@ import type { Feedback, RecordingUpload } from "@singology/shared";
 
 import type { ActionResult } from "../../lib/actionResult";
 
-export interface ReplyAttached {
+export interface MessagePayload {
   message: string;
+}
+
+export interface ReplyAttached extends MessagePayload {
   upload: RecordingUpload;
 }
 
-export interface FeedbackSent {
-  message: string;
+export interface FeedbackSent extends MessagePayload {
   feedbackId: Feedback["id"];
 }
 
 export type ReviewActionResult = ActionResult<ReplyAttached> | ActionResult<FeedbackSent>;
 
-export function isFeedbackSent(result: unknown): result is { ok: true } & FeedbackSent {
+function isOkMessage(result: unknown): result is { ok: true; message: string } {
   return (
     typeof result === "object" &&
     result !== null &&
     "ok" in result &&
     result.ok === true &&
-    "feedbackId" in result &&
-    typeof result.feedbackId === "string"
+    "message" in result &&
+    typeof result.message === "string"
   );
 }
 
-export function isReplyAttached(result: unknown): result is { ok: true } & ReplyAttached {
+export function isFeedbackSent(
+  result: unknown,
+): result is Extract<ReviewActionResult, { feedbackId: string }> {
+  return isOkMessage(result) && "feedbackId" in result && typeof result.feedbackId === "string";
+}
+
+export function isReplyAttached(
+  result: unknown,
+): result is Extract<ReviewActionResult, { upload: RecordingUpload }> {
   return (
-    typeof result === "object" &&
-    result !== null &&
-    "ok" in result &&
-    result.ok === true &&
-    "upload" in result
+    isOkMessage(result) &&
+    "upload" in result &&
+    typeof result.upload === "object" &&
+    result.upload !== null
   );
 }
 
-export function replyFetcherKey(submissionId: string): string {
-  return `coach-reply-${submissionId}`;
+export interface ReviewFetcherKeys {
+  reply: string;
+  send: string;
 }
 
-export function sendFetcherKey(submissionId: string): string {
-  return `coach-send-${submissionId}`;
+/** One pair per submission, so a page never reads another take's results. */
+export function reviewFetcherKeys(submissionId: string): ReviewFetcherKeys {
+  return { reply: `coach-reply-${submissionId}`, send: `coach-send-${submissionId}` };
 }

@@ -15,7 +15,7 @@ import { PlayerControls } from "./PlayerControls";
 import { type PlayerHandle, usePlayer } from "./PlayerProvider";
 import { shouldReportMediaTime } from "./playerReducer";
 import { useWaveformInstance } from "./useWaveformInstance";
-import type { PlayerComment } from "./waveformDom";
+import type { PlayerComment } from "./types";
 import { waveformTheme } from "./waveformTheme";
 
 const NO_COMMENTS: readonly PlayerComment[] = [];

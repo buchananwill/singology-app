@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { CommentList } from "../player/CommentList";
 import { StandalonePlayer } from "../player/StandalonePlayer";
-import type { PlayerComment } from "../player/waveformDom";
+import type { PlayerComment } from "../player/types";
 
 export interface ReviewTakeProps {
   take: MediaAsset;

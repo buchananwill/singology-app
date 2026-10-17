@@ -11,17 +11,9 @@ import {
   formatSince,
   formatTimeLeft,
   formatTurnaround,
-  isUnplayableStatus,
 } from "./format";
 
 describe("format", () => {
-  it("knows which submission states have nothing to play", () => {
-    expect(isUnplayableStatus("processing")).toBe(true);
-    expect(isUnplayableStatus("failed")).toBe(true);
-    expect(isUnplayableStatus("awaiting_review")).toBe(false);
-    expect(isUnplayableStatus("reviewed")).toBe(false);
-  });
-
   it("formats pence as pounds", () => {
     expect(formatPence(8000)).toBe("£80");
     expect(formatPence(1200)).toBe("£12");

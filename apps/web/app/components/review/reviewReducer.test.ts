@@ -1,21 +1,38 @@
+import type { RecordingUpload } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
-import { type DraftComment, initialReviewState, reviewReducer } from "./reviewReducer";
+import {
+  type ReviewEvent,
+  initialReviewState,
+  reviewReducer,
+  type ReviewState,
+  toSendFeedback,
+} from "./reviewReducer";
 
-const seeded: DraftComment[] = [
-  { id: "c2", tSeconds: 40, body: "Later" },
-  { id: "c1", tSeconds: 10, body: "Earlier" },
-];
+function after(...events: ReviewEvent[]): ReviewState {
+  return events.reduce(reviewReducer, initialReviewState());
+}
+
+function commentAt(tSeconds: number, body: string): ReviewEvent[] {
+  return [
+    { type: "openDraft", tSeconds },
+    { type: "addComment", body },
+  ];
+}
 
 describe("reviewReducer", () => {
-  it("seeds the comments sorted by time", () => {
-    const state = initialReviewState(seeded);
-    expect(state.comments.map((c) => c.id)).toEqual(["c1", "c2"]);
-    expect(state.draft).toBeNull();
+  it("starts empty", () => {
+    expect(initialReviewState()).toEqual({
+      comments: [],
+      nextCommentNumber: 1,
+      draft: null,
+      assigned: [],
+      summary: "",
+    });
   });
 
   it("adds a comment at the time the draft was opened, in time order", () => {
-    let state = initialReviewState(seeded);
+    let state = after(...commentAt(40, "Later"), ...commentAt(10, "Earlier"));
     state = reviewReducer(state, { type: "openDraft", tSeconds: 21.4 });
     expect(state.draft).toEqual({ tSeconds: 21.4 });
     state = reviewReducer(state, { type: "addComment", body: "  Breath runs out here.  " });
@@ -26,23 +43,19 @@ describe("reviewReducer", () => {
       [40, "Later"],
     ]);
     expect(state.comments[1]).toEqual({
-      id: "draft-comment-1",
+      id: "draft-comment-3",
       tSeconds: 21.4,
       body: "Breath runs out here.",
     });
   });
 
   it("gives each new comment its own id", () => {
-    let state = initialReviewState();
-    for (const t of [5, 5]) {
-      state = reviewReducer(state, { type: "openDraft", tSeconds: t });
-      state = reviewReducer(state, { type: "addComment", body: "Same time" });
-    }
+    const state = after(...commentAt(5, "Same time"), ...commentAt(5, "Same time"));
     expect(state.comments.map((c) => c.id)).toEqual(["draft-comment-1", "draft-comment-2"]);
   });
 
   it("ignores an empty comment and an add with no open draft", () => {
-    const opened = reviewReducer(initialReviewState(), { type: "openDraft", tSeconds: 3 });
+    const opened = after({ type: "openDraft", tSeconds: 3 });
     expect(reviewReducer(opened, { type: "addComment", body: "   " })).toBe(opened);
     const closed = reviewReducer(opened, { type: "cancelDraft" });
     expect(closed.draft).toBeNull();
@@ -50,22 +63,45 @@ describe("reviewReducer", () => {
   });
 
   it("holds the ticked exercises, without duplicates", () => {
-    const state = reviewReducer(initialReviewState(), {
-      type: "setAssigned",
-      libraryItemIds: ["lib-a", "lib-b", "lib-a"],
-    });
+    const state = after({ type: "setAssigned", libraryItemIds: ["lib-a", "lib-b", "lib-a"] });
     expect(state.assigned).toEqual(["lib-a", "lib-b"]);
-    expect(initialReviewState().assigned).toEqual([]);
   });
 
-  it("starts with an empty summary and edits it", () => {
-    const state = initialReviewState();
-    expect(state.summary).toBe("");
-    expect(reviewReducer(state, { type: "setSummary", summary: "New" }).summary).toBe("New");
+  it("edits the summary", () => {
+    expect(after({ type: "setSummary", summary: "New" }).summary).toBe("New");
   });
 
   it("clamps a negative time to zero", () => {
-    const state = reviewReducer(initialReviewState(), { type: "openDraft", tSeconds: -1 });
-    expect(state.draft).toEqual({ tSeconds: 0 });
+    expect(after({ type: "openDraft", tSeconds: -1 }).draft).toEqual({ tSeconds: 0 });
+  });
+});
+
+describe("toSendFeedback", () => {
+  it("sends the comments' times and text, the summary, the reply and the ticked exercises", () => {
+    const reply: RecordingUpload = {
+      fileName: "reply.m4a",
+      sizeBytes: 12345,
+      durationSec: 27.8,
+      mimeType: "audio/mp4",
+      note: "",
+    };
+    const state = after(
+      ...commentAt(12, "Better."),
+      ...commentAt(3, "Good start."),
+      { type: "setSummary", summary: "Cleaner onsets." },
+      { type: "setAssigned", libraryItemIds: ["lib-a"] },
+      { type: "openDraft", tSeconds: 20 },
+    );
+    expect(toSendFeedback(state, reply)).toEqual({
+      intent: "send",
+      summary: "Cleaner onsets.",
+      comments: [
+        { tSeconds: 3, body: "Good start." },
+        { tSeconds: 12, body: "Better." },
+      ],
+      reply,
+      assignLibraryItemIds: ["lib-a"],
+    });
+    expect(toSendFeedback(initialReviewState(), null).reply).toBeNull();
   });
 });

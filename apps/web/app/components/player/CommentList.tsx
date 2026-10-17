@@ -3,7 +3,7 @@ import { List, Text, UnstyledButton } from "@mantine/core";
 import { formatTimestamp } from "../../lib/format";
 import { PlainOrderedList } from "../PlainOrderedList";
 import { usePlayer } from "./PlayerProvider";
-import type { PlayerComment } from "./waveformDom";
+import type { PlayerComment } from "./types";
 
 export interface CommentListProps {
   comments: readonly PlayerComment[];

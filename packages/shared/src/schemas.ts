@@ -310,7 +310,6 @@ export type RegisterMedia = z.infer<typeof RegisterMediaSchema>;
 
 const CountSchema = z.number().int().nonnegative();
 
-/** What each event kind carries, for the pilot metrics. */
 const EVENT_META_SCHEMAS = {
   signed_in: z.object({}),
   submission_created: z.object({ enrolmentId: IdSchema, libraryItemId: IdSchema }),
@@ -336,6 +335,9 @@ export const RecordEventSchema = z.discriminatedUnion("kind", [
   eventAbout("feedback_viewed"),
 ]);
 export type RecordEvent = z.infer<typeof RecordEventSchema>;
+
+// Fails to compile when a kind in EVENT_KINDS has no member in the union above.
+true satisfies EventKind extends RecordEvent["kind"] ? true : never;
 
 /** What "Send feedback" is checked against beyond its shape. */
 export interface SendFeedbackLimits {

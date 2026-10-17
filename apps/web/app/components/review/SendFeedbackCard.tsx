@@ -1,12 +1,9 @@
 import { Box, Button, Card, Stack, Text, Textarea, Title } from "@mantine/core";
-import type { SendFeedback } from "@singology/shared";
-import { href, Link, useFetcher } from "react-router";
+import { href, Link } from "react-router";
 
 import { formatCount } from "../../lib/format";
-import { useActionNotification } from "../../lib/useActionNotification";
 import { useHydrated } from "../../lib/useHydrated";
 import { SuccessState } from "../SuccessState";
-import type { ReviewActionResult } from "./reviewFetchers";
 import type { ReviewSession } from "./useReviewSession";
 
 export interface SendFeedbackCardProps {
@@ -14,33 +11,17 @@ export interface SendFeedbackCardProps {
   studentFirstName: string;
 }
 
-/** Posts the whole review as JSON to the route action, which persists it in one go. */
 export function SendFeedbackCard({ session, studentFirstName }: SendFeedbackCardProps) {
-  const { review, dispatch, reply, sent, keys } = session;
+  const { review, dispatch, reply, sendState, send } = session;
   const hydrated = useHydrated();
-  const fetcher = useFetcher<ReviewActionResult>({ key: keys.send });
-  const result = useActionNotification(fetcher, "Feedback sent");
-
-  function onSend() {
-    // Typed as the parsed shape: JSON-safe (the schema's input type has `unknown` coerced numbers).
-    const payload: SendFeedback = {
-      intent: "send",
-      summary: review.summary,
-      comments: review.comments.map(({ tSeconds, body }) => ({ tSeconds, body })),
-      reply,
-      assignLibraryItemIds: [...review.assigned],
-    };
-    void fetcher.submit(payload, { method: "post", encType: "application/json" });
-  }
-
   return (
     <Card withBorder padding="lg" data-testid="send-feedback">
       <Stack gap="md">
         <Title order={2} size="h3">
           Send feedback
         </Title>
-        {sent && result?.ok === true ? (
-          <SuccessState title="Sent" message={result.message} testId="send-success">
+        {sendState.status === "sent" ? (
+          <SuccessState title="Sent" message={sendState.message} testId="send-success">
             <Button component={Link} to={href("/coach")} variant="light">
               Back to the queue
             </Button>
@@ -62,13 +43,13 @@ export function SendFeedbackCard({ session, studentFirstName }: SendFeedbackCard
               {reply === null ? "no reply" : "reply attached"} ·{" "}
               {formatCount(review.assigned.length, "exercise", "exercises")} to assign
             </Text>
-            {result?.ok === false && (
+            {sendState.status === "failed" && (
               <Text size="sm" c="red" role="alert">
-                {result.error}
+                {sendState.error}
               </Text>
             )}
             <Box>
-              <Button onClick={onSend} disabled={!hydrated} loading={fetcher.state !== "idle"}>
+              <Button onClick={send} disabled={!hydrated} loading={sendState.status === "sending"}>
                 Send feedback
               </Button>
             </Box>

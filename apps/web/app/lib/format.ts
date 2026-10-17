@@ -6,7 +6,7 @@ import {
   type MediaKind,
   MINUTE_MS,
   type ReviewSlaState,
-  type SubmissionStatus,
+  type UnplayableStatus,
   type UserRole,
   type VoiceType,
 } from "@singology/shared";
@@ -133,16 +133,10 @@ export const ASSIGNMENT_STATUS_COLOR: Record<AssignmentStatus, string> = {
   feedback_ready: "green",
 };
 
-export type UnplayableStatus = Extract<SubmissionStatus, "processing" | "failed">;
-
 export const UNPLAYABLE_TAKE_MESSAGE: Record<UnplayableStatus, string> = {
   processing: "This take is still processing, so there is nothing to play yet.",
   failed: "This take couldn't be processed. Ask the student to upload it again.",
 };
-
-export function isUnplayableStatus(status: SubmissionStatus): status is UnplayableStatus {
-  return Object.hasOwn(UNPLAYABLE_TAKE_MESSAGE, status);
-}
 
 export const COACH_TIER_LABEL: Record<CoachTier, string> = {
   premium: "Founder tier",

@@ -1,21 +1,17 @@
 import { Alert, Card, Stack, Text } from "@mantine/core";
-import type { MediaAsset, Student, Submission } from "@singology/shared";
+import type { Student, Submission } from "@singology/shared";
 
-import { firstName, UNPLAYABLE_TAKE_MESSAGE, type UnplayableStatus } from "../../lib/format";
+import { firstName, UNPLAYABLE_TAKE_MESSAGE } from "../../lib/format";
 import { UploadPanel } from "../upload/UploadPanel";
 import { AddComment } from "./AddComment";
-import type { AssignableItem } from "./AssignableItemLabel";
 import { AssignChecklist } from "./AssignChecklist";
 import { PreviousTake, type PreviousTakeProps } from "./PreviousTake";
 import { ReviewColumns } from "./ReviewColumns";
 import { ReviewTake } from "./ReviewTake";
 import { SendFeedbackCard } from "./SendFeedbackCard";
+import type { AssignableItem, TakeForReview } from "./types";
 import type { ReviewSession } from "./useReviewSession";
 
-export type TakeForReview =
-  { playable: true; asset: MediaAsset } | { playable: false; status: UnplayableStatus };
-
-/** What the loader sends for a review still being written. */
 export interface ReviewFormData {
   submission: Submission;
   student: Student;

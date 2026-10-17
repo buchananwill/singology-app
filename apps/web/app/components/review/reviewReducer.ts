@@ -1,7 +1,9 @@
-import type { FeedbackComment } from "@singology/shared";
+import type { RecordingUpload, SendFeedback } from "@singology/shared";
+
+import type { PlayerComment } from "../player/types";
 
 /** The server gives a sent comment its feedback. */
-export type DraftComment = Omit<FeedbackComment, "feedbackId">;
+export type DraftComment = PlayerComment;
 
 /** Page-local to the review form until the whole review is sent. */
 export interface ReviewState {
@@ -22,13 +24,18 @@ export type ReviewEvent =
   | { type: "setAssigned"; libraryItemIds: readonly string[] }
   | { type: "setSummary"; summary: string };
 
-export function initialReviewState(comments: readonly DraftComment[] = []): ReviewState {
+export function initialReviewState(): ReviewState {
+  return { comments: [], nextCommentNumber: 1, draft: null, assigned: [], summary: "" };
+}
+
+/** The review as the action reads it; ids and the draft stay on the page. */
+export function toSendFeedback(review: ReviewState, reply: RecordingUpload | null): SendFeedback {
   return {
-    comments: comments.toSorted((a, b) => a.tSeconds - b.tSeconds),
-    nextCommentNumber: 1,
-    draft: null,
-    assigned: [],
-    summary: "",
+    intent: "send",
+    summary: review.summary,
+    comments: review.comments.map(({ tSeconds, body }) => ({ tSeconds, body })),
+    reply,
+    assignLibraryItemIds: [...review.assigned],
   };
 }
 

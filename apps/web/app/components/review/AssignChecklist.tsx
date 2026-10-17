@@ -1,6 +1,7 @@
 import { Checkbox, Stack } from "@mantine/core";
 
-import { type AssignableItem, AssignableItemLabel } from "./AssignableItemLabel";
+import { AssignableItemLabel } from "./AssignableItemLabel";
+import type { AssignableItem } from "./types";
 
 export interface AssignChecklistProps {
   items: readonly AssignableItem[];

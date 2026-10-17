@@ -4,7 +4,8 @@ import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 
 import { attachMediaSource, type SourceMode } from "./attachMediaSource";
 import type { LoopState, PlayerEvent } from "./playerReducer";
-import { commentMarker, fetchPeaks, type PlayerComment } from "./waveformDom";
+import type { PlayerComment } from "./types";
+import { commentMarker, fetchPeaks } from "./waveformDom";
 import type { WaveformTheme } from "./waveformTheme";
 
 type Regions = InstanceType<typeof RegionsPlugin>;

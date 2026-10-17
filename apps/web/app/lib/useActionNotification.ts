@@ -5,10 +5,10 @@ import type { Fetcher } from "react-router";
 import type { MessageResult } from "./actionResult";
 
 /** Returns the fetcher's result once it is idle, after announcing a success. */
-export function useActionNotification(
-  fetcher: Fetcher<MessageResult>,
+export function useActionNotification<Result extends MessageResult>(
+  fetcher: Fetcher<Result>,
   successTitle: string,
-): MessageResult | undefined {
+): Result | undefined {
   const { data } = fetcher;
   useEffect(() => {
     if (data?.ok === true) {

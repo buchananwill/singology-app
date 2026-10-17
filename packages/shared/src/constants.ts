@@ -1,5 +1,3 @@
-import type { ReviewMode, Submission } from "./schemas";
-
 /** The founder coaches on the premium tier. */
 export const COACH_TIERS = ["premium", "standard"] as const;
 
@@ -24,10 +22,6 @@ export const SUBMISSION_STATUSES = ["processing", "awaiting_review", "reviewed",
 
 /** The review workspace's two faces; `reviewed` is read-only because sent feedback is immutable. */
 export const REVIEW_MODES = ["reviewing", "reviewed"] as const;
-
-export function reviewModeOf(submission: Pick<Submission, "status">): ReviewMode {
-  return submission.status === "reviewed" ? "reviewed" : "reviewing";
-}
 
 /** In ascending order: a sort by difficulty follows this array. */
 export const DIFFICULTIES = ["beginner", "improver", "intermediate", "advanced"] as const;

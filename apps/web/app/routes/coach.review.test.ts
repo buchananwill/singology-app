@@ -3,8 +3,8 @@ import type { SendFeedback } from "@singology/shared";
 import { RouterContextProvider } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
+import { routeArgs } from "../../test/routeArgs";
 import { coachIdContext, repositoriesContext } from "../context";
-import { routeArgs } from "../lib/routeArgs";
 import type { Route } from "./+types/coach.review";
 import { action } from "./coach.review";
 

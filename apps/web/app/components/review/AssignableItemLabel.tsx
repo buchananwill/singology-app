@@ -1,9 +1,7 @@
 import { Badge, Group, Text } from "@mantine/core";
-import type { LibraryItem } from "@singology/shared";
 
 import { CATEGORY_LABEL } from "../../lib/format";
-
-export type AssignableItem = Pick<LibraryItem, "id" | "title" | "category">;
+import type { AssignableItem } from "./types";
 
 export interface AssignableItemLabelProps {
   item: AssignableItem;

@@ -4,9 +4,10 @@ import type { MediaAsset, Student } from "@singology/shared";
 import { href, Link } from "react-router";
 
 import { formatDate } from "../../lib/format";
-import { type AssignableItem, AssignableItemLabel } from "./AssignableItemLabel";
+import { AssignableItemLabel } from "./AssignableItemLabel";
 import { ReviewColumns } from "./ReviewColumns";
 import { ReviewTake } from "./ReviewTake";
+import type { AssignableItem } from "./types";
 
 export type ReviewedViewProps = Readonly<FeedbackWithComments> & {
   student: Student;
