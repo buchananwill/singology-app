@@ -447,6 +447,25 @@ describe("createFixtureRepositories", () => {
     expect(queue.map((row) => row.submission.id)).toEqual(["sub-ben-hiss", "sub-ada-onset"]);
   });
 
+  it("lists a coach's reviewed submissions most recently sent first, up to the limit", async () => {
+    const repos = createFixtureRepositories({ now: TEST_NOW });
+    const recent = await repos.submissions.recentlyReviewedForCoach(FOUNDER, 10);
+    expect(recent.map((row) => row.submission.id)).toEqual([
+      "sub-ada-siren-2",
+      "sub-ben-hiss-1",
+      "sub-ada-siren-1",
+    ]);
+    expect(recent.map((row) => row.sentAt)).toEqual(
+      ["fb-ada-siren-2", "fb-ben-hiss-1", "fb-ada-siren-1"].map((id) => feedback.get(id)?.sentAt),
+    );
+    expect(recent[1]?.student.id).toBe("student-ben");
+    expect(recent[1]?.item.id).toBe("lib-breath-hiss");
+    const limited = await repos.submissions.recentlyReviewedForCoach(FOUNDER, 2);
+    expect(limited.map((row) => row.submission.id)).toEqual(["sub-ada-siren-2", "sub-ben-hiss-1"]);
+    const standard = await repos.submissions.recentlyReviewedForCoach("coach-standard", 10);
+    expect(standard.map((row) => row.submission.id)).toEqual(["sub-cara-arpeggio"]);
+  });
+
   it("filters the library by difficulty and tag", async () => {
     const repos = createFixtureRepositories({ now: TEST_NOW });
     const beginner = await repos.library.list({ difficulty: "beginner" });

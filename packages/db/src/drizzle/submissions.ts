@@ -1,14 +1,20 @@
-import { indexById } from "@singology/shared";
+import { indexById, type MediaKind } from "@singology/shared";
 import { and, asc, desc, eq, inArray, lt } from "drizzle-orm";
 
 import { assertAssignmentMatches } from "../assertAssignmentMatches";
 import type { Transaction, UserDb } from "../client";
 import type { EnrolmentParty } from "../enrolmentParty";
 import { firstOrThrow } from "../orThrow";
-import type { CoachQueueItem, OwnedSubmission, SubmissionRepository } from "../repositories";
+import type {
+  CoachQueueItem,
+  OwnedSubmission,
+  ReviewedQueueItem,
+  SubmissionRepository,
+} from "../repositories";
 import {
   assignments,
   enrolments,
+  feedback,
   libraryItems,
   mediaAssets,
   profiles,
@@ -16,7 +22,7 @@ import {
   submissions,
 } from "../schema";
 import { libraryItemsWhere } from "./library";
-import { toEnrolment, toStudent, toSubmission } from "./mappers";
+import { type Row, toEnrolment, toFeedback, toStudent, toSubmission } from "./mappers";
 import { assertCallersMedia } from "./queries";
 
 async function ownedSubmission(
@@ -31,6 +37,46 @@ async function ownedSubmission(
     .innerJoin(enrolments, eq(enrolments.id, submissions.enrolmentId))
     .where(and(eq(submissions.id, submissionId), eq(enrolments[party], partyId)));
   return row && { submission: toSubmission(row.submission), enrolment: toEnrolment(row.enrolment) };
+}
+
+const queueFields = {
+  submission: submissions,
+  student: students,
+  displayName: profiles.displayName,
+  mediaKind: mediaAssets.kind,
+};
+
+interface QueueRow {
+  submission: Row<typeof submissions>;
+  student: Row<typeof students>;
+  displayName: string;
+  mediaKind: MediaKind;
+}
+
+async function toQueueItems<TRow extends QueueRow, TItem>(
+  tx: Transaction,
+  rows: TRow[],
+  extend: (row: TRow, item: CoachQueueItem) => TItem,
+): Promise<TItem[]> {
+  const items = indexById(
+    await libraryItemsWhere(
+      tx,
+      inArray(libraryItems.id, [...new Set(rows.map((row) => row.submission.libraryItemId))]),
+    ),
+  );
+  return rows.flatMap((row): TItem[] => {
+    const item = items.get(row.submission.libraryItemId);
+    return item === undefined
+      ? []
+      : [
+          extend(row, {
+            submission: toSubmission(row.submission),
+            student: toStudent(row.student, row.displayName),
+            item,
+            mediaKind: row.mediaKind,
+          }),
+        ];
+  });
 }
 
 export function drizzleSubmissions(db: UserDb): SubmissionRepository {
@@ -52,12 +98,7 @@ export function drizzleSubmissions(db: UserDb): SubmissionRepository {
     queueViewForCoach: (coachId) =>
       db(async (tx) => {
         const rows = await tx
-          .select({
-            submission: submissions,
-            student: students,
-            displayName: profiles.displayName,
-            mediaKind: mediaAssets.kind,
-          })
+          .select(queueFields)
           .from(submissions)
           .innerJoin(enrolments, eq(enrolments.id, submissions.enrolmentId))
           .innerJoin(students, eq(students.userId, enrolments.studentId))
@@ -65,25 +106,25 @@ export function drizzleSubmissions(db: UserDb): SubmissionRepository {
           .innerJoin(mediaAssets, eq(mediaAssets.id, submissions.mediaId))
           .where(and(eq(enrolments.coachId, coachId), eq(submissions.status, "awaiting_review")))
           .orderBy(asc(submissions.submittedAt));
-        const items = indexById(
-          await libraryItemsWhere(
-            tx,
-            inArray(libraryItems.id, [...new Set(rows.map((row) => row.submission.libraryItemId))]),
-          ),
-        );
-        return rows.flatMap((row): CoachQueueItem[] => {
-          const item = items.get(row.submission.libraryItemId);
-          return item === undefined
-            ? []
-            : [
-                {
-                  submission: toSubmission(row.submission),
-                  student: toStudent(row.student, row.displayName),
-                  item,
-                  mediaKind: row.mediaKind,
-                },
-              ];
-        });
+        return toQueueItems(tx, rows, (_, item) => item);
+      }),
+    recentlyReviewedForCoach: (coachId, limit) =>
+      db(async (tx) => {
+        const rows = await tx
+          .select({ ...queueFields, feedback })
+          .from(submissions)
+          .innerJoin(enrolments, eq(enrolments.id, submissions.enrolmentId))
+          .innerJoin(students, eq(students.userId, enrolments.studentId))
+          .innerJoin(profiles, eq(profiles.id, students.userId))
+          .innerJoin(mediaAssets, eq(mediaAssets.id, submissions.mediaId))
+          .innerJoin(feedback, eq(feedback.submissionId, submissions.id))
+          .where(and(eq(enrolments.coachId, coachId), eq(submissions.status, "reviewed")))
+          .orderBy(desc(feedback.sentAt))
+          .limit(limit);
+        return toQueueItems(tx, rows, (row, item): ReviewedQueueItem => ({
+          ...item,
+          sentAt: toFeedback(row.feedback).sentAt,
+        }));
       }),
     previousFor: (submissionId) =>
       db(async (tx) => {

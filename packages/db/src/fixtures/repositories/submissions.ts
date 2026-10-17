@@ -1,7 +1,12 @@
 import { indexById, type Submission } from "@singology/shared";
 
 import { assertAssignmentMatches } from "../../assertAssignmentMatches";
-import type { CoachQueueItem, OwnedSubmission, SubmissionRepository } from "../../repositories";
+import type {
+  CoachQueueItem,
+  OwnedSubmission,
+  ReviewedQueueItem,
+  SubmissionRepository,
+} from "../../repositories";
 import type { EnrolmentParty } from "../../enrolmentParty";
 import { enrolmentIdsFor, type FixtureState } from "../state";
 
@@ -20,6 +25,26 @@ export function fixtureSubmissions(state: FixtureState): SubmissionRepository {
       : undefined;
   };
 
+  const toQueueItems = <TRow extends { submission: Submission }, TItem>(
+    rows: TRow[],
+    extend: (row: TRow, item: CoachQueueItem) => TItem,
+  ): TItem[] => {
+    const enrolments = indexById(data.enrolments);
+    const students = indexById(data.students);
+    const items = indexById(data.libraryItems);
+    const media = indexById(data.mediaAssets);
+    return rows.flatMap((row): TItem[] => {
+      const { submission } = row;
+      const studentId = enrolments.get(submission.enrolmentId)?.studentId;
+      const student = studentId === undefined ? undefined : students.get(studentId);
+      const item = items.get(submission.libraryItemId);
+      const asset = media.get(submission.mediaId);
+      return student && item && asset
+        ? [extend(row, { submission, student, item, mediaKind: asset.kind })]
+        : [];
+    });
+  };
+
   return {
     getForStudent: async (studentId, submissionId) =>
       ownedSubmission("studentId", studentId, submissionId),
@@ -30,23 +55,32 @@ export function fixtureSubmissions(state: FixtureState): SubmissionRepository {
     },
     queueViewForCoach: async (coachId) => {
       const enrolmentIds = enrolmentIdsFor(state, "coachId", coachId);
-      const enrolments = indexById(data.enrolments);
-      const students = indexById(data.students);
-      const items = indexById(data.libraryItems);
-      const media = indexById(data.mediaAssets);
       return structuredClone(
-        data.submissions
-          .filter((s) => s.status === "awaiting_review" && enrolmentIds.has(s.enrolmentId))
-          .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt))
-          .flatMap((submission): CoachQueueItem[] => {
-            const studentId = enrolments.get(submission.enrolmentId)?.studentId;
-            const student = studentId === undefined ? undefined : students.get(studentId);
-            const item = items.get(submission.libraryItemId);
-            const asset = media.get(submission.mediaId);
-            return student && item && asset
-              ? [{ submission, student, item, mediaKind: asset.kind }]
-              : [];
-          }),
+        toQueueItems(
+          data.submissions
+            .filter((s) => s.status === "awaiting_review" && enrolmentIds.has(s.enrolmentId))
+            .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt))
+            .map((submission) => ({ submission })),
+          (_, item) => item,
+        ),
+      );
+    },
+    recentlyReviewedForCoach: async (coachId, limit) => {
+      const enrolmentIds = enrolmentIdsFor(state, "coachId", coachId);
+      const submissions = indexById(data.submissions);
+      return structuredClone(
+        toQueueItems(
+          data.feedback
+            .flatMap((sent) => {
+              const submission = submissions.get(sent.submissionId);
+              return submission?.status === "reviewed" && enrolmentIds.has(submission.enrolmentId)
+                ? [{ submission, sent }]
+                : [];
+            })
+            .sort((a, b) => b.sent.sentAt.localeCompare(a.sent.sentAt))
+            .slice(0, limit),
+          ({ sent }, item): ReviewedQueueItem => ({ ...item, sentAt: sent.sentAt }),
+        ),
       );
     },
     previousFor: async (submissionId) => {

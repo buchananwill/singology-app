@@ -103,6 +103,28 @@ describe("reads", () => {
     expect(queue.map((row) => row.student.displayName)).toEqual(["Ben Sample", "Singology CTO"]);
   });
 
+  it("lists the founder's reviewed takes most recently sent first, up to the limit", async () => {
+    const recent = await asFounder.submissions.recentlyReviewedForCoach(founderId, 10);
+    expect(recent.map((row) => row.submission.id)).toEqual([
+      fixtureUuid("sub-ada-siren-2"),
+      fixtureUuid("sub-ben-hiss-1"),
+      fixtureUuid("sub-ada-siren-1"),
+    ]);
+    const sentAt = recent.map((row) => row.sentAt);
+    expect(sentAt).toEqual(sentAt.toSorted().toReversed());
+    expect(recent.map((row) => row.student.displayName)).toEqual([
+      "Singology CTO",
+      "Ben Sample",
+      "Singology CTO",
+    ]);
+    const limited = await asFounder.submissions.recentlyReviewedForCoach(founderId, 2);
+    expect(limited.map((row) => row.submission.id)).toEqual(
+      recent.slice(0, 2).map((row) => row.submission.id),
+    );
+    const ctoRecent = await asCto.submissions.recentlyReviewedForCoach(ctoId, 10);
+    expect(ctoRecent.map((row) => row.submission.id)).toEqual([fixtureUuid("sub-cara-arpeggio")]);
+  });
+
   it("lists active coaches with their offers", async () => {
     const rows = await asCto.coaches.listWithOffers();
     expect(rows.map((row) => row.coach.id).sort()).toEqual([founderId, ctoId].sort());

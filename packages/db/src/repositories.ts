@@ -80,6 +80,8 @@ export interface CoachQueueItem {
   mediaKind: MediaKind;
 }
 
+export type ReviewedQueueItem = CoachQueueItem & Pick<Feedback, "sentAt">;
+
 export interface SubmissionRepository {
   /** The submission, when it belongs to this student; otherwise `undefined`. */
   getForStudent(studentId: string, submissionId: string): Promise<OwnedSubmission | undefined>;
@@ -87,6 +89,8 @@ export interface SubmissionRepository {
   getForCoach(coachId: string, submissionId: string): Promise<OwnedSubmission | undefined>;
   forStudent(studentId: string): Promise<Submission[]>;
   queueViewForCoach(coachId: string): Promise<CoachQueueItem[]>;
+  /** The coach's reviewed submissions, most recently sent first, at most `limit` of them. */
+  recentlyReviewedForCoach(coachId: string, limit: number): Promise<ReviewedQueueItem[]>;
   /** The same student's most recent earlier submission of the same exercise. */
   previousFor(submissionId: string): Promise<Submission | undefined>;
   /** Creates the take as `processing`; an assigned take must be of the assignment's exercise. */
