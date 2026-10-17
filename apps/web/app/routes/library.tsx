@@ -63,10 +63,10 @@ export default function Library({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="lg">
-        <div>
+        <Stack gap={0}>
           <Title order={1}>Exercise library</Title>
           <Text c="dimmed">Short exercises for breath, onsets, range and agility.</Text>
-        </div>
+        </Stack>
 
         <Stack gap="sm">
           <FilterRow

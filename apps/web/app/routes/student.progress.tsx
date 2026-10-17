@@ -55,21 +55,21 @@ export default function StudentProgress({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="xl">
-        <div>
+        <Stack gap={0}>
           <Title order={1}>Progress</Title>
           <Text c="dimmed">Every take you've sent, by exercise.</Text>
-        </div>
+        </Stack>
 
         {compare?.a && compare.b && (
           <Stack component="section" gap="sm" aria-labelledby="compare-title">
-            <div>
+            <Stack gap={0}>
               <Title id="compare-title" order={2} size="h3">
                 Compare two takes
               </Title>
               <Text size="sm" c="dimmed">
                 {compare.title}: your earlier take (A) against your latest (B).
               </Text>
-            </div>
+            </Stack>
             <AbCompare
               key={`${compare.a.submission.id}-${compare.b.submission.id}`}
               a={{ asset: compare.a.asset, label: formatDate(compare.a.submission.submittedAt) }}

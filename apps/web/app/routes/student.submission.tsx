@@ -72,7 +72,7 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
   return (
     <Container size="md">
       <Stack gap="lg">
-        <div>
+        <Stack gap={0}>
           <Text size="sm" c="dimmed">
             {CATEGORY_LABEL[item.category]} ·{" "}
             <Anchor component={Link} to={href("/student/exercises/:id", { id: item.id })} size="sm">
@@ -81,7 +81,7 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
           </Text>
           <Title order={1}>{feedback ? "Your feedback" : "Waiting for feedback"}</Title>
           <Text c="dimmed">Your take from {formatDate(submission.submittedAt)}</Text>
-        </div>
+        </Stack>
 
         {submission.note !== "" && (
           <Text size="sm">
@@ -117,12 +117,12 @@ export default function StudentSubmission({ loaderData }: Route.ComponentProps) 
               <Stack gap="sm">
                 <Group gap="sm" wrap="nowrap">
                   <Avatar src={coach.avatarSrc} alt="" />
-                  <div>
+                  <Stack gap={0}>
                     <Text fw={600}>{coach.name}</Text>
                     <Text size="xs" c="dimmed">
                       Sent {formatDate(feedback.sentAt)}
                     </Text>
-                  </div>
+                  </Stack>
                 </Group>
                 <Text>{feedback.body}</Text>
                 {reply !== null && (

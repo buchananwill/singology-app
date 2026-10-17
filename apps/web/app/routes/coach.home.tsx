@@ -42,13 +42,13 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="lg">
-        <div>
+        <Stack gap={0}>
           <Title order={1}>Review queue</Title>
           <Text c="dimmed">
             Oldest first. You promise feedback within {formatTurnaround(turnaroundHours)} of each
             upload.
           </Text>
-        </div>
+        </Stack>
 
         {items.length === 0 ? (
           <Text>Nothing waiting for review. Well done.</Text>
@@ -61,7 +61,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
                   <Card withBorder padding="md" data-testid="queue-item" data-sla={sla.state}>
                     <Stack gap="xs">
                       <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
-                        <div>
+                        <Stack gap={0}>
                           <Text fw={600} data-testid="queue-student">
                             {student.displayName}
                           </Text>
@@ -69,7 +69,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
                             {item.title} · {CATEGORY_LABEL[item.category]} ·{" "}
                             {MEDIA_KIND_LABEL[mediaKind]}
                           </Text>
-                        </div>
+                        </Stack>
                         <Badge
                           color={SLA_COLOR[sla.state]}
                           variant="light"

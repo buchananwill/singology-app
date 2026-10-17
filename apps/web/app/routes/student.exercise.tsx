@@ -86,7 +86,7 @@ export default function StudentExercise({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="lg">
-        <div>
+        <Stack gap={0}>
           <Group gap="xs" mb="xxs">
             <Badge variant="light">{CATEGORY_LABEL[item.category]}</Badge>
             {assignment !== null && (
@@ -99,7 +99,7 @@ export default function StudentExercise({ loaderData }: Route.ComponentProps) {
           <Text size="sm" c="dimmed">
             For {item.voiceTypes.map((v) => VOICE_TYPE_LABEL[v]).join(", ")}
           </Text>
-        </div>
+        </Stack>
 
         <Stack component="section" gap="xs" aria-labelledby="instructions-title">
           <Title id="instructions-title" order={2} size="h3">

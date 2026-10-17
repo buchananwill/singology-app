@@ -1,4 +1,4 @@
-import { Anchor, Badge, Group, Text, Title } from "@mantine/core";
+import { Anchor, Badge, Group, Stack, Text, Title } from "@mantine/core";
 import type { Coach, LibraryItem, Student, Submission } from "@singology/shared";
 import { href, Link } from "react-router";
 
@@ -27,7 +27,7 @@ export function ReviewHeader({
   sent,
 }: ReviewHeaderProps & ReviewHeaderState) {
   return (
-    <div>
+    <Stack gap={0}>
       <Anchor component={Link} to={href("/coach")} size="sm">
         ← Review queue
       </Anchor>
@@ -51,6 +51,6 @@ export function ReviewHeader({
           </>
         )}
       </Text>
-    </div>
+    </Stack>
   );
 }

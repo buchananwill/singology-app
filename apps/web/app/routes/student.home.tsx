@@ -72,13 +72,13 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
   return (
     <Container size="md">
       <Stack gap="lg">
-        <div>
+        <Stack gap={0}>
           <Title order={1}>This week</Title>
           <Text c="dimmed">
             Hello {firstName}. {coach.name} replies within {formatTurnaround(coach.turnaroundHours)}{" "}
             of your upload.
           </Text>
-        </div>
+        </Stack>
 
         <Stack component="section" gap="sm" aria-labelledby="assigned-title">
           <Title id="assigned-title" order={2} size="h3">
