@@ -1,47 +1,41 @@
 // The nudge queue against the test project, which the globalSetup reseeds before the run.
-import { HOUR_MS } from "@singology/shared";
+import { DAY_MS, isoDate } from "@singology/shared";
 import { inArray } from "drizzle-orm";
 import { afterAll, assert, beforeAll, describe, expect, it } from "vitest";
 
-import { connectionSettingsFromUrl, createAdminDb, type Db } from "../../src/admin";
-import { requireEnv } from "../../src/env";
-import { createNotificationQueue, type NotificationQueue } from "../../src/notificationQueue";
-import { notifications } from "../../src/schema";
+import type { Db } from "../../src/client";
+import { createAdminDbFromEnv } from "../../src/env";
 import {
-  CTO_DISPLAY_NAME,
-  CTO_EMAIL,
-  FOUNDER_EMAIL,
-  PLACEHOLDER_EMAIL_DOMAIN,
-  placeholderEmail,
-} from "../../src/seed/alphaCast";
+  createNotificationQueue,
+  type NotificationQueue,
+  type Recipient,
+} from "../../src/notificationQueue";
+import { PLACEHOLDER_EMAIL_DOMAIN } from "../../src/placeholderEmail";
+import { notifications } from "../../src/schema";
+import { CTO_DISPLAY_NAME, CTO_EMAIL, FOUNDER_EMAIL } from "../../src/seed/alphaCast";
 import { fixtureUuid } from "../../src/seed/fixtureUuid";
-import { userIdByEmail } from "../../src/seed/userIdByEmail";
+import { requireUserIdByEmail } from "../../src/seed/userIdByEmail";
 
-const DAY_MS = 24 * HOUR_MS;
 const now = new Date();
 const weekAgo = new Date(now.getTime() - 7 * DAY_MS);
 const tomorrow = new Date(now.getTime() + DAY_MS);
-
-const isoDate = (at: Date) => at.toISOString().slice(0, 10);
 const daysFromNow = (days: number) => isoDate(new Date(now.getTime() + days * DAY_MS));
 
 let admin: Db;
 let queue: NotificationQueue;
-let ctoId: string;
+let ctoRecipient: Recipient;
 let founderId: string;
 const claimed: string[] = [];
 
-async function userId(email: string): Promise<string> {
-  const id = await userIdByEmail(admin, email);
-  assert(id, `the seed created ${email}`);
-  return id;
-}
-
 beforeAll(async () => {
-  admin = createAdminDb(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
+  admin = createAdminDbFromEnv();
   queue = createNotificationQueue(admin);
-  ctoId = await userId(CTO_EMAIL);
-  founderId = await userId(FOUNDER_EMAIL);
+  ctoRecipient = {
+    userId: await requireUserIdByEmail(admin, CTO_EMAIL),
+    email: CTO_EMAIL,
+    displayName: CTO_DISPLAY_NAME,
+  };
+  founderId = await requireUserIdByEmail(admin, FOUNDER_EMAIL);
 });
 
 afterAll(async () => {
@@ -58,8 +52,6 @@ async function claimOrFail(...args: Parameters<NotificationQueue["claim"]>): Pro
   return row.id;
 }
 
-const cto = { userId: "", email: CTO_EMAIL, displayName: CTO_DISPLAY_NAME };
-
 describe("feedback ready", () => {
   it("finds the seeded feedback sent in the last seven days, once, addressed to the student", async () => {
     const due = await queue.dueFeedbackReady(weekAgo);
@@ -69,7 +61,7 @@ describe("feedback ready", () => {
     expect(ids).not.toContain(fixtureUuid("fb-cara-arpeggio"));
     expect(due.find((row) => row.feedbackId === fixtureUuid("fb-ada-siren-2"))).toEqual({
       kind: "feedback_ready",
-      recipient: { ...cto, userId: ctoId },
+      recipient: ctoRecipient,
       feedbackId: fixtureUuid("fb-ada-siren-2"),
       submissionId: fixtureUuid("sub-ada-siren-2"),
       coachFirstName: "Singology",
@@ -108,7 +100,7 @@ describe("new submission", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(due.find((row) => row.submissionId === fixtureUuid("sub-dev-bridge"))).toEqual({
       kind: "new_submission",
-      recipient: { ...cto, userId: ctoId },
+      recipient: ctoRecipient,
       submissionId: fixtureUuid("sub-dev-bridge"),
       studentFirstName: "Dev",
       exerciseTitle: "Crossing the bridge",
@@ -121,13 +113,15 @@ describe("new submission", () => {
     expect(await queue.dueNewSubmission(tomorrow)).toEqual([]);
   });
 
-  it("claims a take once", async () => {
+  it("claims a take once and drops it from the due list", async () => {
     const [due] = (await queue.dueNewSubmission(weekAgo)).filter(
       (row) => row.submissionId === fixtureUuid("sub-dev-bridge"),
     );
     assert(due, "the seeded take is due");
     await claimOrFail(due);
     expect(await queue.claim(due)).toBeNull();
+    const afterClaim = await queue.dueNewSubmission(weekAgo);
+    expect(afterClaim.map((row) => row.submissionId)).not.toContain(due.submissionId);
   });
 });
 
@@ -135,27 +129,22 @@ describe("practice reminder", () => {
   it("reminds the student with no take since the period began, counting waiting exercises", async () => {
     const periodStart = daysFromNow(1);
     const ada = (await queue.duePracticeReminders(periodStart)).find(
-      (row) => row.recipient.userId === ctoId,
+      (row) => row.recipient.userId === ctoRecipient.userId,
     );
     assert(ada, "the seeded student has no take since tomorrow");
-    expect(ada).toMatchObject({
-      kind: "practice_reminder",
-      recipient: { ...cto, userId: ctoId },
-      periodStart,
-    });
+    expect(ada).toMatchObject({ kind: "practice_reminder", recipient: ctoRecipient, periodStart });
     // `asg-ada-runs` at least has no take; other suites may add takes for the rest.
     expect(ada.waitingCount).toBeGreaterThanOrEqual(1);
   });
 
   it("omits the student who sent a take since the period began", async () => {
     const due = await queue.duePracticeReminders(daysFromNow(-5));
-    expect(due.map((row) => row.recipient.userId)).not.toContain(ctoId);
+    expect(due.map((row) => row.recipient.userId)).not.toContain(ctoRecipient.userId);
   });
 
   it("never reminds a placeholder student, who would only bounce", async () => {
     const due = await queue.duePracticeReminders(daysFromNow(1));
     expect(due.length).toBeGreaterThan(0);
-    expect(due.map((row) => row.recipient.email)).not.toContain(placeholderEmail("student-cara"));
     expect(due.every((row) => !row.recipient.email.endsWith(`@${PLACEHOLDER_EMAIL_DOMAIN}`))).toBe(
       true,
     );
@@ -168,13 +157,13 @@ describe("practice reminder", () => {
   it("claims one reminder per student per period", async () => {
     const periodStart = daysFromNow(1);
     const [due] = (await queue.duePracticeReminders(periodStart)).filter(
-      (row) => row.recipient.userId === ctoId,
+      (row) => row.recipient.userId === ctoRecipient.userId,
     );
     assert(due, "the seeded student is due");
     await claimOrFail(due);
     expect(await queue.claim(due)).toBeNull();
     const after = await queue.duePracticeReminders(periodStart);
-    expect(after.map((row) => row.recipient.userId)).not.toContain(ctoId);
+    expect(after.map((row) => row.recipient.userId)).not.toContain(ctoRecipient.userId);
     await claimOrFail({ ...due, periodStart: daysFromNow(-12) });
   });
 });

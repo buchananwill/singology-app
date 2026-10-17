@@ -5,6 +5,7 @@ import { inArray } from "drizzle-orm";
 import type { Db } from "../client";
 import { createFixtureData } from "../fixtures/data";
 import { firstOrThrow, getOrThrow } from "../orThrow";
+import { placeholderEmail } from "../placeholderEmail";
 import {
   coaches,
   coachOffers,
@@ -17,7 +18,7 @@ import {
   students,
   tags,
 } from "../schema";
-import { ALPHA_USERS, type CastMember, placeholderEmail } from "./alphaCast";
+import { ALPHA_USERS, type CastMember } from "./alphaCast";
 import { fixtureUuid } from "./fixtureUuid";
 import { loadCoaching, type UserOfFixture } from "./loadCoaching";
 import { userIdByEmail } from "./userIdByEmail";

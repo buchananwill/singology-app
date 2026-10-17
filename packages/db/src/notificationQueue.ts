@@ -1,9 +1,10 @@
-import { firstName, type NotificationKind } from "@singology/shared";
-import { and, asc, count, eq, gte, isNotNull, isNull, notExists, notLike, sql } from "drizzle-orm";
-import { alias, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { firstName, type NotificationKind, startOfIsoDate } from "@singology/shared";
+import { and, asc, eq, gte, isNotNull, isNull, notExists, notLike } from "drizzle-orm";
+import { alias, type AnyPgColumn, type PgSelect } from "drizzle-orm/pg-core";
 import { authUsers } from "drizzle-orm/supabase";
 
 import type { Db } from "./client";
+import { PLACEHOLDER_EMAIL_DOMAIN } from "./placeholderEmail";
 import {
   assignments,
   enrolments,
@@ -13,7 +14,6 @@ import {
   profiles,
   submissions,
 } from "./schema";
-import { PLACEHOLDER_EMAIL_DOMAIN } from "./seed/alphaCast";
 
 export interface Recipient {
   userId: string;
@@ -50,40 +50,48 @@ export type DueNotification = FeedbackReadyDue | NewSubmissionDue | PracticeRemi
 // Fails to compile when a kind in NOTIFICATION_KINDS has no arm in the union above.
 true satisfies NotificationKind extends DueNotification["kind"] ? true : never;
 
+type NotificationRow = typeof notifications.$inferSelect;
+export type ClaimedNotification = Pick<NotificationRow, "id">;
+type SentLogKey = Pick<NotificationRow, "entityId" | "periodStart">;
+
 export interface NotificationQueue {
   dueFeedbackReady(since: Date): Promise<FeedbackReadyDue[]>;
   dueNewSubmission(since: Date): Promise<NewSubmissionDue[]>;
   duePracticeReminders(periodStart: string): Promise<PracticeReminderDue[]>;
-  claim(due: DueNotification): Promise<{ id: string } | null>; // null when already sent
+  claim(due: DueNotification): Promise<ClaimedNotification | null>; // null when already sent
   markSent(id: string, providerMessageId: string): Promise<void>;
   release(id: string): Promise<void>; // the send failed; the row goes, the next tick retries
 }
 
+type RecipientRow = Omit<Recipient, "email"> & { email: Recipient["email"] | null };
+
 const counterparts = alias(profiles, "counterparts");
 const takeEnrolments = alias(enrolments, "take_enrolments");
 
-const hasDeliverableAddress = and(
-  isNotNull(authUsers.email),
-  notLike(authUsers.email, `%@${PLACEHOLDER_EMAIL_DOMAIN}`),
-);
+/** The recipient's fields and joins, and the filter that keeps only addresses that can receive mail. */
+function recipientOf(userId: AnyPgColumn<{ data: string; notNull: true }>) {
+  return {
+    fields: { userId, email: authUsers.email, displayName: profiles.displayName },
+    join: <T extends PgSelect>(query: T) =>
+      query
+        .innerJoin(profiles, eq(profiles.id, userId))
+        .innerJoin(authUsers, eq(authUsers.id, userId)),
+    deliverable: and(
+      isNotNull(authUsers.email),
+      notLike(authUsers.email, `%@${PLACEHOLDER_EMAIL_DOMAIN}`),
+    ),
+  };
+}
 
 /** The queries select only deliverable addresses; this narrows the column's type to match. */
-function toRecipient(row: {
-  userId: string;
-  email: string | null;
-  displayName: string;
-}): Recipient {
+function toRecipient(row: RecipientRow): Recipient {
   if (row.email === null) {
     throw new Error("A due notification's recipient has no email address.");
   }
-  return { userId: row.userId, email: row.email, displayName: row.displayName };
+  return { ...row, email: row.email };
 }
 
-function sentLogFor(kind: NotificationKind, entityId: AnyPgColumn) {
-  return and(eq(notifications.kind, kind), eq(notifications.entityId, entityId));
-}
-
-function sentLogKey(due: DueNotification): { entityId: string | null; periodStart: string | null } {
+function sentLogKey(due: DueNotification): SentLogKey {
   switch (due.kind) {
     case "feedback_ready":
       return { entityId: due.feedbackId, periodStart: null };
@@ -95,31 +103,57 @@ function sentLogKey(due: DueNotification): { entityId: string | null; periodStar
 }
 
 export function createNotificationQueue(db: Db): NotificationQueue {
+  const notSent = (kind: NotificationKind, entityId: AnyPgColumn) =>
+    notExists(
+      db
+        .select({ id: notifications.id })
+        .from(notifications)
+        .where(and(eq(notifications.kind, kind), eq(notifications.entityId, entityId))),
+    );
+  const notRemindedFor = (userId: AnyPgColumn, periodStart: string) =>
+    notExists(
+      db
+        .select({ id: notifications.id })
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.kind, "practice_reminder"),
+            eq(notifications.userId, userId),
+            eq(notifications.periodStart, periodStart),
+          ),
+        ),
+    );
+
   return {
     async dueFeedbackReady(since) {
-      const rows = await db
+      const recipient = recipientOf(enrolments.studentId);
+      const query = db
         .select({
+          recipient: recipient.fields,
           feedbackId: feedback.id,
           submissionId: submissions.id,
-          userId: enrolments.studentId,
-          email: authUsers.email,
-          displayName: profiles.displayName,
           coachName: counterparts.displayName,
           exerciseTitle: libraryItems.title,
         })
         .from(feedback)
         .innerJoin(submissions, eq(submissions.id, feedback.submissionId))
         .innerJoin(enrolments, eq(enrolments.id, submissions.enrolmentId))
-        .innerJoin(profiles, eq(profiles.id, enrolments.studentId))
-        .innerJoin(authUsers, eq(authUsers.id, enrolments.studentId))
         .innerJoin(counterparts, eq(counterparts.id, feedback.coachId))
         .innerJoin(libraryItems, eq(libraryItems.id, submissions.libraryItemId))
-        .leftJoin(notifications, sentLogFor("feedback_ready", feedback.id))
-        .where(and(gte(feedback.sentAt, since), hasDeliverableAddress, isNull(notifications.id)))
+        .$dynamic();
+      const rows = await recipient
+        .join(query)
+        .where(
+          and(
+            gte(feedback.sentAt, since),
+            recipient.deliverable,
+            notSent("feedback_ready", feedback.id),
+          ),
+        )
         .orderBy(asc(feedback.sentAt));
       return rows.map((row) => ({
         kind: "feedback_ready",
-        recipient: toRecipient(row),
+        recipient: toRecipient(row.recipient),
         feedbackId: row.feedbackId,
         submissionId: row.submissionId,
         coachFirstName: firstName(row.coachName),
@@ -128,34 +162,33 @@ export function createNotificationQueue(db: Db): NotificationQueue {
     },
 
     async dueNewSubmission(since) {
-      const rows = await db
+      const recipient = recipientOf(enrolments.coachId);
+      const query = db
         .select({
+          recipient: recipient.fields,
           submissionId: submissions.id,
-          userId: enrolments.coachId,
-          email: authUsers.email,
-          displayName: profiles.displayName,
           studentName: counterparts.displayName,
           exerciseTitle: libraryItems.title,
         })
         .from(submissions)
         .innerJoin(enrolments, eq(enrolments.id, submissions.enrolmentId))
-        .innerJoin(profiles, eq(profiles.id, enrolments.coachId))
-        .innerJoin(authUsers, eq(authUsers.id, enrolments.coachId))
         .innerJoin(counterparts, eq(counterparts.id, enrolments.studentId))
         .innerJoin(libraryItems, eq(libraryItems.id, submissions.libraryItemId))
-        .leftJoin(notifications, sentLogFor("new_submission", submissions.id))
+        .$dynamic();
+      const rows = await recipient
+        .join(query)
         .where(
           and(
             eq(submissions.status, "awaiting_review"),
             gte(submissions.submittedAt, since),
-            hasDeliverableAddress,
-            isNull(notifications.id),
+            recipient.deliverable,
+            notSent("new_submission", submissions.id),
           ),
         )
         .orderBy(asc(submissions.submittedAt));
       return rows.map((row) => ({
         kind: "new_submission",
-        recipient: toRecipient(row),
+        recipient: toRecipient(row.recipient),
         submissionId: row.submissionId,
         studentFirstName: firstName(row.studentName),
         exerciseTitle: row.exerciseTitle,
@@ -163,7 +196,7 @@ export function createNotificationQueue(db: Db): NotificationQueue {
     },
 
     async duePracticeReminders(periodStart) {
-      const weekBegan = new Date(`${periodStart}T00:00:00Z`);
+      const recipient = recipientOf(enrolments.studentId);
       const takeThisWeek = db
         .select({ id: submissions.id })
         .from(submissions)
@@ -171,45 +204,37 @@ export function createNotificationQueue(db: Db): NotificationQueue {
         .where(
           and(
             eq(takeEnrolments.studentId, enrolments.studentId),
-            gte(submissions.submittedAt, weekBegan),
+            gte(submissions.submittedAt, startOfIsoDate(periodStart)),
           ),
         );
-      const waitingExercises = db
-        .select({ waiting: count() })
-        .from(assignments)
-        .leftJoin(submissions, eq(submissions.assignmentId, assignments.id))
-        .where(and(eq(assignments.enrolmentId, enrolments.id), isNull(submissions.id)));
-      const rows = await db
+      const taken = db
+        .select({ id: submissions.id })
+        .from(submissions)
+        .where(eq(submissions.assignmentId, assignments.id));
+      const query = db
         .select({
-          userId: enrolments.studentId,
-          email: authUsers.email,
-          displayName: profiles.displayName,
-          // The builder selects no scalar subquery; one row per student needs the count in place.
-          waitingCount: sql<number>`(${waitingExercises})`.mapWith(Number),
+          recipient: recipient.fields,
+          waitingCount: db.$count(
+            assignments,
+            and(eq(assignments.enrolmentId, enrolments.id), notExists(taken)),
+          ),
         })
         .from(enrolments)
-        .innerJoin(profiles, eq(profiles.id, enrolments.studentId))
-        .innerJoin(authUsers, eq(authUsers.id, enrolments.studentId))
-        .leftJoin(
-          notifications,
-          and(
-            eq(notifications.kind, "practice_reminder"),
-            eq(notifications.userId, enrolments.studentId),
-            eq(notifications.periodStart, periodStart),
-          ),
-        )
+        .$dynamic();
+      const rows = await recipient
+        .join(query)
         .where(
           and(
             eq(enrolments.status, "active"),
-            hasDeliverableAddress,
-            isNull(notifications.id),
+            recipient.deliverable,
+            notRemindedFor(enrolments.studentId, periodStart),
             notExists(takeThisWeek),
           ),
         )
         .orderBy(asc(enrolments.startedAt));
       return rows.map((row) => ({
         kind: "practice_reminder",
-        recipient: toRecipient(row),
+        recipient: toRecipient(row.recipient),
         periodStart,
         waitingCount: row.waitingCount,
       }));

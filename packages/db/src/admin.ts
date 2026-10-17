@@ -1,7 +1,8 @@
 export { magicLinkTokenFor } from "./authAdmin";
 export { connectionSettingsFromUrl, createAdminDb, type Db } from "./client";
-export { assertTestEnv, requireEnv, supabaseUrlFrom } from "./env";
+export { assertTestEnv, createAdminDbFromEnv, requireEnv, supabaseUrlFrom } from "./env";
 export {
+  type ClaimedNotification,
   createNotificationQueue,
   type DueNotification,
   type FeedbackReadyDue,

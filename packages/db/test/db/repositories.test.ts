@@ -21,7 +21,7 @@ import type { Repositories } from "../../src/repositories";
 import { events, feedback, mediaAssets, submissions } from "../../src/schema";
 import { CTO_EMAIL, FOUNDER_EMAIL } from "../../src/seed/alphaCast";
 import { fixtureUuid } from "../../src/seed/fixtureUuid";
-import { userIdByEmail } from "../../src/seed/userIdByEmail";
+import { requireUserIdByEmail } from "../../src/seed/userIdByEmail";
 
 const settings = connectionSettingsFromUrl(requireEnv("DATABASE_URL"));
 const startedAt = new Date();
@@ -63,16 +63,10 @@ async function markReady(mediaId: string, submissionId?: string) {
   }
 }
 
-async function userId(email: string): Promise<string> {
-  const id = await userIdByEmail(admin, email);
-  assert(id, `the seed created ${email}`);
-  return id;
-}
-
 beforeAll(async () => {
   admin = createAdminDb(settings);
-  founderId = await userId(FOUNDER_EMAIL);
-  ctoId = await userId(CTO_EMAIL);
+  founderId = await requireUserIdByEmail(admin, FOUNDER_EMAIL);
+  ctoId = await requireUserIdByEmail(admin, CTO_EMAIL);
   const repos = (sub?: string) =>
     createDrizzleRepositories(
       createUserDb(settings, sub === undefined ? { role: "anon" } : authenticatedClaims(sub)),

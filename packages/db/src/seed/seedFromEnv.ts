@@ -1,11 +1,10 @@
 import { createAuthAdmin } from "../authAdmin";
-import { connectionSettingsFromUrl, createAdminDb } from "../client";
-import { assertTestEnv, requireEnv } from "../env";
+import { assertTestEnv, createAdminDbFromEnv } from "../env";
 import { type SeedSummary, seedAlpha } from "./seedAlpha";
 
 /** Seeds the project the env selects, closing its admin client however the seed ends. */
 export async function seedFromEnv(): Promise<SeedSummary> {
-  const db = createAdminDb(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
+  const db = createAdminDbFromEnv();
   try {
     return await seedAlpha(db, createAuthAdmin());
   } finally {

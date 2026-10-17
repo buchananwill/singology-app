@@ -3,11 +3,10 @@ import { getTableName, is } from "drizzle-orm";
 import { PgTable } from "drizzle-orm/pg-core";
 import { authUsers } from "drizzle-orm/supabase";
 
-import { connectionSettingsFromUrl, createAdminDb } from "../src/admin";
-import { requireEnv } from "../src/env";
+import { createAdminDbFromEnv } from "../src/env";
 import * as schema from "../src/schema";
 
-const db = createAdminDb(connectionSettingsFromUrl(requireEnv("DATABASE_URL")));
+const db = createAdminDbFromEnv();
 try {
   const tables = [authUsers, ...Object.values(schema).filter((value) => is(value, PgTable))];
   const counts: string[] = [];
