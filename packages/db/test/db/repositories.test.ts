@@ -299,6 +299,9 @@ describe("the coaching loop", () => {
         (a) => a.libraryItemId === fixtureUuid("lib-breath-lip-trill") && a.status === "todo",
       ),
     ).toBe(true);
+    expect(assigned.filter((a) => a.feedbackId === feedbackId).map((a) => a.libraryItemId)).toEqual(
+      [fixtureUuid("lib-breath-lip-trill")],
+    );
   });
 
   it("rolls the whole review back when any part fails", async () => {

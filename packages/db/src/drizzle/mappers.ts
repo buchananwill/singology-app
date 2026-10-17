@@ -147,6 +147,7 @@ export function toAssignment(row: Row<typeof assignments>, status: AssignmentSta
     libraryItemId: row.libraryItemId,
     assignedAt: iso(row.assignedAt),
     status,
+    feedbackId: optional(row.feedbackId),
   };
 }
 

@@ -60,6 +60,7 @@ export function fixtureFeedback(state: FixtureState): FeedbackRepository {
           enrolmentId: enrolment.id,
           libraryItemId,
           assignedAt: state.nowIso,
+          feedbackId: feedback.id,
         })),
       );
       return structuredClone({ feedback, comments: commentsFor(feedback.id) });

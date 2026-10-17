@@ -1,7 +1,13 @@
 import type { Repositories } from "@singology/db";
-import { reviewActionSchemaFor, type ReviewMode, type Submission } from "@singology/shared";
+import {
+  type LibraryItem,
+  reviewActionSchemaFor,
+  type ReviewMode,
+  type Submission,
+} from "@singology/shared";
 import { data, type ShouldRevalidateFunctionArgs } from "react-router";
 
+import type { AssignableItem } from "../components/review/AssignChecklist";
 import type { ReviewActionResult } from "../components/review/reviewFetchers";
 import { ReviewWorkspace } from "../components/review/ReviewWorkspace";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
@@ -19,6 +25,10 @@ export const meta: Route.MetaFunction = ({ loaderData }) => [
 
 function reviewModeOf(submission: Submission): ReviewMode {
   return submission.status === "reviewed" ? "reviewed" : "reviewing";
+}
+
+function toAssignable({ id, title, category }: LibraryItem): AssignableItem {
+  return { id, title, category };
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {
@@ -48,11 +58,23 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     item,
   };
   if (reviewModeOf(submission) === "reviewed") {
-    const sent = await repositories.feedback.forSubmissionWithComments(submission.id);
+    const [sent, assignments] = await Promise.all([
+      repositories.feedback.forSubmissionWithComments(submission.id),
+      repositories.assignments.forStudent(enrolment.studentId),
+    ]);
     if (!take || !sent) {
       throw data("Feedback not found", { status: 404 });
     }
-    return { ...header, mode: "reviewed" as const, take, ...sent };
+    const assigned = await repositories.library.getMany(
+      assignments.filter((a) => a.feedbackId === sent.feedback.id).map((a) => a.libraryItemId),
+    );
+    return {
+      ...header,
+      mode: "reviewed" as const,
+      take,
+      ...sent,
+      assigned: assigned.map(toAssignable),
+    };
   }
   // Only a processing or failed take has no playable media yet.
   if (!take && submission.status === "awaiting_review") {
@@ -67,7 +89,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     mode: "reviewing" as const,
     take: take ?? null,
     previous,
-    library: library.map(({ id, title, category }) => ({ id, title, category })),
+    library: library.map(toAssignable),
   };
 }
 

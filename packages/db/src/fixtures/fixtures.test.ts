@@ -518,6 +518,9 @@ describe("createFixtureRepositories writes", () => {
     expect(
       assignments.some((a) => a.libraryItemId === "lib-onset-hum-to-vowel" && a.status === "todo"),
     ).toBe(true);
+    expect(
+      assignments.filter((a) => a.feedbackId === sent.feedback.id).map((a) => a.libraryItemId),
+    ).toEqual(["lib-onset-hum-to-vowel"]);
   });
 
   it("keeps each instance's writes to itself", async () => {

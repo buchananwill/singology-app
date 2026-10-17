@@ -188,6 +188,20 @@ describe("mappers", () => {
       "todo",
     );
     expect(AssignmentSchema.parse(assignment)).toEqual(assignment);
+    expect(assignment.feedbackId).toBeUndefined();
+    expect(
+      toAssignment(
+        {
+          id: uuid(9),
+          enrolmentId: uuid(6),
+          libraryItemId: uuid(7),
+          assignedAt: at,
+          feedbackId: uuid(11),
+          createdAt: at,
+        },
+        "todo",
+      ).feedbackId,
+    ).toBe(uuid(11));
 
     const submission = toSubmission({
       id: uuid(10),

@@ -191,6 +191,8 @@ export const AssignmentSchema = z.object({
   libraryItemId: IdSchema,
   assignedAt: IsoDateTimeSchema,
   status: AssignmentStatusSchema,
+  /** The feedback that assigned it; absent when seeded or assigned directly. */
+  feedbackId: IdSchema.optional(),
 });
 export type Assignment = z.infer<typeof AssignmentSchema>;
 
