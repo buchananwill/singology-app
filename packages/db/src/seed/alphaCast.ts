@@ -1,5 +1,6 @@
 export const FOUNDER_EMAIL = "liveandletfunk@gmail.com";
 export const CTO_EMAIL = "willwritescode@gmail.com";
+export const CTO_DISPLAY_NAME = "Singology CTO";
 
 /** The seeded users the e2e suite signs in as; `ben` is the cast's student-only user. */
 export const E2E_TESTERS = ["founder", "cto", "ben"] as const;
@@ -23,7 +24,7 @@ export const ALPHA_USERS: readonly CastMember[] = [
   { email: FOUNDER_EMAIL, displayName: "Singology founder", coachFixtureId: "coach-founder" },
   {
     email: CTO_EMAIL,
-    displayName: "Singology CTO",
+    displayName: CTO_DISPLAY_NAME,
     coachFixtureId: "coach-standard",
     studentFixtureId: "student-ada",
   },
