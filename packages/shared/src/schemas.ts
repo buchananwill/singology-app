@@ -130,6 +130,14 @@ export const ConfirmLinkSchema = z.object({
 });
 export type ConfirmLink = z.infer<typeof ConfirmLinkSchema>;
 
+export const EmailMessageSchema = z.object({
+  to: z.email(),
+  subject: z.string().min(1),
+  text: z.string().min(1),
+  html: z.string().min(1),
+});
+export type EmailMessage = z.infer<typeof EmailMessageSchema>;
+
 export const EnrolmentStatusSchema = z.enum(ENROLMENT_STATUSES);
 export type EnrolmentStatus = z.infer<typeof EnrolmentStatusSchema>;
 
