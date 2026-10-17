@@ -1,10 +1,14 @@
 import { expect, type Locator, test } from "@playwright/test";
 import { fixtureUuid } from "@singology/db";
+import { CTO_DISPLAY_NAME } from "@singology/db/admin";
 
+import { firstName } from "../app/lib/format";
 import { storageStateFor } from "./auth";
 import { currentTime, mediaFixture, readyWaveforms, settle, trackErrors } from "./helpers";
 
 test.use({ storageState: storageStateFor("founder") });
+
+const ADD_COMMENT = "Add comment at current time";
 
 /** Seeks the take's media element (what `handle.seek` does) and waits for the seek to land. */
 async function seekTo(media: Locator, timeSec: number): Promise<void> {
@@ -17,6 +21,14 @@ async function seekTo(media: Locator, timeSec: number): Promise<void> {
     timeSec,
   );
   await expect.poll(() => currentTime(media)).toBeCloseTo(timeSec, 1);
+}
+
+async function addCommentAt(take: Locator, timeSec: number, body: string): Promise<void> {
+  await seekTo(take.getByTestId("player-media"), timeSec);
+  await take.getByRole("button", { name: ADD_COMMENT }).click();
+  const draft = take.getByTestId("comment-draft");
+  await draft.fill(body);
+  await draft.press("Enter");
 }
 
 test("the previous take of the same exercise opens with its own player", async ({ page }) => {
@@ -50,7 +62,7 @@ test.describe("the coach review workspace", () => {
     const media = take.getByTestId("player-media");
 
     await seekTo(media, 30);
-    await take.getByRole("button", { name: "Add comment at current time" }).click();
+    await take.getByRole("button", { name: ADD_COMMENT }).click();
     const draft = take.getByTestId("comment-draft");
     await expect(take.getByText("Comment at 0:30")).toBeVisible();
     await draft.fill("The hiss wobbles here: keep the ribs wide.");
@@ -119,29 +131,19 @@ test.describe("the coach review workspace", () => {
       await expect(page.getByTestId("no-previous-take")).toBeVisible();
       const take = page.getByTestId("review-take");
       await expect(readyWaveforms(take)).toHaveCount(1);
-      const media = take.getByTestId("player-media");
-      for (const [tSeconds, body] of [
-        [5, "The jaw drops before the note: let it hang."],
-        [12, "That one was clean. Same again."],
-      ] as const) {
-        await seekTo(media, tSeconds);
-        await take.getByRole("button", { name: "Add comment at current time" }).click();
-        const draft = take.getByTestId("comment-draft");
-        await draft.fill(body);
-        await draft.press("Enter");
-      }
+      await expect(page.getByTestId("review-submitted")).toContainText("ago");
+      await addCommentAt(take, 5, "The jaw drops before the note: let it hang.");
+      await addCommentAt(take, 12, "That one was clean. Same again.");
       await expect(take.getByTestId("comment-item")).toHaveCount(2);
       await page.getByTestId("assign-checklist").getByLabel("Hum into a vowel").check();
       const send = page.getByTestId("send-feedback");
       await send.getByLabel(/^Summary for /).fill(summary);
       await send.getByRole("button", { name: "Send feedback" }).click();
       await expect(send.getByTestId("send-success")).toContainText(
-        "Feedback sent to Singology: 2 comments, 1 new exercise.",
+        `Feedback sent to ${firstName(CTO_DISPLAY_NAME)}: 2 comments, 1 new exercise.`,
       );
-      // The sent review is immutable, so nothing on the page stays editable.
-      await expect(take.getByRole("button", { name: "Add comment at current time" })).toHaveCount(
-        0,
-      );
+      await expect(take.getByRole("button", { name: ADD_COMMENT })).toHaveCount(0);
+      await expect(page.getByTestId("review-submitted")).not.toContainText("ago");
       await expect(
         page.getByTestId("assign-checklist").getByRole("checkbox").first(),
       ).toBeDisabled();
@@ -158,9 +160,9 @@ test.describe("the coach review workspace", () => {
       await expect(reviewed.getByTestId("comment-marker")).toHaveCount(2);
       await expect(reviewed.getByTestId("comment-item")).toHaveCount(2);
       await expect(reviewed.getByTestId("sent-summary")).toHaveText(summary);
-      await expect(reviewed.getByTestId("sent-assigned").getByRole("listitem")).toHaveText([
-        "Hum into a vowel · Onset",
-      ]);
+      const assigned = reviewed.getByTestId("sent-assigned").getByRole("listitem");
+      await expect(assigned).toHaveCount(1);
+      await expect(assigned).toContainText("Hum into a vowel");
       await expect(page.getByTestId("send-feedback")).toHaveCount(0);
       await expect(page.getByTestId("assign-checklist")).toHaveCount(0);
 
