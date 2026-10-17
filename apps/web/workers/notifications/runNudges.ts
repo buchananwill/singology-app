@@ -1,13 +1,14 @@
 import {
   createAdminDb,
   createNotificationQueue,
+  type Db,
   type DueNotification,
   type NotificationQueue,
 } from "@singology/db/admin";
-import { HOUR_MS, NUDGE_CRONS } from "@singology/shared";
+import { DAY_MS, errorMessage, isoWeekStart, NUDGE_CRONS } from "@singology/shared";
 
 import { nudgeEmail } from "./templates";
-import { createDryRunTransport, createResendTransport, type EmailTransport } from "./transport";
+import { type EmailTransport, transportFor } from "./transport";
 
 export interface NudgeRunSummary {
   cron: string;
@@ -17,10 +18,17 @@ export interface NudgeRunSummary {
   failed: number;
 }
 
-/** `RESEND_API_KEY` is a secret, absent until the sending domain exists. */
-export type NudgeEnv = Pick<Env, "HYPERDRIVE" | "EMAIL_FROM" | "APP_ORIGIN"> & {
-  RESEND_API_KEY?: string;
-};
+export interface NudgeRunResult {
+  summary: NudgeRunSummary;
+  errors: string[];
+}
+
+/**
+ * `RESEND_API_KEY` is a secret, absent until the sending domain exists. The vars widen to string
+ * because the generated literals would pin every caller to today's placeholder values.
+ */
+export type NudgeEnv = Pick<Env, "HYPERDRIVE"> &
+  Record<"EMAIL_FROM" | "APP_ORIGIN", string> & { RESEND_API_KEY?: string };
 
 export interface NudgeSender {
   queue: NotificationQueue;
@@ -28,27 +36,18 @@ export interface NudgeSender {
   origin: string;
 }
 
-type Outcome = "sent" | "skipped" | "failed";
+type Outcome = keyof Omit<NudgeRunSummary, "cron" | "due">;
 
 /** Feedback and takes older than this are never emailed, so an outage leaves no backlog. */
-const LOOKBACK_MS = 7 * 24 * HOUR_MS;
+const LOOKBACK_MS = 7 * DAY_MS;
 
-export function transportFor(env: { RESEND_API_KEY?: string; EMAIL_FROM: string }): EmailTransport {
-  return env.RESEND_API_KEY
-    ? createResendTransport(env.RESEND_API_KEY, env.EMAIL_FROM)
-    : createDryRunTransport();
-}
-
-/** The Monday of `now`'s ISO week, in UTC, as an ISO date. */
-export function isoWeekStart(now: Date): string {
-  const daysSinceMonday = (now.getUTCDay() + 6) % 7;
-  const monday = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate() - daysSinceMonday,
-  );
-  return new Date(monday).toISOString().slice(0, 10);
-}
+const emptySummary = (cron: string): NudgeRunSummary => ({
+  cron,
+  due: 0,
+  sent: 0,
+  skipped: 0,
+  failed: 0,
+});
 
 async function dueFor(
   queue: NotificationQueue,
@@ -57,8 +56,13 @@ async function dueFor(
 ): Promise<DueNotification[] | null> {
   const since = new Date(now.getTime() - LOOKBACK_MS);
   switch (cron) {
-    case NUDGE_CRONS.frequent:
-      return [...(await queue.dueFeedbackReady(since)), ...(await queue.dueNewSubmission(since))];
+    case NUDGE_CRONS.frequent: {
+      const [feedbackReady, newSubmissions] = await Promise.all([
+        queue.dueFeedbackReady(since),
+        queue.dueNewSubmission(since),
+      ]);
+      return [...feedbackReady, ...newSubmissions];
+    }
     case NUDGE_CRONS.weekly:
       return queue.duePracticeReminders(isoWeekStart(now));
     default:
@@ -87,10 +91,16 @@ export async function sendNudges(
   sender: NudgeSender,
   cron: string,
   now: Date,
-): Promise<{ summary: NudgeRunSummary; errors: string[] }> {
-  const summary: NudgeRunSummary = { cron, due: 0, sent: 0, skipped: 0, failed: 0 };
+): Promise<NudgeRunResult> {
+  const summary = emptySummary(cron);
   const errors: string[] = [];
-  const due = await dueFor(sender.queue, cron, now);
+  let due: DueNotification[] | null;
+  try {
+    due = await dueFor(sender.queue, cron, now);
+  } catch (error) {
+    errors.push(`the due queries failed: ${errorMessage(error)}`);
+    return { summary, errors };
+  }
   if (due === null) {
     errors.push(`no nudge pass runs on cron "${cron}"`);
     return { summary, errors };
@@ -102,28 +112,29 @@ export async function sendNudges(
       summary[await deliver(sender, notification)] += 1;
     } catch (error) {
       summary.failed += 1;
-      errors.push(error instanceof Error ? error.message : String(error));
+      errors.push(errorMessage(error));
     }
   }
   return { summary, errors };
 }
 
 export async function runNudges(env: NudgeEnv, cron: string, now: Date): Promise<NudgeRunSummary> {
-  const db = createAdminDb(env.HYPERDRIVE);
-  const sender = {
-    queue: createNotificationQueue(db),
-    transport: transportFor(env),
-    origin: env.APP_ORIGIN,
-  };
-  let result: { summary: NudgeRunSummary; errors: string[] };
+  const result: NudgeRunResult = { summary: emptySummary(cron), errors: [] };
+  let db: Db | undefined;
   try {
-    result = await sendNudges(sender, cron, now);
+    db = createAdminDb(env.HYPERDRIVE);
+    const sender = {
+      queue: createNotificationQueue(db),
+      transport: transportFor(env),
+      origin: env.APP_ORIGIN,
+    };
+    Object.assign(result, await sendNudges(sender, cron, now));
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    result = { summary: { cron, due: 0, sent: 0, skipped: 0, failed: 0 }, errors: [reason] };
+    result.errors.push(errorMessage(error));
   } finally {
-    // The tick's outcome is already known; a pool that fails to close must not throw it away.
-    await db.$client.end().catch(() => undefined);
+    await db?.$client.end().catch((error: unknown) => {
+      result.errors.push(`the pool did not close: ${errorMessage(error)}`);
+    });
   }
   console.log(`nudges ${JSON.stringify({ ...result.summary, errors: result.errors })}`);
   return result.summary;

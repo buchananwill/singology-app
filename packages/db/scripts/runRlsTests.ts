@@ -8,6 +8,7 @@
 //   pnpm --filter @singology/db test:rls --mutate        convict every file by its mutations
 import { readdir, readFile } from "node:fs/promises";
 
+import { errorMessage } from "@singology/shared";
 import pg from "pg";
 
 import { connectionSettingsFromUrl } from "../src/admin";
@@ -65,8 +66,7 @@ async function runFile(
     );
     return parseTap(output);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return { planned: 0, passed: 0, failures: [], error: message };
+    return { planned: 0, passed: 0, failures: [], error: errorMessage(error) };
   } finally {
     await client.query("rollback");
   }

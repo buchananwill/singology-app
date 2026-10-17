@@ -2,6 +2,7 @@ import {
   type AssignmentStatus,
   type CoachTier,
   type Difficulty,
+  formatCount,
   type LibraryCategory,
   type MediaKind,
   MINUTE_MS,
@@ -57,10 +58,6 @@ function formatElapsed(ms: number, hoursUntilDays: number): string {
 
 export function formatSince(iso: string, nowMs: number, hoursUntilDays: number): string {
   return formatElapsed(nowMs - new Date(iso).getTime(), hoursUntilDays);
-}
-
-export function formatCount(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
 }
 
 export function formatTurnaround(hours: number): string {

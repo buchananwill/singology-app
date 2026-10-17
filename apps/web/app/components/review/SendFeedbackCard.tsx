@@ -1,7 +1,7 @@
 import { Box, Button, Card, Stack, Text, Textarea, Title } from "@mantine/core";
+import { formatCount } from "@singology/shared";
 import { href, Link } from "react-router";
 
-import { formatCount } from "../../lib/format";
 import { useHydrated } from "../../lib/useHydrated";
 import { SuccessState } from "../SuccessState";
 import type { ReviewSession } from "./useReviewSession";

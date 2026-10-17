@@ -1,9 +1,8 @@
-import { HOUR_MS, MINUTE_MS } from "@singology/shared";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "@singology/shared";
 import { describe, expect, it } from "vitest";
 
 import {
   formatBytes,
-  formatCount,
   formatDate,
   formatDuration,
   formatPence,
@@ -38,7 +37,7 @@ describe("format", () => {
     expect(formatSince(msAgo(12 * MINUTE_MS), nowMs, 72)).toBe("12 min ago");
     expect(formatSince(msAgo(60 * MINUTE_MS), nowMs, 72)).toBe("1 hour ago");
     expect(formatSince(msAgo(62 * HOUR_MS), nowMs, 72)).toBe("62 hours ago");
-    expect(formatSince(msAgo(12.5 * 24 * HOUR_MS), nowMs, 72)).toBe("12 days ago");
+    expect(formatSince(msAgo(12.5 * DAY_MS), nowMs, 72)).toBe("12 days ago");
   });
 
   it("switches from hours to days at the given threshold", () => {
@@ -51,12 +50,6 @@ describe("format", () => {
   it("formats the time since an ISO instant", () => {
     expect(formatSince("2026-09-20T22:00:00.000Z", nowMs, 72)).toBe("62 hours ago");
     expect(formatSince("2026-09-23T11:48:00.000Z", nowMs, 72)).toBe("12 min ago");
-  });
-
-  it("formats a count with its singular or plural noun", () => {
-    expect(formatCount(0, "comment", "comments")).toBe("0 comments");
-    expect(formatCount(1, "comment", "comments")).toBe("1 comment");
-    expect(formatCount(3, "exercise", "exercises")).toBe("3 exercises");
   });
 
   it("formats a turnaround in days when it is whole days, else in hours", () => {

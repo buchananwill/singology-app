@@ -1,5 +1,6 @@
 import { Anchor, Badge, Card, Container, Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import {
+  formatCount,
   LIBRARY_CATEGORIES,
   type LibraryFilter,
   LibraryFilterSchema,
@@ -9,7 +10,7 @@ import { href, Link } from "react-router";
 
 import { FilterRow } from "../components/library/FilterRow";
 import { meContext, repositoriesContext } from "../context";
-import { CATEGORY_LABEL, formatCount, VOICE_TYPE_LABEL } from "../lib/format";
+import { CATEGORY_LABEL, VOICE_TYPE_LABEL } from "../lib/format";
 import { holdsRole } from "../lib/roles";
 import { PageTitle } from "../components/shell/PageTitle";
 import type { Route } from "./+types/library";

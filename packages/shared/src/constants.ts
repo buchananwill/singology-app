@@ -48,10 +48,11 @@ export const NOTIFICATION_KINDS = [
   "practice_reminder",
 ] as const;
 
-/** The nudge sender's Cron Triggers by name; `wrangler.jsonc` lists the same two strings. */
+/** The nudge sender's Cron Triggers by name. */
 export const NUDGE_CRONS = { frequent: "*/5 * * * *", weekly: "0 9 * * 4" } as const;
 
 export const HLS_MIME_TYPE = "application/vnd.apple.mpegurl";
 
 export const MINUTE_MS = 60 * 1000;
 export const HOUR_MS = 60 * MINUTE_MS;
+export const DAY_MS = 24 * HOUR_MS;

@@ -1,12 +1,12 @@
 import { Button, Container, SimpleGrid, Stack, Table, Text, ThemeIcon, Title } from "@mantine/core";
-import type { CoachOffer } from "@singology/shared";
+import { type CoachOffer, formatCount } from "@singology/shared";
 import { href, Link } from "react-router";
 
 import { CoachCard } from "../components/CoachCard";
 import { Eyebrow } from "../components/landing/Eyebrow";
 import { HeroPanel } from "../components/landing/HeroPanel";
 import { repositoriesContext } from "../context";
-import { formatCount, formatPence } from "../lib/format";
+import { formatPence } from "../lib/format";
 import type { Route } from "./+types/home";
 
 export const meta: Route.MetaFunction = () => [

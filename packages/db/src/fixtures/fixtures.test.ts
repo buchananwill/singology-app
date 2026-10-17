@@ -3,6 +3,7 @@ import {
   CoachOfferSchema,
   CoachSchema,
   CollectionSchema,
+  DAY_MS,
   EnrolmentSchema,
   FeedbackCommentSchema,
   FeedbackSchema,
@@ -56,7 +57,7 @@ describe("fixture data", () => {
   });
 
   it("stores times as offsets from now, so every timestamp moves with now", () => {
-    const hundredDays = 100 * 24 * HOUR_MS;
+    const hundredDays = 100 * DAY_MS;
     const later = createFixtureData(new Date(TEST_NOW.getTime() + hundredDays));
     const shifted = (iso: string) => new Date(new Date(iso).getTime() + hundredDays).toISOString();
     expect(later.submissions.map((s) => s.submittedAt)).toEqual(
