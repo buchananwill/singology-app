@@ -1,36 +1,35 @@
-import { Button, Card, Group, Stack, Text } from "@mantine/core";
+import { Card, Group, Text } from "@mantine/core";
 import type { ReviewedQueueItem } from "@singology/db";
-import { href, Link } from "react-router";
 
-import { CATEGORY_LABEL, formatDate } from "../../lib/format";
+import { formatDate } from "../../lib/format";
+import { QueueItemSummary } from "./QueueItemSummary";
+import { ReviewLinkButton } from "./ReviewLinkButton";
 
-interface RecentlyReviewedCardProps {
+export interface RecentlyReviewedCardProps {
   reviewed: ReviewedQueueItem;
 }
 
 export function RecentlyReviewedCard({ reviewed }: RecentlyReviewedCardProps) {
-  const { submission, student, item, sentAt } = reviewed;
+  const { submission, student, item, mediaKind, sentAt } = reviewed;
   return (
     <Card padding="md" data-testid="reviewed-item">
       <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-        <Stack gap={0}>
-          <Text fw={600} data-testid="reviewed-student">
-            {student.displayName}
-          </Text>
-          <Text size="sm" c="dimmed">
-            {item.title} · {CATEGORY_LABEL[item.category]}
-          </Text>
+        <QueueItemSummary
+          student={student}
+          item={item}
+          mediaKind={mediaKind}
+          studentTestId="reviewed-student"
+        >
           <Text size="sm" c="dimmed" data-testid="reviewed-sent">
             Sent {formatDate(sentAt)}
           </Text>
-        </Stack>
-        <Button
-          component={Link}
-          to={href("/coach/reviews/:submissionId", { submissionId: submission.id })}
-          size="sm"
-        >
-          Open
-        </Button>
+        </QueueItemSummary>
+        <ReviewLinkButton
+          submissionId={submission.id}
+          label="Open"
+          studentName={student.displayName}
+          itemTitle={item.title}
+        />
       </Group>
     </Card>
   );

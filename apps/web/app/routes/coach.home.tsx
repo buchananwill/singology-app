@@ -1,21 +1,16 @@
-import { Badge, Button, Card, Container, Group, List, Stack, Text, Title } from "@mantine/core";
-import { reviewSla } from "@singology/shared";
-import { data, href, Link } from "react-router";
+import { Container, List, Stack, Text, Title } from "@mantine/core";
+import { data } from "react-router";
 
+import { QueueCard } from "../components/coach/QueueCard";
 import { RecentlyReviewedCard } from "../components/coach/RecentlyReviewedCard";
 import { PlainOrderedList } from "../components/PlainOrderedList";
 import { coachIdContext, repositoriesContext, requestTimeContext } from "../context";
-import {
-  CATEGORY_LABEL,
-  formatSince,
-  formatTimeLeft,
-  formatTurnaround,
-  MEDIA_KIND_LABEL,
-  SLA_COLOR,
-} from "../lib/format";
+import { formatTurnaround } from "../lib/format";
 import { useNow } from "../lib/useNow";
 import { PageTitle } from "../components/shell/PageTitle";
 import type { Route } from "./+types/coach.home";
+
+const RECENTLY_REVIEWED_LIMIT = 10;
 
 export const meta: Route.MetaFunction = () => [{ title: "Review queue | Singology" }];
 
@@ -25,7 +20,7 @@ export async function loader({ context }: Route.LoaderArgs) {
   const [coach, items, recent] = await Promise.all([
     repositories.coaches.get(coachId),
     repositories.submissions.queueViewForCoach(coachId),
-    repositories.submissions.recentlyReviewedForCoach(coachId, 10),
+    repositories.submissions.recentlyReviewedForCoach(coachId, RECENTLY_REVIEWED_LIMIT),
   ]);
   if (!coach) {
     throw data("The demo coach was not found", { status: 404 });
@@ -60,56 +55,11 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
           <Text>Nothing waiting for review. Well done.</Text>
         ) : (
           <PlainOrderedList spacing="sm">
-            {items.map(({ submission, student, item, mediaKind }) => {
-              const sla = reviewSla(submission.submittedAt, now, turnaroundHours);
-              return (
-                <List.Item key={submission.id}>
-                  <Card padding="md" data-testid="queue-item" data-sla={sla.state}>
-                    <Stack gap="xs">
-                      <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
-                        <Stack gap={0}>
-                          <Text fw={600} data-testid="queue-student">
-                            {student.displayName}
-                          </Text>
-                          <Text size="sm" c="dimmed">
-                            {item.title} · {CATEGORY_LABEL[item.category]} ·{" "}
-                            {MEDIA_KIND_LABEL[mediaKind]}
-                          </Text>
-                        </Stack>
-                        <Badge
-                          color={SLA_COLOR[sla.state]}
-                          variant="light"
-                          size="lg"
-                          tt="none"
-                          data-testid="queue-sla"
-                          flex="none"
-                        >
-                          {sla.state === "due_soon" && "Due soon: "}
-                          {formatTimeLeft(sla.remainingMs)}
-                        </Badge>
-                      </Group>
-                      {submission.note !== "" && (
-                        <Text size="sm" fs="italic" data-testid="queue-note">
-                          “{submission.note}”
-                        </Text>
-                      )}
-                      <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-                        <Text size="sm" c="dimmed" data-testid="queue-submitted">
-                          Submitted {formatSince(submission.submittedAt, now, turnaroundHours)}
-                        </Text>
-                        <Button
-                          component={Link}
-                          to={href("/coach/reviews/:submissionId", { submissionId: submission.id })}
-                          size="sm"
-                        >
-                          Review
-                        </Button>
-                      </Group>
-                    </Stack>
-                  </Card>
-                </List.Item>
-              );
-            })}
+            {items.map((queued) => (
+              <List.Item key={queued.submission.id}>
+                <QueueCard queued={queued} now={now} turnaroundHours={turnaroundHours} />
+              </List.Item>
+            ))}
           </PlainOrderedList>
         )}
 
@@ -118,7 +68,7 @@ export default function CoachQueue({ loaderData }: Route.ComponentProps) {
             Recently reviewed
           </Title>
           {recent.length === 0 ? (
-            <Text c="dimmed">Nothing reviewed yet.</Text>
+            <Text>Nothing reviewed yet.</Text>
           ) : (
             <PlainOrderedList spacing="sm">
               {recent.map((reviewed) => (
