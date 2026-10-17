@@ -45,7 +45,7 @@ const STEPS = [
   },
   {
     title: "Get timestamped feedback",
-    body: "Your coach listens properly and pins comments to the exact moments that matter, so you can hear what they mean. Then they set your next exercises.",
+    body: "Every take is heard start to finish, and each comment is pinned to the second it's about, so you hear exactly what your coach means. Then they set your next exercises.",
   },
 ] as const;
 
