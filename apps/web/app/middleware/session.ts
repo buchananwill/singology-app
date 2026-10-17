@@ -1,6 +1,7 @@
 import type { MiddlewareFunction } from "react-router";
 
-import { appendHeaders } from "../auth/appendHeaders";
+import { logAuthError } from "../auth/logAuthError";
+import { mergeSessionHeaders } from "../auth/mergeSessionHeaders";
 import { createSupabaseServerClient } from "../auth/supabase.server";
 import { claimsContext } from "../context";
 
@@ -10,8 +11,12 @@ export const sessionMiddleware: MiddlewareFunction<Response> = async (
   { request, context },
   next,
 ) => {
-  const headers = new Headers();
-  const { data } = await createSupabaseServerClient(request, headers).auth.getClaims();
+  const { client, headers } = createSupabaseServerClient(request);
+  const { data, error } = await client.auth.getClaims();
+  if (error !== null) {
+    // An invalid or expired session reads as anon; the log says why.
+    logAuthError("getClaims", error);
+  }
   context.set(
     claimsContext,
     data === null
@@ -19,6 +24,6 @@ export const sessionMiddleware: MiddlewareFunction<Response> = async (
       : { role: "authenticated", sub: data.claims.sub, email: data.claims.email },
   );
   const response = await next();
-  appendHeaders(response, headers);
+  mergeSessionHeaders(response, headers);
   return response;
 };

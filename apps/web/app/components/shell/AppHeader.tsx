@@ -3,7 +3,7 @@ import type { Me } from "@singology/shared";
 import { Form, href, Link } from "react-router";
 
 import { ROLE_LABEL } from "../../lib/format";
-import { homeFor, rolesOf } from "./navItems";
+import { homeFor, rolesOf } from "../../lib/roles";
 
 export interface AppHeaderProps {
   me: Me | null;

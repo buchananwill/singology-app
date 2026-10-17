@@ -37,7 +37,7 @@ export const meta: Route.MetaFunction = () => [
 
 // Media rows are readable only by a signed-in user they belong to (these are the seeded student
 // takes and demo video), so the page asks for a session rather than failing as anon.
-export const middleware: Route.MiddlewareFunction[] = [requireSignedIn()];
+export const middleware: Route.MiddlewareFunction[] = [requireSignedIn];
 
 export async function loader({ context }: Route.LoaderArgs) {
   const repositories = context.get(repositoriesContext);

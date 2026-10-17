@@ -1,4 +1,4 @@
-import type { Me } from "@singology/shared";
+import type { Me, UserRole } from "@singology/shared";
 import {
   data,
   href,
@@ -29,30 +29,28 @@ function signedInOrRedirect(context: Readonly<RouterContextProvider>): Me {
   return me;
 }
 
-export function requireSignedIn(): MiddlewareFunction<Response> {
+const ROLE_ID_CONTEXT = { student: studentIdContext, coach: coachIdContext } as const;
+
+const ROLE_REFUSAL = { student: "Not a student", coach: "Not a coach" } as const satisfies Record<
+  UserRole,
+  string
+>;
+
+// A signed-in user without the role is known and refused (403), not sent to sign in.
+function requireRole(role: UserRole): MiddlewareFunction<Response> {
   return ({ context }) => {
-    signedInOrRedirect(context);
+    const row = signedInOrRedirect(context)[role];
+    if (row === null) {
+      throw data(ROLE_REFUSAL[role], { status: 403 });
+    }
+    context.set(ROLE_ID_CONTEXT[role], row.id);
   };
 }
 
-/** A signed-in user without a student row is known and refused (403), not sent to sign in. */
-export function requireStudent(): MiddlewareFunction<Response> {
-  return ({ context }) => {
-    const { student } = signedInOrRedirect(context);
-    if (student === null) {
-      throw data("Not a student", { status: 403 });
-    }
-    context.set(studentIdContext, student.id);
-  };
-}
+export const requireSignedIn: MiddlewareFunction<Response> = ({ context }) => {
+  signedInOrRedirect(context);
+};
 
-/** A signed-in user without a coach row is known and refused (403), not sent to sign in. */
-export function requireCoach(): MiddlewareFunction<Response> {
-  return ({ context }) => {
-    const { coach } = signedInOrRedirect(context);
-    if (coach === null) {
-      throw data("Not a coach", { status: 403 });
-    }
-    context.set(coachIdContext, coach.id);
-  };
-}
+export const requireStudent = requireRole("student");
+
+export const requireCoach = requireRole("coach");

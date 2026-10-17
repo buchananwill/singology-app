@@ -20,6 +20,7 @@ import { href, Link } from "react-router";
 import { FilterRow } from "../components/library/FilterRow";
 import { meContext, repositoriesContext } from "../context";
 import { CATEGORY_LABEL, formatCount, VOICE_TYPE_LABEL } from "../lib/format";
+import { holdsRole } from "../lib/roles";
 import type { Route } from "./+types/library";
 
 export const meta: Route.MetaFunction = () => [{ title: "Exercise library | Singology" }];
@@ -48,11 +49,12 @@ function libraryHref(filter: LibraryFilter): string {
 export async function loader({ context, request }: Route.LoaderArgs) {
   const filter = readFilter(new URL(request.url).searchParams);
   const items = await context.get(repositoriesContext).library.list(filter);
+  const me = context.get(meContext);
   return {
     filter,
     items,
     // Exercise pages are student pages.
-    linkToExercises: context.get(meContext)?.student != null,
+    linkToExercises: me !== null && holdsRole(me, "student"),
   };
 }
 

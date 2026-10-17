@@ -10,7 +10,6 @@ export const repositoriesContext = createContext<Repositories>();
 /** Loaders send it to the page, so countdowns render on the server from the same instant. */
 export const requestTimeContext = createContext<Date>();
 
-/** The signed-in user and their roles; `null` when anonymous. */
 export const meContext = createContext<Me | null>(null);
 
 /** Set by the student layout from the signed-in user's student row. */

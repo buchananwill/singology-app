@@ -1,24 +1,22 @@
+import { ConfirmLinkSchema } from "@singology/shared";
 import { href, redirect } from "react-router";
 
+import { logAuthError } from "../auth/logAuthError";
 import { SIGN_IN_LINK_FAILED_HREF } from "../auth/signInLinkFailed";
 import { createSupabaseServerClient } from "../auth/supabase.server";
 import type { Route } from "./+types/auth.confirm";
 
-// The magic-link landing. Roles are read from the database on the next request, under the new
-// session's claims, so a confirmed link goes to /sign-in, which sends a signed-in user home.
+// Roles are read on the next request, under the new session's claims, so a confirmed link goes to
+// /sign-in, whose loader sends a signed-in user home.
 export async function loader({ request }: Route.LoaderArgs) {
-  const params = new URL(request.url).searchParams;
-  const tokenHash = params.get("token_hash");
-  const type = params.get("type");
-  if (tokenHash === null || type === null) {
+  const parsed = ConfirmLinkSchema.safeParse(Object.fromEntries(new URL(request.url).searchParams));
+  if (!parsed.success) {
     throw redirect(SIGN_IN_LINK_FAILED_HREF);
   }
-  const headers = new Headers();
-  const { error } = await createSupabaseServerClient(request, headers).auth.verifyOtp({
-    token_hash: tokenHash,
-    type,
-  });
+  const { client, headers } = createSupabaseServerClient(request);
+  const { error } = await client.auth.verifyOtp(parsed.data);
   if (error !== null) {
+    logAuthError("verifyOtp", error);
     throw redirect(SIGN_IN_LINK_FAILED_HREF);
   }
   throw redirect(href("/sign-in"), { headers });

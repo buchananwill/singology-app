@@ -12,21 +12,14 @@ import {
 } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import type { ReactNode } from "react";
-import {
-  isRouteErrorResponse,
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useLocation,
-} from "react-router";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLocation } from "react-router";
 
 import type { Route } from "./+types/root";
 import { AlphaBanner } from "./components/shell/AlphaBanner";
 import { AppHeader } from "./components/shell/AppHeader";
 import { RoleNav } from "./components/shell/RoleNav";
 import { meContext } from "./context";
+import { describeRouteError } from "./lib/describeRouteError";
 import { meMiddleware } from "./middleware/me";
 import { repositoriesMiddleware } from "./middleware/repositories";
 import { sessionMiddleware } from "./middleware/session";
@@ -86,29 +79,10 @@ export default function App({ loaderData }: Route.ComponentProps) {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Something went wrong";
-  let details = "An unexpected error occurred.";
-  let stack: string | undefined;
-
-  if (isRouteErrorResponse(error)) {
-    if (error.status === 404) {
-      message = "Page not found";
-      details = "The requested page could not be found.";
-    } else if (error.status === 403) {
-      message = "Not available to your account";
-      details = "This page is for a role your account does not hold.";
-    } else {
-      message = "Error";
-      details = error.statusText || details;
-    }
-  } else if (import.meta.env.DEV && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
-  }
-
+  const { title, details, stack } = describeRouteError(error, import.meta.env.DEV);
   return (
     <Container component="main" py="xl">
-      <Title order={1}>{message}</Title>
+      <Title order={1}>{title}</Title>
       <Text>{details}</Text>
       {stack && (
         <pre>
