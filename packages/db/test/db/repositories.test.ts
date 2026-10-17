@@ -299,7 +299,9 @@ describe("the coaching loop", () => {
     expect(await asCto.assignments.forFeedback(benReview)).toEqual([]);
     const adaReview = fixtureUuid("fb-ada-siren-1");
     const inOrder = [fixtureUuid("asg-ada-siren-2"), fixtureUuid("asg-ada-onset")];
-    expect((await asCto.assignments.forFeedback(adaReview)).map((a) => a.id)).toEqual(inOrder);
+    const fromAdaReview = await asCto.assignments.forFeedback(adaReview);
+    expect(fromAdaReview.map((a) => a.id)).toEqual(inOrder);
+    expect(fromAdaReview.map((a) => a.status)).toEqual(["feedback_ready", "submitted"]);
     expect((await asFounder.assignments.forFeedback(adaReview)).map((a) => a.id)).toEqual(inOrder);
   });
 

@@ -92,13 +92,16 @@ export async function loadCoaching(
 
   // Linked last: assignments, submissions and feedback reference each other in a cycle.
   const fromFeedback = groupBy(
-    fixtures.assignments.filter((assignment) => assignment.feedbackId !== undefined),
+    fixtures.assignments.filter(
+      (assignment): assignment is typeof assignment & { feedbackId: string } =>
+        assignment.feedbackId !== undefined,
+    ),
     (assignment) => assignment.feedbackId,
   );
   for (const [feedbackId, assigned] of fromFeedback) {
     await tx
       .update(assignments)
-      .set({ feedbackId: optionalUuid(feedbackId) })
+      .set({ feedbackId: fixtureUuid(feedbackId) })
       .where(
         inArray(
           assignments.id,

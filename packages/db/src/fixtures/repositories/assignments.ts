@@ -9,6 +9,7 @@ export function fixtureAssignments(state: FixtureState): AssignmentRepository {
     structuredClone(
       state.data.assignments
         .filter(matches)
+        // The array is in creation order, so the stable sort breaks a tie as `created_at` does.
         .toSorted((a, b) => a.assignedAt.localeCompare(b.assignedAt))
         .map((a) => ({ ...a, status: assignmentStatusFrom(state.data.submissions, a.id) })),
     );

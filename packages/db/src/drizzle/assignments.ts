@@ -1,7 +1,7 @@
-import type { AssignmentStatus, SubmissionStatus } from "@singology/shared";
-import { asc, eq, sql } from "drizzle-orm";
+import type { Assignment, AssignmentStatus, SubmissionStatus } from "@singology/shared";
+import { asc, eq, type SQL, sql } from "drizzle-orm";
 
-import type { UserDb } from "../client";
+import type { Transaction, UserDb } from "../client";
 import type { AssignmentRepository } from "../repositories";
 import { assignments, enrolments, submissions } from "../schema";
 import { toAssignment } from "./mappers";
@@ -20,26 +20,23 @@ const assignmentStatus = sql<AssignmentStatus>`case
   else ${"todo" satisfies AssignmentStatus}
 end`;
 
+async function assignmentsWhere(tx: Transaction, where: SQL): Promise<Assignment[]> {
+  // The join is load-bearing: Drizzle leaves columns unqualified in a single-table select, and
+  // the status subqueries would then read `submissions.id` for `assignments.id`.
+  const rows = await tx
+    .select({ assignment: assignments, status: assignmentStatus })
+    .from(assignments)
+    .innerJoin(enrolments, eq(enrolments.id, assignments.enrolmentId))
+    .where(where)
+    .orderBy(asc(assignments.assignedAt), asc(assignments.createdAt));
+  return rows.map((row) => toAssignment(row.assignment, row.status));
+}
+
 export function drizzleAssignments(db: UserDb): AssignmentRepository {
   return {
     forStudent: (studentId) =>
-      db(async (tx) => {
-        const rows = await tx
-          .select({ assignment: assignments, status: assignmentStatus })
-          .from(assignments)
-          .innerJoin(enrolments, eq(enrolments.id, assignments.enrolmentId))
-          .where(eq(enrolments.studentId, studentId))
-          .orderBy(asc(assignments.assignedAt), asc(assignments.createdAt));
-        return rows.map((row) => toAssignment(row.assignment, row.status));
-      }),
+      db((tx) => assignmentsWhere(tx, eq(enrolments.studentId, studentId))),
     forFeedback: (feedbackId) =>
-      db(async (tx) => {
-        const rows = await tx
-          .select({ assignment: assignments, status: assignmentStatus })
-          .from(assignments)
-          .where(eq(assignments.feedbackId, feedbackId))
-          .orderBy(asc(assignments.assignedAt), asc(assignments.createdAt));
-        return rows.map((row) => toAssignment(row.assignment, row.status));
-      }),
+      db((tx) => assignmentsWhere(tx, eq(assignments.feedbackId, feedbackId))),
   };
 }

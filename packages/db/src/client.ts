@@ -10,7 +10,9 @@ export type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 export type Claims = { role: "anon" } | { role: "authenticated"; sub: string; email?: string };
 
-export function authenticatedClaims(sub: string, email?: string): Claims {
+export type AuthenticatedClaims = Extract<Claims, { role: "authenticated" }>;
+
+export function authenticatedClaims(sub: string, email?: string): AuthenticatedClaims {
   return email === undefined
     ? { role: "authenticated", sub }
     : { role: "authenticated", sub, email };
