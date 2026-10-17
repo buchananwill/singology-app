@@ -17,7 +17,8 @@
     "supabase": "tsx scripts/supabaseCli.ts",
     "seed": "tsx src/seed/seedCli.ts",
     "seed:counts": "tsx scripts/seedCounts.ts",
-    "who-is": "tsx scripts/whoIs.ts"
+    "who-is": "tsx scripts/whoIs.ts",
+    "sent-log": "tsx scripts/sentLog.ts"
   },
   "dependencies": {
     "@singology/shared": "workspace:^",
