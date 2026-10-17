@@ -43,8 +43,11 @@ test("uploading a take shows its details, then the success state", async ({
   await panel.getByRole("button", { name: "Send to your coach" }).click();
   await expect(panel.getByTestId("upload-progress")).toBeVisible();
 
-  await expect(panel.getByTestId("upload-success")).toContainText("student-take-a.m4a");
-  await expect(page.locator(".mantine-Notification-root")).toContainText("Recording sent");
+  // Nothing is saved until uploads land, and the panel says so.
+  await expect(panel.getByTestId("upload-success")).toContainText(
+    "Your recording passed the checks. Uploads start saving in the next alpha release.",
+  );
+  await expect(page.locator(".mantine-Notification-root")).toContainText("Recording checked");
 
   expect(errors).toEqual([]);
 });

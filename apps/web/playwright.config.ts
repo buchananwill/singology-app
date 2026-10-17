@@ -16,10 +16,27 @@ export default defineConfig({
     baseURL: `http://localhost:${PREVIEW_PORT}`,
     trace: "retain-on-failure",
   },
+  // Tests tagged `@writes` change the seeded data, so they run once, after every reader has run.
   projects: [
     { name: "setup", testMatch: /auth\.setup\.ts$/ },
-    { name: "chromium", use: { ...devices["Desktop Chrome"] }, dependencies: ["setup"] },
-    { name: "webkit", use: { ...devices["Desktop Safari"] }, dependencies: ["setup"] },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
+      grepInvert: /@writes/,
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+      dependencies: ["setup"],
+      grepInvert: /@writes/,
+    },
+    {
+      name: "writes",
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["chromium", "webkit"],
+      grep: /@writes/,
+    },
   ],
   webServer: {
     // `wrangler dev`, not `vite preview`: its proxy exhausts Windows ephemeral ports.
