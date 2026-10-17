@@ -54,15 +54,13 @@ export default tseslint.config(
       "packages/db/**",
       // The scheduled sender; no request, no user.
       "apps/web/workers/notifications/**",
-      // The nudge templates take the queue's due types; they make no database call.
-      "apps/web/workers/email/templates*.ts",
       // Test code: the e2e suite mints sign-in tokens against the test project.
       "apps/web/e2e/**",
       // Tooling run from a shell, never served by the Worker.
       "apps/web/scripts/**",
     ],
     rules: {
-      "no-restricted-imports": [
+      "@typescript-eslint/no-restricted-imports": [
         "error",
         {
           paths: [
@@ -70,6 +68,8 @@ export default tseslint.config(
               name: "@singology/db/admin",
               message:
                 "adminDb bypasses RLS: import it only from a site allowed in eslint.config.js.",
+              // A type import carries no privilege; it vanishes at compile time.
+              allowTypeImports: true,
             },
           ],
         },
