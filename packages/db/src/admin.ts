@@ -6,5 +6,6 @@ export {
   type DueNotification,
   type NotificationQueue,
 } from "./notificationQueue";
+export { notifications } from "./schema";
 export { CTO_DISPLAY_NAME, E2E_EMAILS, E2E_TESTERS, type E2eTester } from "./seed/alphaCast";
 export { reseedTestProject } from "./seed/seedFromEnv";
