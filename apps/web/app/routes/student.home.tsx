@@ -88,7 +88,7 @@ export default function StudentHome({ loaderData }: Route.ComponentProps) {
             Your exercises
           </Title>
           {thisWeek.map(({ assignment, item, submissionId }) => (
-            <Card key={assignment.id} withBorder padding="md" data-testid="assignment">
+            <Card key={assignment.id} padding="md" data-testid="assignment">
               <Group justify="space-between" wrap="nowrap" align="flex-start">
                 <Stack gap="xxs">
                   <Anchor

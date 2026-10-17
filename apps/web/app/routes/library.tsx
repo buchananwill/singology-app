@@ -82,7 +82,7 @@ export default function Library({ loaderData }: Route.ComponentProps) {
 
         <SimpleGrid cols={{ base: 1, sm: 2 }}>
           {items.map((item) => (
-            <Card key={item.id} withBorder padding="md" data-testid="library-item">
+            <Card key={item.id} padding="md" data-testid="library-item">
               <Stack gap="xxs">
                 <Group justify="space-between" wrap="nowrap" align="flex-start">
                   {linkToExercises ? (
