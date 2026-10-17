@@ -23,15 +23,16 @@ The document fixes the roster (§1) and the decisions (§2). Declarations are fi
 - `createNotificationQueue(adminDb)` returning `NotificationQueue`:
 
 ```ts
-export interface DueNotification {
-  kind: NotificationKind;
+// AMENDED (pitfall 26): a union on kind, so each template receives exactly what it needs.
+export interface Recipient {
   userId: string;
   email: string;
-  entityId?: string;
-  periodStart?: string; // ISO date
-  link: { submissionId: string } | { exerciseIds: string[] };
   displayName: string;
 }
+export type DueNotification =
+  | { kind: "feedback_ready"; recipient: Recipient; coachFirstName: string; exerciseTitle: string; submissionId: string }
+  | { kind: "new_submission"; recipient: Recipient; studentFirstName: string; exerciseTitle: string; submissionId: string }
+  | { kind: "practice_reminder"; recipient: Recipient; waitingCount: number; periodStart: string };
 export interface NotificationQueue {
   dueFeedbackReady(since: Date): Promise<DueNotification[]>;
   dueNewSubmission(since: Date): Promise<DueNotification[]>;
@@ -44,7 +45,7 @@ export interface NotificationQueue {
 
 **`apps/web/workers/notifications/`, new**
 
-- `transport.ts` — `EmailTransport` (`send(message: EmailMessage): Promise<{ id: string }>`), `createResendTransport(apiKey, from)`, `createDryRunTransport()`.
+- `transport.ts` — `EmailTransport` (`send(message: EmailMessage, idempotencyKey: string): Promise<{ id: string }>`; *AMENDED, pitfall 27:* the claimed notification's id travels as the second argument, since the Resend header and the dry-run id both need it), `createResendTransport(apiKey, from)`, `createDryRunTransport()`.
 - `templates.ts` — `feedbackReadyEmail(due, origin)`, `newSubmissionEmail(due, origin)`, `practiceReminderEmail(due, origin)`, each returning `EmailMessage`.
 - `runNudges.ts` — `runNudges(env, cron, now): Promise<NudgeRunSummary>`; the handler body.
 - `workers/app.ts` — gains `scheduled(controller, env, ctx)` calling `runNudges`.
@@ -75,7 +76,7 @@ export interface NotificationQueue {
 7. **Feedback-ready:** every `feedback` row with `sent_at >= since` (the last 7 days) whose submission's student has no `notifications` row with `kind = 'feedback_ready'` and `entity_id = feedback.id`; recipient the student; link the student's submission page.
 8. **New-submission:** every `submissions` row with `status = 'awaiting_review'` and `submitted_at >= since` (the last 7 days) whose enrolment's coach has no `notifications` row with `kind = 'new_submission'` and `entity_id = submission.id`; recipient the coach; link the review page.
 9. **Practice reminder:** every student with an active enrolment and no submission with `submitted_at >= period_start`, where `period_start` is the Monday of the current ISO week (UTC), and no `notifications` row with `kind = 'practice_reminder'`, that `user_id` and that `period_start`; recipient the student; link the student home; the seven-day bound in 7 and 8 means a backlog older than a week is never emailed after an outage.
-10. **Recipient addresses come from `auth.users.email` through `authUsers` from `drizzle-orm/supabase` under `adminDb`**, because `profiles` deliberately holds no email; the queue returns `email` and `displayName` together so the sender needs no second lookup.
+10. **Recipient addresses come from `auth.users.email` through `authUsers` from `drizzle-orm/supabase` under `adminDb`**, because `profiles` deliberately holds no email; the queue returns `email` and `displayName` together so the sender needs no second lookup. *AMENDED (review):* the queue excludes addresses on the seed's placeholder domain (`PLACEHOLDER_EMAIL_DOMAIN`, one constant shared with the seed), so the fixture cast never receives a real email once the Resend key is live.
 11. **`since` and `periodStart` are computed by `runNudges` from the tick's `now`** (`controller.scheduledTime`) and passed in, so the queue has no clock and the integration tests pin time.
 
 ### Transport
