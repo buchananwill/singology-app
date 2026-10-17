@@ -20,6 +20,9 @@ export const ASSIGNMENT_STATUSES = ["todo", "submitted", "feedback_ready"] as co
 /** `processing` until the media job has peaks; `failed` when it could not make them. */
 export const SUBMISSION_STATUSES = ["processing", "awaiting_review", "reviewed", "failed"] as const;
 
+/** The review workspace's two faces: sent feedback is immutable, so `reviewed` is read-only. */
+export const REVIEW_MODES = ["reviewing", "reviewed"] as const;
+
 /** In ascending order: a sort by difficulty follows this array. */
 export const DIFFICULTIES = ["beginner", "improver", "intermediate", "advanced"] as const;
 

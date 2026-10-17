@@ -12,6 +12,7 @@ import {
   MEDIA_STORES,
   NOTIFICATION_KINDS,
   OFFER_BILLING,
+  REVIEW_MODES,
   SUBMISSION_STATUSES,
   TAG_KINDS,
   USER_ROLES,
@@ -195,6 +196,9 @@ export type Assignment = z.infer<typeof AssignmentSchema>;
 
 export const SubmissionStatusSchema = z.enum(SUBMISSION_STATUSES);
 export type SubmissionStatus = z.infer<typeof SubmissionStatusSchema>;
+
+export const ReviewModeSchema = z.enum(REVIEW_MODES);
+export type ReviewMode = z.infer<typeof ReviewModeSchema>;
 
 export const SubmissionSchema = z.object({
   id: IdSchema,

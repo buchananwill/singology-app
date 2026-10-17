@@ -1,8 +1,8 @@
 import type { FeedbackComment } from "@singology/shared";
 
-/** Page-local to the review workspace, seeded from the loader; nothing persists. */
+/** Page-local to the review form until the whole review is sent. */
 export interface ReviewState {
-  /** The existing feedback's id, or a draft id. */
+  /** A page-local key for draft comments; never sent. */
   feedbackId: string;
   /** Sorted by time, so list numbers match the waveform markers. */
   comments: readonly FeedbackComment[];

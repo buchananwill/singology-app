@@ -3,11 +3,11 @@ import type { RecordingUpload, SendFeedback } from "@singology/shared";
 import type { Dispatch } from "react";
 import { href, Link, useFetcher } from "react-router";
 
-import type { MessageResult } from "../../lib/actionResult";
 import { formatCount } from "../../lib/format";
 import { useActionNotification } from "../../lib/useActionNotification";
 import { useHydrated } from "../../lib/useHydrated";
 import { SuccessState } from "../SuccessState";
+import type { ReviewActionResult } from "./reviewFetchers";
 import type { ReviewEvent, ReviewState } from "./reviewReducer";
 
 export interface SendFeedbackCardProps {
@@ -15,17 +15,20 @@ export interface SendFeedbackCardProps {
   dispatch: Dispatch<ReviewEvent>;
   reply: RecordingUpload | null;
   studentFirstName: string;
+  /** Lets the page read the send's result with `useFetcher({ key })`. */
+  fetcherKey: string;
 }
 
-/** Posts the whole review as JSON to the route action, which saves nothing. */
+/** Posts the whole review as JSON to the route action, which persists it in one go. */
 export function SendFeedbackCard({
   review,
   dispatch,
   reply,
   studentFirstName,
+  fetcherKey,
 }: SendFeedbackCardProps) {
   const hydrated = useHydrated();
-  const fetcher = useFetcher<MessageResult>();
+  const fetcher = useFetcher<ReviewActionResult>({ key: fetcherKey });
   const result = useActionNotification(fetcher, "Feedback sent");
   const sent = result?.ok === true;
 
@@ -48,9 +51,9 @@ export function SendFeedbackCard({
           Send feedback
         </Title>
         {sent ? (
-          <SuccessState title="Feedback sent" message={result.message} testId="send-success">
+          <SuccessState title="Sent" message={result.message} testId="send-success">
             <Button component={Link} to={href("/coach")} variant="light">
-              Back to the review queue
+              Back to the queue
             </Button>
           </SuccessState>
         ) : (
