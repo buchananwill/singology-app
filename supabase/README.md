@@ -18,6 +18,8 @@
 
 Until S6 wires Resend, `pnpm -s --filter @singology/web sign-in-link <email> [--origin <app origin>]` prints a single-use sign-in URL for a seeded user (dev by default, `SINGOLOGY_ENV=test` for the test project).
 
+Emailed links go through the Worker's Send Email Auth Hook once `RESEND_API_KEY` is set: in Authentication > Hooks add a Send Email hook of type HTTPS pointing at `<APP_ORIGIN>/api/auth/send-email`, generate its secret there, store it with `pnpm --filter @singology/web exec wrangler secret put SEND_EMAIL_HOOK_SECRET` (and in `apps/web/.dev.vars` for local runs), then enable the hook; until the secret is set the route answers 503 and Supabase reports the failure.
+
 ## Day to day
 
 Day to day: change the schema, `generate`, then `supabase db push`. Never `drizzle-kit push` or
