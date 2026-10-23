@@ -35,4 +35,4 @@ WP1 to WP5 run in parallel. WP6 is the lead's work and waits for all five. WP7 w
 
 ## Standing corrections
 
-(none yet)
+- **2026-10-23, from the founder's last meeting** ([gtm-journal-03.md](./gtm-journal-03.md) D94 to D96): the library is original or non-copyright material only, at least initially (narrows proposal §4's PRS option); the platform is permanently 1:1 with no sharing or feeds of recordings; streaks and leaderboards are a long-term, supplementary roadmap item.

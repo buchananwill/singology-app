@@ -6,7 +6,7 @@ status: active
 
 # Singology Slice: Session 2 Journal
 
-**This is the head of the thread**, continuing [session 1](./gtm-journal-01.md). Decisions continue at 42 and findings at F22.
+*No longer the head of the thread: [session 3](./gtm-journal-03.md) is (2026-10-23).* Continuing [session 1](./gtm-journal-01.md). Decisions continue at 42 and findings at F22.
 
 ## Reading order for a fresh context
 

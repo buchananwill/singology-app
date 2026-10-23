@@ -33,3 +33,11 @@ The CTO is leading the build and owns its architecture decisions. They asked for
 2. **Copyright.** What legal considerations apply when students record and share popular copyrighted *compositions* **privately**? Is there a safe carve-out when recordings are educational and viewable only behind authenticated access? Does the position change if recordings include *re-recordings* of copyrighted recordings (original hits, backing tracks)? Does the choice of platform affect it?
 3. **Client stack.** The CTO favours web-first: easier to iterate, roll out, demo, update and standardise. "The value is the remote, asynchronous relationship, not the technology per se." They have no budget for a dedicated Mac and iPhone. They currently build an Android app in Kotlin Multiplatform. **They explicitly want the counter-argument, not confirmation bias.** They are averse to Apple by habit and want the positive case for iOS/native they won't see for themselves, bearing in mind that many musicians have iPhones.
 4. **Registration, auth, billing.** Assumed: we own a standalone core database (teacher/student tables, billing status, lesson notes/messages, educational tracking) regardless of media backend. Billing through a third party such as Stripe. We never directly handle financial personal data.
+
+## Founder meeting (2026-10-16)
+
+As reported by the CTO.
+
+1. **The library is free of copyright risk, at least at first.** Its core content is non-copyright or Singology's own material: scales, technical exercises. No IP hazard.
+2. **The platform is 1:1 asynchronous coaching, always.** Recordings pass between a student and their coach only. No sharing of recordings between students, and no social-media-style feeds of recordings.
+3. **Habit-forming features come later, as a supplement.** In the long term, the founder wants nudges such as streaks, or leaderboards of completed exercises and collections, to make the platform more appealing and keep students coming back. They always sit beside the 1:1 coaching relationship and never replace it.
