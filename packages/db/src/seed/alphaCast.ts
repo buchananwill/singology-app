@@ -1,6 +1,6 @@
 import { placeholderEmail } from "../placeholderEmail";
 
-export const FOUNDER_EMAIL = "liveandletfunk@gmail.com";
+export const FOUNDER_EMAIL = "mark@de-lisser.com";
 export const CTO_EMAIL = "willwritescode@gmail.com";
 export const CTO_DISPLAY_NAME = "Singology CTO";
 
